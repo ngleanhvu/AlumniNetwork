@@ -1,13 +1,26 @@
 package com.finalterm.alumninetwork.controller;
 
+import com.finalterm.alumninetwork.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Controller
+@ControllerAdvice
 public class IndexController {
+    @Autowired
+    UserService userService;
+
     @GetMapping("/")
-    public String index() {
+    public String indexPage() {
         return "index";
+    }
+    @ModelAttribute
+    public void commonResponses(Model model) {
+        model.addAttribute("user", this.userService.getAllAdmin());
     }
 }

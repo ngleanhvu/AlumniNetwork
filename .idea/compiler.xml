@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="AlumniNetwork" options="-endorseddirs $PROJECT_DIR$/target/endorsed" />
+      <module name="AlumniNetwork" options="-endorseddirs D:\SpringBootProject\AlumniSocialMedia\AlumniNetwork\target/endorsed" />
     </option>
   </component>
 </project>

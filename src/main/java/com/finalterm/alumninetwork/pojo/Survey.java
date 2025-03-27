@@ -50,6 +50,7 @@ public class Survey implements Serializable {
     @ManyToOne(optional = false)
     private User user;
 
+    
     public Survey() {
     }
 

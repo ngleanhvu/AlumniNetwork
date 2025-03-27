@@ -20,7 +20,6 @@ import java.io.Serializable;
         @NamedQuery(name = "PostImage.findById", query = "SELECT p FROM PostImage p WHERE p.id = :id"),
         @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url")})
 public class PostImage implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +34,12 @@ public class PostImage implements Serializable {
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Post post;
+
+
+    public PostImage(String url, Post post) {
+        this.url = url;
+        this.post = post;
+    }
 
     public PostImage() {
     }
@@ -94,7 +99,7 @@ public class PostImage implements Serializable {
 
     @Override
     public String toString() {
-        return "com.finalterm.alumninetwork.pojo.PostImage[ id=" + id + " ]";
+        return this.url;
     }
 
 }

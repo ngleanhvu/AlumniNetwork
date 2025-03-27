@@ -1,0 +1,45 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Post</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<section class="container">
+
+    <h3 class="d-flex justify-content-center fw-bold font-monospace p-3" >Manage Post</h3>
+
+
+    <table class="table">
+        <tr>
+            <th>User</th>
+            <th>Content</th>
+            <th>Images</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="p: ${posts}">
+            <td th:text="${p.user}"></td>
+            <td th:text="${p.content}"></td>
+            <td>
+                <table th:if="${not #lists.isEmpty(p.images)}">
+                    <tr th:each="image : ${p.images}">
+                        <td>
+                            <img th:src="${image.url}" alt="Ảnh bài viết" width="100"/>
+                        </td>
+                    </tr>
+                </table>
+                <span th:if="${#lists.isEmpty(p.images)}">Không có ảnh</span>
+            </td>
+            <td>
+                <a th:href="@{/posts/admin/delete/{id}(id=${p.id})}" class="btn btn-danger"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này?')">Xóa</a>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>

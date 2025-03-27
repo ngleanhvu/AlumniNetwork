@@ -1,0 +1,57 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Trang chủ</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<main class="container">
+
+    <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Add more event</h2>
+
+    <form th:action="@{/events/admin/add}" th:object="${event}" method="post">
+        <div class="mb-3 mt-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control mt-1" th:field="*{title}" placeholder="Event title" />
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Content</label>
+            <textarea class="form-control" th:field="*{content}" required></textarea>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control mt-1" th:field="*{description}" placeholder="Description" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Start time</label>
+            <input id="startTime" class="form-control" type="datetime-local" th:field="*{startTime}" placeholder="Start date"/>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">End time</label>
+            <input id="endTime" class="form-control" type="datetime-local" th:field="*{endTime}" placeholder="End date" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">URL Zoom:</label>
+            <input type="text" class="form-control" th:field="*{urlZoom}" placeholder="URL Zoom" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Admin:</label>
+            <select class="form-select" th:field="*{user.id}">
+                <option th:each="u :${user}" th:value="${u.id}" th:text="${u.username}"></option>
+            </select>
+        </div>
+<!--        <input type="hidden" th:field="*{id}" />-->
+        <button type="submit" class="btn btn-success">Thêm event</button>
+
+    </form>
+
+</main>
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>

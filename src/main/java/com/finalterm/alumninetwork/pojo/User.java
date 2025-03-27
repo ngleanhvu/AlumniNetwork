@@ -67,7 +67,8 @@ public class User implements Serializable {
     private String phone;
     @Size(max = 8)
     @Column(name = "role")
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
     @Size(max = 255)
     @Column(name = "avatar")
     private String avatar;
@@ -147,11 +148,11 @@ public class User implements Serializable {
         this.phone = phone;
     }
 
-    public String getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
 
@@ -217,7 +218,7 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return "com.finalterm.alumninetwork.pojo.User[ id=" + id + " ]";
+        return "User: " + username;
     }
 
 }

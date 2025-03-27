@@ -1,0 +1,42 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Post</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<section class="container">
+
+    <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Manage Event</h2>
+    <hr />
+    <div class="d-flex justify-content-end">
+        <a  th:href="@{/events/admin/add}" class="btn btn-success">Add more event</a>
+    </div>
+    <hr />
+
+    <table class="table">
+        <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="e: ${events}">
+            <td th:text="${e.title}"></td>
+            <td th:text="${e.content}"></td>
+            <td th:text="${e.startTime} "></td>
+            <td th:text="${e.endTime}"></td>
+            <td>
+                <a th:href="@{/events/admin/delete/{id}(id=${e.id})}" class="btn btn-danger"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa event này?')">Xóa</a>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>

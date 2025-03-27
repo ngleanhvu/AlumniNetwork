@@ -8,7 +8,9 @@ import jakarta.persistence.*;
 
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author nguoideptrangian
@@ -34,17 +36,20 @@ public class Post implements Serializable {
     @Column(name = "content")
     private String content;
     @Column(name = "blocked_comment")
-    private Boolean blockedComment;
+    private Boolean blockedComment = false;
     @Column(name = "active")
-    private Boolean active;
+    private Boolean active = true;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
-
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
+    @Column(nullable = true)
+    List<PostImage> images;
     public Post() {
+
     }
 
     public Post(Integer id) {
@@ -83,11 +88,11 @@ public class Post implements Serializable {
         this.active = active;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -104,6 +109,14 @@ public class Post implements Serializable {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);
         return hash;
+    }
+
+    public List<PostImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<PostImage> images) {
+        this.images = images;
     }
 
     @Override

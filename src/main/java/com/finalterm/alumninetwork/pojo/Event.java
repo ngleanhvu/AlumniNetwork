@@ -5,6 +5,7 @@
 package com.finalterm.alumninetwork.pojo;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -25,7 +26,6 @@ import java.util.Date;
         @NamedQuery(name = "Event.findByEndTime", query = "SELECT e FROM Event e WHERE e.endTime = :endTime"),
         @NamedQuery(name = "Event.findByUrlZoom", query = "SELECT e FROM Event e WHERE e.urlZoom = :urlZoom")})
 public class Event implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,9 +44,11 @@ public class Event implements Serializable {
     @Size(min = 1, max = 65535)
     @Column(name = "content")
     private String content;
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @Column(name = "end_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
@@ -56,6 +58,7 @@ public class Event implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
+
 
     public Event() {
     }
