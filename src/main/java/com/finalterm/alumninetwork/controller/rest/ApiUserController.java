@@ -24,4 +24,8 @@ public class ApiUserController {
                         @RequestPart("avatar") MultipartFile avatar) {
         this.userService.addUser(params, avatar);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 47107a2 (update add user)

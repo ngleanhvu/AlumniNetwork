@@ -8,5 +8,5 @@ import java.util.Map;
 
 public interface UserService {
     List<User> getAllAdmin();
-    void addUser(Map<String, String> params, MultipartFile file);
+    void addUser(Map<String, String> params, MultipartFile avatar);
 }

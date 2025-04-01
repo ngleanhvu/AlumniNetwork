@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
         user.setPhone(params.get("phone"));
         user.setActive(false);
         user.setFullName(params.get("fullName"));
+        user.setCreatedAt(new Date());
 
         // Upload file
         if (file.isEmpty()) throw new IllegalArgumentException("file is empty");
