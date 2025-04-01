@@ -68,11 +68,11 @@ public class User implements Serializable {
     @Size(min = 1, max = 15)
     @Column(name = "phone")
     private String phone;
-    @Size(max = 8)
-    @Column(name = "role")
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private UserRole role;
     @Size(max = 255)
+    @NotNull
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)

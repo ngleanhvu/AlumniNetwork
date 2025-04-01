@@ -9,6 +9,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +24,13 @@ public class UserRepositoryImpl implements UserRepository {
     public List<User> getAllAdmin() {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createQuery("FROM User WHERE role = :role", User.class);
-        query.setParameter("role", UserRole.ADMIN);
+        query.setParameter("role", UserRole.ROLE_ADMIN);
         return query.getResultList();
+    }
+
+    @Override
+    public void addUser(User user) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        session.persist(user);
     }
 }
