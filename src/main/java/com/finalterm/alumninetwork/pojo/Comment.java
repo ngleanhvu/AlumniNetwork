@@ -5,8 +5,8 @@
 package com.finalterm.alumninetwork.pojo;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 
