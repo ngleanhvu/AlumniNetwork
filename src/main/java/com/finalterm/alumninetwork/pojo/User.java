@@ -73,6 +73,7 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @Size(max = 255)
+    @NotNull
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)

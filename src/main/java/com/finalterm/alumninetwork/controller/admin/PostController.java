@@ -1,8 +1,7 @@
-package com.finalterm.alumninetwork.controller;
+package com.finalterm.alumninetwork.controller.admin;
 
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.service.PostService;
-import com.finalterm.alumninetwork.service.impl.PostServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
