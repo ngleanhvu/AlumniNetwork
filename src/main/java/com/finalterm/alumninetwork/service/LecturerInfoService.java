@@ -1,11 +1,10 @@
-package com.finalterm.alumninetwork.repository;
+package com.finalterm.alumninetwork.service;
 
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
-
 import java.util.List;
 import java.util.Map;
 
-public interface LecturerInfoRepository {
-    void addLecturerInfo(LecturerInfo lecturerInfo);
+
+public interface LecturerInfoService {
     List<LecturerInfo> getLecturerInfos(Map<String, String> params);
 }

@@ -7,7 +7,7 @@ CREATE TABLE User (
     email VARCHAR(100) NOT NULL UNIQUE,
     full_name VARCHAR(50) NOT NULL,
     phone VARCHAR(15) NOT NULL UNIQUE,
-    role ENUM('ROLE_ADMIN', 'ALUMNI', 'LECTURER'),
+    role ENUM('ROLE_ADMIN', 'ROLE_ALUMNI', 'ROLE_LECTURER'),
     avatar VARCHAR(255) NOT NULL,
     cover_avatar VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -32,6 +32,7 @@ CREATE TABLE Lecturer_Info (
 
 CREATE TABLE Post (
 	id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
     content TEXT,
     blocked_comment BOOL DEFAULT 0,
     active BIT DEFAULT 1,
@@ -155,9 +156,5 @@ CREATE TABLE Event_Invitation_Group_Network (
     FOREIGN KEY (event_invitation_id) REFERENCES Event_Invitation(id),
     FOREIGN KEY (group_network_id) REFERENCES Group_Network(id)
 )
-
-ALTER TABLE User MODIFY COLUMN role ENUM('ROLE_ADMIN', 'ROLE_ALUMNI', 'ROLE_LECTURER') NOT NULL;
-
-
 
 

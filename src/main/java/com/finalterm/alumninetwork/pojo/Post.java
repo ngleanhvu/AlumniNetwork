@@ -5,6 +5,7 @@
 package com.finalterm.alumninetwork.pojo;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 
@@ -35,7 +36,8 @@ public class Post implements Serializable {
     @Lob
     @Size(max = 65535)
     @Column(name = "content")
-    private String content;
+    @NotNull
+    private String title;
     @Column(name = "blocked_comment")
     private Boolean blockedComment = false;
     @Column(name = "active")
@@ -49,6 +51,7 @@ public class Post implements Serializable {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
     List<PostImage> images;
+
     public Post() {
 
     }
@@ -65,12 +68,12 @@ public class Post implements Serializable {
         this.id = id;
     }
 
-    public String getContent() {
-        return content;
+    public String getTitle() {
+        return title;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Boolean getBlockedComment() {

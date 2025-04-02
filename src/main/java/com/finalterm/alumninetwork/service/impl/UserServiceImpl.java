@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addUser(Map<String, String> params, MultipartFile file) {
+    public void addUser(Map<String, String> params, MultipartFile file) throws RuntimeException {
         // Add common information
         User user = new User();
         user.setUsername(params.get("username"));
@@ -66,7 +66,17 @@ public class UserServiceImpl implements UserService {
         String role = params.get("role");
         saveUserWithRole(role, user, params);
 
+    }
 
+    @Override
+    public boolean login(String username, String password) {
+        User user = this.userRepository.getUserByUsername(username);
+        if (user == null)
+            throw new RuntimeException("User not found");
+        if (!user.getActive())
+            throw new RuntimeException("User not active");
+
+        return bCryptPasswordEncoder.matches(password, user.getPassword());
     }
 
     private void saveUserWithRole(String role, User user, Map<String, String> params) {
@@ -80,6 +90,7 @@ public class UserServiceImpl implements UserService {
             case "lecturer":
                 userRole = UserRole.ROLE_LECTURER;
                 user.setRole(userRole);
+                user.setActive(true);
                 userRepository.addUser(user);
                 LecturerInfo lecturerInfo = new LecturerInfo();
                 lecturerInfo.setUser(user);
@@ -91,7 +102,7 @@ public class UserServiceImpl implements UserService {
                 lecturerInfoRepository.addLecturerInfo(lecturerInfo);
                 break;
             default:
-                userRole = UserRole.ROLE_ADMIN;
+                userRole = UserRole.ROLE_ALUMNI;
                 String studentCode = params.getOrDefault("studentCode","");
                 if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
                 user.setRole(userRole);
