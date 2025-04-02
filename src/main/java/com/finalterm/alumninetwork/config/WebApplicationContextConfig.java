@@ -70,8 +70,4 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public GlobalExceptionHandler globalExceptionHandler() {
-        return new GlobalExceptionHandler();
-    }
 }
