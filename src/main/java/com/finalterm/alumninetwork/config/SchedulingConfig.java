@@ -10,6 +10,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
+
     @Bean
     public ObservationRegistry observationRegistry() {
         return ObservationRegistry.create(); // Creates a basic registry
