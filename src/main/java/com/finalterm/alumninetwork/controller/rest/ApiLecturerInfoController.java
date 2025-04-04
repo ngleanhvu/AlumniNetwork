@@ -3,11 +3,8 @@ package com.finalterm.alumninetwork.controller.rest;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.service.LecturerInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 

@@ -46,6 +46,12 @@ public class UserRepositoryImpl implements UserRepository {
         return (User) query.getSingleResult();
     }
 
-
+    @Override
+    public void saveAllUser(List<User> users) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        for (User user : users) {
+            session.merge(user);
+        }
+    }
 
 }

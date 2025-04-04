@@ -11,7 +11,8 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
                 HibernateConfig.class,
                 ThymeleafConfig.class,
 //                SecurityConfig.class,
-                SchedulingConfig.class
+                AsyncConfig.class,
+                RabbitMQConfig.class
         };
     }
 
