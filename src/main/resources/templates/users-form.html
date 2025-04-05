@@ -1,0 +1,56 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Quản lý người dùng</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+    <section class="container">
+        <h1 class="text-center text-info mt-1">QUẢN LÝ NGƯỜI DÙNG</h1>
+        <form method="post" th:action="@{/users/admin/add}" th:object="${user}" enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}">
+            <div class="form-floating mb-3 mt-3">
+                <input type="text" class="form-control" th:field="*{username}" id="username" placeholder="Username">
+                <label for="username">Username</label>
+                <small class="text-danger" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+            </div>
+            <div class="form-floating mb-3 mt-3">
+                <input type="email" class="form-control" th:field="*{email}" id="email" placeholder="Email">
+                <label for="email">Email</label>
+                <small class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+            </div>
+            <div class="form-floating mb-3 mt-3">
+                <input type="text" class="form-control" th:field="*{fullName}" id="fullName" placeholder="Họ tên">
+                <label for="fullName">Họ tên</label>
+                <small class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
+            </div>
+            <div class="form-floating mb-3 mt-3">
+                <input type="text" class="form-control" th:field="*{phone}" id="phone" placeholder="Số điện thoại">
+                <label for="phone">Số diện thoại</label>
+                <small class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
+            </div>
+
+<!--            <div class="form-floating">-->
+<!--                <select class="form-select" id="category" th:field="*{category}">-->
+<!--                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"-->
+<!--                            th:selected="${product != null and product.category != null and c.id == product.category.id}">-->
+<!--                    </option>-->
+<!--                </select>-->
+<!--                <label for="category" class="form-label">Danh mục:</label>-->
+<!--            </div>-->
+            <div class="form-floating mb-3 mt-3">
+                <input type="file" class="form-control" name="file" id="file">
+                <label for="file">Avatar</label>
+            </div>
+            <div class="form-floating mt-1">
+                <button class="btn btn-success">Thêm tài khoản</button>
+<!--                <button class="btn btn-success" th:if="${product.id != null}">Cập nhật sản phẩm</button>-->
+            </div>
+        </form>
+    </section>
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>

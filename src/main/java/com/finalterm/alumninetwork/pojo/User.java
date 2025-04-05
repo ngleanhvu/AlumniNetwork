@@ -73,7 +73,6 @@ public class User implements Serializable {
     @Column(name = "role")
     private UserRole role;
     @Size(max = 255)
-    @NotNull
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)
@@ -99,8 +98,7 @@ public class User implements Serializable {
         this.file = file;
     }
 
-    public User() {
-    }
+    public User() {}
 
     public User(Integer id) {
         this.id = id;

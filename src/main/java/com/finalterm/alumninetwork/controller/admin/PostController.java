@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.controller.admin;
 
 import com.finalterm.alumninetwork.pojo.Post;
+import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,7 @@ public class PostController {
     //---------------------------------ROLE ADMIN-------------------------------------
     @GetMapping("/admin")
     public String managePost(Model model) {
+        System.out.println(new Post());
         model.addAttribute("posts", this.postService.getPosts());
         return "posts"; // -> Trang thêm post
     }
