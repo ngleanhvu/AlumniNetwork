@@ -46,6 +46,9 @@ public class UserRepositoryImpl implements UserRepository {
         return (User) query.getSingleResult();
     }
 
-
-
+    @Override
+    public User getUserById(int id) {
+        Session s = this.factoryBean.getObject().getCurrentSession();
+        return s.get(User.class, id);
+    }
 }

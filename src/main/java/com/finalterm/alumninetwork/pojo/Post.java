@@ -4,9 +4,11 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
 
 
 import java.io.Serializable;
@@ -44,10 +46,13 @@ public class Post implements Serializable {
     private Boolean active = true;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private Date createdAt;
+
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
     List<PostImage> images;
@@ -73,7 +78,7 @@ public class Post implements Serializable {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.title = title  ;
     }
 
     public Boolean getBlockedComment() {
@@ -92,11 +97,11 @@ public class Post implements Serializable {
         this.active = active;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 

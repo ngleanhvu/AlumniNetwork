@@ -13,7 +13,8 @@ public class SchedulingConfig {
 
     @Bean
     public ObservationRegistry observationRegistry() {
-        return ObservationRegistry.create(); // Creates a basic registry
+        //return ObservationRegistry.create(); // Creates a basic registry
+        return ObservationRegistry.NOOP;
     }
 
 }

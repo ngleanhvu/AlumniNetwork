@@ -25,6 +25,7 @@ public class EventController {
         model.addAttribute("event", new Event());
         return  "event-forms";
     }
+
     @PostMapping("/admin/add")
     public String createOrSave(@ModelAttribute("event") Event e) {
         this.eventService.saveOrUpdate(e);

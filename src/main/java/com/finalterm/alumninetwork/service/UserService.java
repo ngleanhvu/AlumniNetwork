@@ -10,4 +10,6 @@ public interface UserService {
     List<User> getAllAdmin();
     void addUser(Map<String, String> params, MultipartFile avatar);
     boolean login(String username, String password);
+    User getUserByUsername(String username);
+    User findUserById(int id);
 }

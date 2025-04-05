@@ -10,15 +10,16 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
         return new Class[]{
                 HibernateConfig.class,
                 ThymeleafConfig.class,
-//                SecurityConfig.class,
-                SchedulingConfig.class
+                SecurityConfig.class,
+//                SchedulingConfig.class,
+//                RabbitMQConfig.class
         };
     }
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
         return new Class[]{
-                WebApplicationContextConfig.class
+                WebApplicationContextConfig.class,
         };
     }
 
@@ -31,7 +32,7 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {
         // Cấu hình upload file
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
-                "/tmp",   // Thư mục lưu file tạm
+                "/",   // Thư mục lưu file tạm
                 5 * 1024 * 1024,  // Kích thước file tối đa (5MB)
                 20 * 1024 * 1024, // Tổng kích thước request tối đa (20MB)
                 0  // Ngưỡng lưu trên RAM trước khi ghi ra ổ cứng

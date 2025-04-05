@@ -49,6 +49,7 @@ public class Event implements Serializable {
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     @Column(name = "end_time")
     @Temporal(TemporalType.TIMESTAMP)
