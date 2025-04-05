@@ -26,15 +26,14 @@ public class EmailServiceImpl implements EmailService {
     public void sendEmail(String to, String subject, String body) {
         EmailRecord emailRecord = new EmailRecord(to, subject, body);
         rabbitTemplate.convertAndSend(Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
-                Objects.requireNonNull(env.getProperty("rabbitmq.rounting.key.name")),
+                Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
                 emailRecord);
         System.out.println("Email is sent successfully");
     }
 
-    @RabbitListener(queues = "${rabbitmq.queue.name}")
+    @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     @Override
-    public void receiveEmail(EmailRecord emailRecord) {
+    public void receiveEmail() {
         System.out.println("Email is receive successfully");
-        System.out.println(emailRecord);
     }
 }
