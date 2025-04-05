@@ -2,12 +2,12 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.finalterm.alumninetwork.dto.EmailRecord;
 import com.finalterm.alumninetwork.service.EmailService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -21,6 +21,9 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
 
     @Override
     public void sendEmail(String to, String subject, String body) {
@@ -33,7 +36,12 @@ public class EmailServiceImpl implements EmailService {
 
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     @Override
-    public void receiveEmail() {
+    public void receiveEmail(EmailRecord emailRecord) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setSubject(emailRecord.subject());
+        message.setText(emailRecord.body());
+        message.setTo(emailRecord.to());
+        mailSender.send(message);
         System.out.println("Email is receive successfully");
     }
 }

@@ -9,6 +9,7 @@ import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.AlumniInfoRepository;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
+import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -33,6 +34,8 @@ public class UserServiceImpl implements UserService {
     private LecturerInfoRepository lecturerInfoRepository;
     @Autowired
     private Environment environment;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -106,6 +109,8 @@ public class UserServiceImpl implements UserService {
                         Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
                 lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
                 lecturerInfoRepository.addLecturerInfo(lecturerInfo);
+                // gui mail
+                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
                 break;
             default:
                 userRole = UserRole.ROLE_ALUMNI;
