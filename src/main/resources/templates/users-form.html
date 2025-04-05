@@ -31,7 +31,11 @@
                 <label for="phone">Số diện thoại</label>
                 <small class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
             </div>
-
+            <div class="form-floating mb-3 mt-3">
+                <input type="password" class="form-control" id="password" placeholder="Password" th:field="*{password}" value="######">
+                <label for="password">Password</label>
+                <small class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+            </div>
 <!--            <div class="form-floating">-->
 <!--                <select class="form-select" id="category" th:field="*{category}">-->
 <!--                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"-->
