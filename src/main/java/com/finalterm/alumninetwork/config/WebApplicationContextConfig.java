@@ -105,11 +105,6 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
         return bean;
     }
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     @Override
     public Validator getValidator() {
         return validator();

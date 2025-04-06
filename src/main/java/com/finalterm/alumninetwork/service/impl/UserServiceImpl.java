@@ -11,8 +11,14 @@ import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
+import jakarta.persistence.Query;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -125,4 +131,16 @@ public class UserServiceImpl implements UserService {
                 alumniInfoRepository.addAlumniInfo(alumniInfo);
         }
     }
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User u = this.userRepository.getUserByUsername(username);
+        if (u == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(u.getRole().name()));
+        return new org.springframework.security.core.userdetails.User(
+                u.getUsername(), u.getPassword(), authorities);
+    }
+
 }

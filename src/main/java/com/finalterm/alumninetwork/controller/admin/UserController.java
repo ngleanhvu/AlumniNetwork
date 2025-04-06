@@ -50,4 +50,8 @@ public class UserController {
         return "redirect:/users/admin";
     }
 
+    @GetMapping("/users/admin/login")
+    public String loginPage() {
+        return "users-login";
+    }
 }

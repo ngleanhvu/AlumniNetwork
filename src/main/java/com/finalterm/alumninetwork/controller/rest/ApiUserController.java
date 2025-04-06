@@ -15,12 +15,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-@Validated
 public class ApiUserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping(path = "",
+    @PostMapping(path = "/register",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(HttpStatus.CREATED)
