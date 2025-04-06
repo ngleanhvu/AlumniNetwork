@@ -2,12 +2,13 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.dto.PostDTO;
+import com.finalterm.alumninetwork.mapper.PostMapper;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
 import com.finalterm.alumninetwork.repository.PostRepository;
-import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -60,8 +60,11 @@ public class PostServiceImpl implements PostService {
                         postImage.setPost(p);
 
                         this.postImageRepository.saveOrUpdate(postImage);
+
+                        p.getImages().add(postImage);
+
                     } catch (IOException e) {
-                        throw new RuntimeException("Lỗi khi upload ảnh lên Cloudinary", e);
+                        throw new RuntimeException("Error upload Cloudinary", e);
                     }
                 }
             }
@@ -81,9 +84,10 @@ public class PostServiceImpl implements PostService {
         post.setBlockedComment(true);
         this.postRepository.saveOrUpdate(post);
     }
-
+    
     @Override
-    public List<Post> getMyPosts(int userId) {
-        return this.postRepository.getMyPost(userId);
+    @Transactional(readOnly = true)
+    public List<PostDTO> getMyPosts(int userId) {
+        return this.postRepository.getMyPost(userId).stream().map(PostMapper::toPostDTO).toList();
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -53,9 +54,9 @@ public class Post implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
-    List<PostImage> images;
+    List<PostImage> images = new ArrayList<>();
 
     public Post() {
 

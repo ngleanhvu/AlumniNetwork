@@ -71,6 +71,7 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private UserRole role;
+
     @Size(max = 255)
     @NotNull
     @Column(name = "avatar")

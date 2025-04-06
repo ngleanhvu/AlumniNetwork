@@ -1,4 +1,84 @@
 package com.finalterm.alumninetwork.dto;
 
+import java.util.Date;
+import java.util.List;
+
 public class PostDTO {
+    private Integer id;
+    private String title;
+    private Boolean blockedComment = false;
+    private Boolean active = true;
+    private Date createdAt;
+    private Integer userId;
+    List<String> imgUrls;
+
+    public PostDTO() {}
+
+    public PostDTO(Integer id, String title, Boolean blockedComment, Boolean active, Date createdAt, Integer userId, List<String> imgUrls) {
+        this.id = id;
+        this.title = title;
+        this.blockedComment = blockedComment;
+        this.active = active;
+        this.createdAt = createdAt;
+        this.userId = userId;
+        this.imgUrls = imgUrls;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Boolean getBlockedComment() {
+        return blockedComment;
+    }
+
+    public void setBlockedComment(Boolean blockedComment) {
+        this.blockedComment = blockedComment;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public List<String> getImgUrls() {
+        return imgUrls;
+    }
+
+    public void setImgUrls(List<String> imgUrls) {
+        this.imgUrls = imgUrls;
+    }
+
+
 }

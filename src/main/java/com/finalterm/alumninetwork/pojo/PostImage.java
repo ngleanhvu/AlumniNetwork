@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -31,8 +32,10 @@ public class PostImage implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "url")
     private String url;
+
     @JoinColumn(name = "post_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Post post;
 
 

@@ -1,23 +1,19 @@
 package com.finalterm.alumninetwork.controller.rest;
 
+import com.finalterm.alumninetwork.dto.PostDTO;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
-import com.finalterm.alumninetwork.service.LecturerInfoService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/api/posts")
@@ -29,14 +25,16 @@ public class ApiPostController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<Post>> getAllPost() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        User u = userService.getUserByUsername(username);
+    @GetMapping
+    public ResponseEntity<List<PostDTO>> getAllPost() {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        String username = auth.getName();
+//        User u = userService.getUserByUsername(username);
+
+        User u = userService.findUserById(2);
         if (u == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return ResponseEntity.ok(this.postService.getMyPosts(u.getId()));
+        return ResponseEntity.ok(this.postService.getMyPosts(2));
     }
 
     //Tạo một bài Post -> có thể gửi Images hoặc không

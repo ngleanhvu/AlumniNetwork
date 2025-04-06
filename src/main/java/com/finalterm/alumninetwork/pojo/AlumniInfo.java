@@ -33,7 +33,7 @@ public class AlumniInfo implements Serializable {
     @Column(name = "student_code")
     private String studentCode;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
 
     public AlumniInfo() {

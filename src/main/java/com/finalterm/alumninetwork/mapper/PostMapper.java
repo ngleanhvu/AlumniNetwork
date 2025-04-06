@@ -1,4 +1,4 @@
-package com.finalterm.alumninetwork.dto.mapper;
+package com.finalterm.alumninetwork.mapper;
 
 import com.finalterm.alumninetwork.dto.PostDTO;
 import com.finalterm.alumninetwork.pojo.Post;
@@ -21,7 +21,6 @@ public class PostMapper {
                     .collect(Collectors.toList());
             postDTO.setImgUrls(urls);
         }
-
         return postDTO;
     }
 }
