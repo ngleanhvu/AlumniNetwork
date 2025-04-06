@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
                             .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
