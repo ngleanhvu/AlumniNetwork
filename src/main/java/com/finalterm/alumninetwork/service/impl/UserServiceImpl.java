@@ -9,8 +9,16 @@ import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.AlumniInfoRepository;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
+import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
+import jakarta.persistence.Query;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +41,8 @@ public class UserServiceImpl implements UserService {
     private LecturerInfoRepository lecturerInfoRepository;
     @Autowired
     private Environment environment;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -53,7 +63,7 @@ public class UserServiceImpl implements UserService {
         user.setCreatedAt(new Date());
 
         // Upload file
-        if (file == null || file.isEmpty())
+        if (file.isEmpty())
             user.setAvatar("https://res.cloudinary.com/dea1l3vvu/image/upload/v1743673326/avatar_ieqlcg.jpg");
         else {
             Map res = null;
@@ -79,6 +89,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findUserById(int id) {
+        return this.findUserById(id);
+    }
+
+    @Override
     public boolean login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
@@ -97,7 +112,6 @@ public class UserServiceImpl implements UserService {
                 user.setRole(userRole);
                 userRepository.addUser(user);
                 break;
-
             case "lecturer":
                 userRole = UserRole.ROLE_LECTURER;
                 user.setRole(userRole);
@@ -113,8 +127,8 @@ public class UserServiceImpl implements UserService {
                         Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
                 lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
                 lecturerInfoRepository.addLecturerInfo(lecturerInfo);
-//                // gui mail
-//                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
+                // gui mail
+                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
                 break;
             default:
                 userRole = UserRole.ROLE_ALUMNI;
@@ -123,15 +137,24 @@ public class UserServiceImpl implements UserService {
                 // them mssv
                 String studentCode = params.getOrDefault("studentCode","");
                 if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
+                user.setRole(userRole);
+                userRepository.addUser(user);
                 AlumniInfo alumniInfo = new AlumniInfo();
                 alumniInfo.setStudentCode(studentCode);
                 alumniInfo.setUser(user);
                 alumniInfoRepository.addAlumniInfo(alumniInfo);
         }
     }
-
     @Override
-    public User findUserById(int id) {
-        return this.userRepository.getUserById(id);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User u = this.userRepository.getUserByUsername(username);
+        if (u == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(u.getRole().name()));
+        return new org.springframework.security.core.userdetails.User(
+                u.getUsername(), u.getPassword(), authorities);
     }
+
 }

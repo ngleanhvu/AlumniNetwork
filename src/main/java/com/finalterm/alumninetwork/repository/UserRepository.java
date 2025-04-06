@@ -8,5 +8,6 @@ public interface UserRepository {
     List<User> getAllAdmin();
     void addUser(User user);
     User getUserByUsername(String username);
+    void saveAllUser(List<User> users);
     User getUserById(int id);
 }

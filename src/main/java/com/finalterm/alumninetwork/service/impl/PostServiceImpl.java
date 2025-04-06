@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -34,8 +35,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public List<Post> getPosts() {
-        return this.postRepository.getAll();
+    public List<PostDTO> getPosts() {
+        return this.postRepository.getAll().stream().map(PostMapper::toPostDTO).collect(Collectors.toList());
     }
 
     @Transactional

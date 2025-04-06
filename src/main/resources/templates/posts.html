@@ -20,17 +20,17 @@
             <th>Action</th>
         </tr>
         <tr th:each="p: ${posts}">
-            <td th:text="${p.user}"></td>
-            <td th:text="${p.content}"></td>
+            <td th:if="${p.userId != null}" th:text="${p.userId}"></td>
+            <td th:text="${p.title}"></td>
             <td>
-                <table th:if="${not #lists.isEmpty(p.images)}">
-                    <tr th:each="image : ${p.images}">
+                <table th:if="${not #lists.isEmpty(p.imgUrls)}">
+                    <tr th:each="image : ${p.imgUrls}">
                         <td>
-                            <img th:src="${image.url}" alt="Ảnh bài viết" width="100"/>
+                            <img th:src="${image}" alt="Ảnh bài viết" width="100"/>
                         </td>
                     </tr>
                 </table>
-                <span th:if="${#lists.isEmpty(p.images)}">Không có ảnh</span>
+                <span th:if="${#lists.isEmpty(p.imgUrls)}">Không có ảnh</span>
             </td>
             <td>
                 <a th:href="@{/posts/admin/delete/{id}(id=${p.id})}" class="btn btn-danger"
