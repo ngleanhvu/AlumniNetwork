@@ -10,8 +10,9 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
         return new Class[]{
                 HibernateConfig.class,
                 ThymeleafConfig.class,
-//                SecurityConfig.class,
-                SchedulingConfig.class
+                AsyncConfig.class,
+                RabbitMQConfig.class,
+                SecurityConfig.class,
         };
     }
 

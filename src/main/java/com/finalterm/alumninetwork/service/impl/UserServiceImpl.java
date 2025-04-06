@@ -9,17 +9,22 @@ import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.AlumniInfoRepository;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
+import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
+import jakarta.persistence.Query;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,6 +38,10 @@ public class UserServiceImpl implements UserService {
     private AlumniInfoRepository alumniInfoRepository;
     @Autowired
     private LecturerInfoRepository lecturerInfoRepository;
+    @Autowired
+    private Environment environment;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -44,7 +53,8 @@ public class UserServiceImpl implements UserService {
         // Add common information
         User user = new User();
         user.setUsername(params.get("username"));
-        user.setPassword(bCryptPasswordEncoder.encode(params.get("password")));
+        user.setPassword(bCryptPasswordEncoder.encode(params.getOrDefault("password",
+                environment.getProperty("lecturer.info.password"))));
         user.setEmail(params.get("email"));
         user.setPhone(params.get("phone"));
         user.setActive(false);
@@ -52,15 +62,18 @@ public class UserServiceImpl implements UserService {
         user.setCreatedAt(new Date());
 
         // Upload file
-        if (file.isEmpty()) throw new IllegalArgumentException("file is empty");
-        Map res = null;
-        try {
-            res = this.cloudinary.uploader().upload(file.getBytes(),
-                    ObjectUtils.asMap("resource_type", "auto"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (file.isEmpty())
+            user.setAvatar("https://res.cloudinary.com/dea1l3vvu/image/upload/v1743673326/avatar_ieqlcg.jpg");
+        else {
+            Map res = null;
+            try {
+                res = this.cloudinary.uploader().upload(file.getBytes(),
+                        ObjectUtils.asMap("resource_type", "auto"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            user.setAvatar(res.get("secure_url").toString());
         }
-        user.setAvatar(res.get("secure_url").toString());
 
         // Set role and add other information with each user role
         String role = params.get("role");
@@ -92,25 +105,42 @@ public class UserServiceImpl implements UserService {
                 user.setRole(userRole);
                 user.setActive(true);
                 userRepository.addUser(user);
+                // them thoi gian thay doi mat khau
                 LecturerInfo lecturerInfo = new LecturerInfo();
                 lecturerInfo.setUser(user);
                 lecturerInfo.setChangedPassword(false);
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTime(new Date()); // Lấy ngày hiện tại
-                calendar.add(Calendar.HOUR, 24); // Cộng thêm 24 giờ
+                calendar.setTime(new Date());
+                calendar.add(Calendar.HOUR,
+                        Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
                 lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
                 lecturerInfoRepository.addLecturerInfo(lecturerInfo);
+                // gui mail
+                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
                 break;
             default:
                 userRole = UserRole.ROLE_ALUMNI;
-                String studentCode = params.getOrDefault("studentCode","");
-                if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
                 user.setRole(userRole);
                 userRepository.addUser(user);
+                // them mssv
+                String studentCode = params.getOrDefault("studentCode","");
+                if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
                 AlumniInfo alumniInfo = new AlumniInfo();
                 alumniInfo.setStudentCode(studentCode);
                 alumniInfo.setUser(user);
                 alumniInfoRepository.addAlumniInfo(alumniInfo);
         }
     }
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User u = this.userRepository.getUserByUsername(username);
+        if (u == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(u.getRole().name()));
+        return new org.springframework.security.core.userdetails.User(
+                u.getUsername(), u.getPassword(), authorities);
+    }
+
 }

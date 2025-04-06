@@ -18,8 +18,4 @@ public class IndexController {
     public String indexPage() {
         return "index";
     }
-    @ModelAttribute
-    public void commonResponses(Model model) {
-        model.addAttribute("user", this.userService.getAllAdmin());
-    }
 }

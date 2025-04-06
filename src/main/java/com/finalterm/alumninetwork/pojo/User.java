@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.Serializable;
@@ -72,7 +73,6 @@ public class User implements Serializable {
     @Column(name = "role")
     private UserRole role;
     @Size(max = 255)
-    @NotNull
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)
@@ -87,8 +87,18 @@ public class User implements Serializable {
     @Column(name = "active")
     private Boolean active;
 
-    public User() {
+    @Transient
+    private MultipartFile file;
+
+    public MultipartFile getFile() {
+        return file;
     }
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
+
+    public User() {}
 
     public User(Integer id) {
         this.id = id;

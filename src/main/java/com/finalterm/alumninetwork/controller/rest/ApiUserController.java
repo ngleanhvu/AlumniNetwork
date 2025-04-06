@@ -15,12 +15,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-@Validated
 public class ApiUserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping(path = "",
+    @PostMapping(path = "/register",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(HttpStatus.CREATED)
@@ -37,4 +36,20 @@ public class ApiUserController {
             return new ResponseEntity<>(true, HttpStatus.OK);
         return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
     }
+
+
+//    @PostMapping(path = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @CrossOrigin
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public void registerUser(@RequestPart("user") RegisterDto user,
+//                             @RequestPart("avatar") MultipartFile avatar,
+//                             @RequestPart Map<String, String> params1) {
+//        Map<String, String> params = new HashMap<>();
+//        params.put("username", user.getUsername());
+//        params.put("password", user.getPassword());
+//        params.put("fullName", user.getFullName());
+//        params.put("email", user.getEmail());
+//        params.put("phone", user.getPhone());
+//        params.put("role", user.getRole());
+//    }
 }
