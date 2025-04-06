@@ -4,26 +4,40 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Survey")
 @NamedQueries({
-        @NamedQuery(name = "Survey.findAll", query = "SELECT s FROM Survey s"),
-        @NamedQuery(name = "Survey.findById", query = "SELECT s FROM Survey s WHERE s.id = :id"),
-        @NamedQuery(name = "Survey.findByDescription", query = "SELECT s FROM Survey s WHERE s.description = :description"),
-        @NamedQuery(name = "Survey.findByTitle", query = "SELECT s FROM Survey s WHERE s.title = :title"),
-        @NamedQuery(name = "Survey.findByStartTime", query = "SELECT s FROM Survey s WHERE s.startTime = :startTime"),
-        @NamedQuery(name = "Survey.findByEndTime", query = "SELECT s FROM Survey s WHERE s.endTime = :endTime"),
-        @NamedQuery(name = "Survey.findByStatus", query = "SELECT s FROM Survey s WHERE s.status = :status")})
+    @NamedQuery(name = "Survey.findAll", query = "SELECT s FROM Survey s"),
+    @NamedQuery(name = "Survey.findById", query = "SELECT s FROM Survey s WHERE s.id = :id"),
+    @NamedQuery(name = "Survey.findByDescription", query = "SELECT s FROM Survey s WHERE s.description = :description"),
+    @NamedQuery(name = "Survey.findByTitle", query = "SELECT s FROM Survey s WHERE s.title = :title"),
+    @NamedQuery(name = "Survey.findByStartTime", query = "SELECT s FROM Survey s WHERE s.startTime = :startTime"),
+    @NamedQuery(name = "Survey.findByEndTime", query = "SELECT s FROM Survey s WHERE s.endTime = :endTime"),
+    @NamedQuery(name = "Survey.findByStatus", query = "SELECT s FROM Survey s WHERE s.status = :status")})
 public class Survey implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -51,7 +65,6 @@ public class Survey implements Serializable {
     @ManyToOne(optional = false)
     private User user;
 
-    
     public Survey() {
     }
 
@@ -111,9 +124,10 @@ public class Survey implements Serializable {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUserId(User userId) {
         this.user = user;
     }
+
 
     @Override
     public int hashCode() {
@@ -139,5 +153,5 @@ public class Survey implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Survey[ id=" + id + " ]";
     }
-
+    
 }

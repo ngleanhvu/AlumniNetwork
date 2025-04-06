@@ -4,22 +4,34 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Group_Network")
 @NamedQueries({
-        @NamedQuery(name = "GroupNetwork.findAll", query = "SELECT g FROM GroupNetwork g"),
-        @NamedQuery(name = "GroupNetwork.findById", query = "SELECT g FROM GroupNetwork g WHERE g.id = :id"),
-        @NamedQuery(name = "GroupNetwork.findByName", query = "SELECT g FROM GroupNetwork g WHERE g.name = :name")})
+    @NamedQuery(name = "GroupNetwork.findAll", query = "SELECT g FROM GroupNetwork g"),
+    @NamedQuery(name = "GroupNetwork.findById", query = "SELECT g FROM GroupNetwork g WHERE g.id = :id"),
+    @NamedQuery(name = "GroupNetwork.findByName", query = "SELECT g FROM GroupNetwork g WHERE g.name = :name")})
 public class GroupNetwork implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -36,7 +48,6 @@ public class GroupNetwork implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
-
 
     public GroupNetwork() {
     }
@@ -98,5 +109,5 @@ public class GroupNetwork implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.GroupNetwork[ id=" + id + " ]";
     }
-
+    
 }

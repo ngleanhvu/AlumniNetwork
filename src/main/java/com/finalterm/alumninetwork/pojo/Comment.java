@@ -4,22 +4,37 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
-
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Comment")
 @NamedQueries({
-        @NamedQuery(name = "Comment.findAll", query = "SELECT c FROM Comment c"),
-        @NamedQuery(name = "Comment.findById", query = "SELECT c FROM Comment c WHERE c.id = :id"),
-        @NamedQuery(name = "Comment.findByActive", query = "SELECT c FROM Comment c WHERE c.active = :active"),
-        @NamedQuery(name = "Comment.findByCreatedAt", query = "SELECT c FROM Comment c WHERE c.createdAt = :createdAt")})
+    @NamedQuery(name = "Comment.findAll", query = "SELECT c FROM Comment c"),
+    @NamedQuery(name = "Comment.findById", query = "SELECT c FROM Comment c WHERE c.id = :id"),
+    @NamedQuery(name = "Comment.findByActive", query = "SELECT c FROM Comment c WHERE c.active = :active"),
+    @NamedQuery(name = "Comment.findByCreatedAt", query = "SELECT c FROM Comment c WHERE c.createdAt = :createdAt")})
 public class Comment implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,7 +54,7 @@ public class Comment implements Serializable {
     private Date createdAt;
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     @ManyToOne
-    private Comment parentCommentId;
+    private Comment parentComment;
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Post post;
@@ -86,20 +101,13 @@ public class Comment implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Comment getParentCommentId() {
-        return parentCommentId;
+
+    public Comment getParentComment() {
+        return parentComment;
     }
 
-    public void setParentCommentId(Comment parentCommentId) {
-        this.parentCommentId = parentCommentId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public void setParentComment(Comment parentComment) {
+        this.parentComment = parentComment;
     }
 
     public Post getPost() {
@@ -108,6 +116,14 @@ public class Comment implements Serializable {
 
     public void setPost(Post post) {
         this.post = post;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
@@ -134,5 +150,5 @@ public class Comment implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Comment[ id=" + id + " ]";
     }
-
+    
 }

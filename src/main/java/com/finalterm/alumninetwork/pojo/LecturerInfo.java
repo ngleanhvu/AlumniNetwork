@@ -4,21 +4,33 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Lecturer_Info")
 @NamedQueries({
-        @NamedQuery(name = "LecturerInfo.findAll", query = "SELECT l FROM LecturerInfo l"),
-        @NamedQuery(name = "LecturerInfo.findById", query = "SELECT l FROM LecturerInfo l WHERE l.id = :id"),
-        @NamedQuery(name = "LecturerInfo.findByExpiredResetPasswordTime", query = "SELECT l FROM LecturerInfo l WHERE l.expiredResetPasswordTime = :expiredResetPasswordTime"),
-        @NamedQuery(name = "LecturerInfo.findByChangedPassword", query = "SELECT l FROM LecturerInfo l WHERE l.changedPassword = :changedPassword")})
+    @NamedQuery(name = "LecturerInfo.findAll", query = "SELECT l FROM LecturerInfo l"),
+    @NamedQuery(name = "LecturerInfo.findById", query = "SELECT l FROM LecturerInfo l WHERE l.id = :id"),
+    @NamedQuery(name = "LecturerInfo.findByExpiredResetPasswordTime", query = "SELECT l FROM LecturerInfo l WHERE l.expiredResetPasswordTime = :expiredResetPasswordTime"),
+    @NamedQuery(name = "LecturerInfo.findByChangedPassword", query = "SELECT l FROM LecturerInfo l WHERE l.changedPassword = :changedPassword")})
 public class LecturerInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -99,5 +111,5 @@ public class LecturerInfo implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.LecturerInfo[ id=" + id + " ]";
     }
-
+    
 }

@@ -4,21 +4,31 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Alumni_Info")
 @NamedQueries({
-        @NamedQuery(name = "AlumniInfo.findAll", query = "SELECT a FROM AlumniInfo a"),
-        @NamedQuery(name = "AlumniInfo.findById", query = "SELECT a FROM AlumniInfo a WHERE a.id = :id"),
-        @NamedQuery(name = "AlumniInfo.findByStudentCode", query = "SELECT a FROM AlumniInfo a WHERE a.studentCode = :studentCode")})
+    @NamedQuery(name = "AlumniInfo.findAll", query = "SELECT a FROM AlumniInfo a"),
+    @NamedQuery(name = "AlumniInfo.findById", query = "SELECT a FROM AlumniInfo a WHERE a.id = :id"),
+    @NamedQuery(name = "AlumniInfo.findByStudentCode", query = "SELECT a FROM AlumniInfo a WHERE a.studentCode = :studentCode")})
 public class AlumniInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -96,5 +106,5 @@ public class AlumniInfo implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.AlumniInfo[ id=" + id + " ]";
     }
-
+    
 }

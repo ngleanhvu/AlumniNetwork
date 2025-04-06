@@ -1,7 +1,6 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
-import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
@@ -12,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 

@@ -4,21 +4,30 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Reaction")
 @NamedQueries({
-        @NamedQuery(name = "Reaction.findAll", query = "SELECT r FROM Reaction r"),
-        @NamedQuery(name = "Reaction.findById", query = "SELECT r FROM Reaction r WHERE r.id = :id"),
-        @NamedQuery(name = "Reaction.findByType", query = "SELECT r FROM Reaction r WHERE r.type = :type")})
+    @NamedQuery(name = "Reaction.findAll", query = "SELECT r FROM Reaction r"),
+    @NamedQuery(name = "Reaction.findById", query = "SELECT r FROM Reaction r WHERE r.id = :id"),
+    @NamedQuery(name = "Reaction.findByType", query = "SELECT r FROM Reaction r WHERE r.type = :type")})
 public class Reaction implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -100,5 +109,5 @@ public class Reaction implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Reaction[ id=" + id + " ]";
     }
-
+    
 }

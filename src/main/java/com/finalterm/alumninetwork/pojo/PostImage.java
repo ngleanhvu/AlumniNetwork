@@ -4,22 +4,33 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Post_Image")
 @NamedQueries({
-        @NamedQuery(name = "PostImage.findAll", query = "SELECT p FROM PostImage p"),
-        @NamedQuery(name = "PostImage.findById", query = "SELECT p FROM PostImage p WHERE p.id = :id"),
-        @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url")})
+    @NamedQuery(name = "PostImage.findAll", query = "SELECT p FROM PostImage p"),
+    @NamedQuery(name = "PostImage.findById", query = "SELECT p FROM PostImage p WHERE p.id = :id"),
+    @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url")})
 public class PostImage implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,12 +45,6 @@ public class PostImage implements Serializable {
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Post post;
-
-
-    public PostImage(String url, Post post) {
-        this.url = url;
-        this.post = post;
-    }
 
     public PostImage() {
     }
@@ -99,7 +104,7 @@ public class PostImage implements Serializable {
 
     @Override
     public String toString() {
-        return this.url;
+        return "com.finalterm.alumninetwork.pojo.PostImage[ id=" + id + " ]";
     }
-
+    
 }

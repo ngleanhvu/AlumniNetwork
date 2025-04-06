@@ -4,39 +4,47 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
-
-
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
-@Table(name = "Event_Invitation")
+@Table(name = "Notification_User")
 @NamedQueries({
-        @NamedQuery(name = "EventInvitation.findAll", query = "SELECT e FROM EventInvitation e"),
-        @NamedQuery(name = "EventInvitation.findById", query = "SELECT e FROM EventInvitation e WHERE e.id = :id"),
-        @NamedQuery(name = "EventInvitation.findByStatus", query = "SELECT e FROM EventInvitation e WHERE e.status = :status")})
-public class EventInvitation implements Serializable {
+    @NamedQuery(name = "NotificationUser.findAll", query = "SELECT n FROM NotificationUser n"),
+    @NamedQuery(name = "NotificationUser.findById", query = "SELECT n FROM NotificationUser n WHERE n.id = :id")})
+public class NotificationUser implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Size(max = 8)
-    @Column(name = "status")
-    private String status;
     @JoinColumn(name = "event_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Event event;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private User user;
 
-    public EventInvitation() {
+    public NotificationUser() {
     }
 
-    public EventInvitation(Integer id) {
+    public NotificationUser(Integer id) {
         this.id = id;
     }
 
@@ -48,20 +56,20 @@ public class EventInvitation implements Serializable {
         this.id = id;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Event getEventId() {
+    public Event getEvent() {
         return event;
     }
 
-    public void setEventId(Event event) {
+    public void setEvent(Event event) {
         this.event = event;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
@@ -74,10 +82,10 @@ public class EventInvitation implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof EventInvitation)) {
+        if (!(object instanceof NotificationUser)) {
             return false;
         }
-        EventInvitation other = (EventInvitation) object;
+        NotificationUser other = (NotificationUser) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -86,7 +94,7 @@ public class EventInvitation implements Serializable {
 
     @Override
     public String toString() {
-        return "com.finalterm.alumninetwork.pojo.EventInvitation[ id=" + id + " ]";
+        return "com.finalterm.alumninetwork.pojo.NotificationUser[ id=" + id + " ]";
     }
-
+    
 }

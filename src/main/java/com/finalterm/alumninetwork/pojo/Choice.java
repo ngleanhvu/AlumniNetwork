@@ -4,21 +4,31 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Choice")
 @NamedQueries({
-        @NamedQuery(name = "Choice.findAll", query = "SELECT c FROM Choice c"),
-        @NamedQuery(name = "Choice.findById", query = "SELECT c FROM Choice c WHERE c.id = :id"),
-        @NamedQuery(name = "Choice.findByContent", query = "SELECT c FROM Choice c WHERE c.content = :content")})
+    @NamedQuery(name = "Choice.findAll", query = "SELECT c FROM Choice c"),
+    @NamedQuery(name = "Choice.findById", query = "SELECT c FROM Choice c WHERE c.id = :id"),
+    @NamedQuery(name = "Choice.findByContent", query = "SELECT c FROM Choice c WHERE c.content = :content")})
 public class Choice implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,6 +40,7 @@ public class Choice implements Serializable {
     @Size(max = 100)
     @Column(name = "content")
     private String content;
+
 
     public Choice() {
     }
@@ -78,5 +89,5 @@ public class Choice implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Choice[ id=" + id + " ]";
     }
-
+    
 }

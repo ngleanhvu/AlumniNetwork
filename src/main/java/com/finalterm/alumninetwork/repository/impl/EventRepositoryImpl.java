@@ -1,7 +1,6 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.Event;
-import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.repository.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;

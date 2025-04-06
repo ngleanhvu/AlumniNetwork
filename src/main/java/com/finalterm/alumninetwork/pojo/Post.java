@@ -4,27 +4,41 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Post")
 @NamedQueries({
-        @NamedQuery(name = "Post.findAll", query = "SELECT p FROM Post p"),
-        @NamedQuery(name = "Post.findById", query = "SELECT p FROM Post p WHERE p.id = :id"),
-        @NamedQuery(name = "Post.findByBlockedComment", query = "SELECT p FROM Post p WHERE p.blockedComment = :blockedComment"),
-        @NamedQuery(name = "Post.findByActive", query = "SELECT p FROM Post p WHERE p.active = :active"),
-        @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt")})
+    @NamedQuery(name = "Post.findAll", query = "SELECT p FROM Post p"),
+    @NamedQuery(name = "Post.findById", query = "SELECT p FROM Post p WHERE p.id = :id"),
+    @NamedQuery(name = "Post.findByTitle", query = "SELECT p FROM Post p WHERE p.title = :title"),
+    @NamedQuery(name = "Post.findByBlockedComment", query = "SELECT p FROM Post p WHERE p.blockedComment = :blockedComment"),
+    @NamedQuery(name = "Post.findByActive", query = "SELECT p FROM Post p WHERE p.active = :active"),
+    @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt")})
 public class Post implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,31 +47,36 @@ public class Post implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "title")
+    private String title;
     @Lob
     @Size(max = 65535)
     @Column(name = "content")
-    @NotNull
-    private String title;
+    private String content;
     @Column(name = "blocked_comment")
-    private Boolean blockedComment = false;
+    private Boolean blockedComment;
     @Column(name = "active")
-    private Boolean active = true;
+    private Boolean active;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Date createdAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
-    @Column(nullable = true)
-    List<PostImage> images;
 
     public Post() {
-
     }
 
     public Post(Integer id) {
         this.id = id;
+    }
+
+    public Post(Integer id, String title) {
+        this.id = id;
+        this.title = title;
     }
 
     public Integer getId() {
@@ -76,6 +95,14 @@ public class Post implements Serializable {
         this.title = title;
     }
 
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public Boolean getBlockedComment() {
         return blockedComment;
     }
@@ -92,11 +119,11 @@ public class Post implements Serializable {
         this.active = active;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -113,14 +140,6 @@ public class Post implements Serializable {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);
         return hash;
-    }
-
-    public List<PostImage> getImages() {
-        return images;
-    }
-
-    public void setImages(List<PostImage> images) {
-        this.images = images;
     }
 
     @Override
@@ -140,5 +159,5 @@ public class Post implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Post[ id=" + id + " ]";
     }
-
+    
 }
