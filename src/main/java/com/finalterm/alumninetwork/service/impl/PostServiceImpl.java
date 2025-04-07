@@ -89,6 +89,6 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getMyPosts(int userId) {
-        return this.postRepository.getMyPost(userId).stream().map(PostMapper::toPostDTO).toList();
+        return this.postRepository.getMyPost(userId).stream().map(PostMapper::toPostDTO).collect(Collectors.toList());
     }
 }

@@ -60,7 +60,7 @@ public class PostRepositoryImpl implements PostRepository {
         Session session = this.factoryBean.getObject().getCurrentSession();
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<Post> criteriaQuery = criteriaBuilder.createQuery(Post.class);
-        Root<Post> root = criteriaQuery.from(Post.class);
+        Root root = criteriaQuery.from(Post.class);
 
         Predicate userPredicate = criteriaBuilder.equal(root.get("user").get("id"), userId);
         criteriaQuery.where(userPredicate);

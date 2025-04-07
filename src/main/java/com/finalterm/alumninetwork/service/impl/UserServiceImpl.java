@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.pojo.AlumniInfo;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
@@ -43,6 +44,9 @@ public class UserServiceImpl implements UserService {
     private Environment environment;
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -94,14 +98,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean login(String username, String password) {
+    public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
             throw new RuntimeException("User not found");
         if (!user.getActive())
             throw new RuntimeException("User not active");
 
-        return bCryptPasswordEncoder.matches(password, user.getPassword());
+        boolean authenticated = bCryptPasswordEncoder.matches(password, user.getPassword());
+
+        if (authenticated)
+            return jwtService.generateTokenLogin(username);
+        else
+            throw new RuntimeException("Invalid username or password");
     }
 
     private void saveUserWithRole(String role, User user, Map<String, String> params) {

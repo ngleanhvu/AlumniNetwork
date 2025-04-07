@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.controller.rest;
 
+import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.dto.LoginDto;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.validation.Valid;
@@ -31,10 +32,13 @@ public class ApiUserController {
 
     @PostMapping("/login")
     @CrossOrigin
-    public ResponseEntity<Boolean> loginUser(@Valid @RequestBody LoginDto loginDto) {
-        if(this.userService.login(loginDto.getUsername(), loginDto.getPassword()))
-            return new ResponseEntity<>(true, HttpStatus.OK);
-        return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto loginDto) {
+        try {
+            String token = userService.login(loginDto.getUsername(), loginDto.getPassword());
+            return ResponseEntity.ok().body(Map.of("Token", token));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Error", e.getMessage()));
+        }
     }
 
 

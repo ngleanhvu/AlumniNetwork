@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,14 +29,13 @@ public class ApiPostController {
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPost() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        String username = auth.getName();
-//        User u = userService.getUserByUsername(username);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        User u = userService.getUserByUsername(username);
 
-        User u = userService.findUserById(2);
         if (u == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return ResponseEntity.ok(this.postService.getMyPosts(2));
+        return ResponseEntity.ok(this.postService.getMyPosts(u.getId()));
     }
 
     //Tạo một bài Post -> có thể gửi Images hoặc không
@@ -43,12 +44,10 @@ public class ApiPostController {
             produces = {MediaType.APPLICATION_JSON_VALUE}
     )
     @CrossOrigin
-    public ResponseEntity<Post> uploadPost(@RequestParam("content") String content ,@RequestParam(value = "images", required = false) List<MultipartFile> images,@RequestParam("userId") int userId) {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        User user = this.userService.getUserByUsername(auth.getName());
+    public ResponseEntity<Post> uploadPost(@RequestParam("content") String content ,@RequestParam(value = "images", required = false) List<MultipartFile> images) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = this.userService.getUserByUsername(auth.getName());
 
-        //Test user post
-        User user = this.userService.findUserById(userId);
         return ResponseEntity.ok(this.postService.saveOrUpdate(content, images, user));
     }
 
