@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface LecturerInfoRepository {
-    void addLecturerInfo(LecturerInfo lecturerInfo);
+    void saveLecturerInfo(LecturerInfo lecturerInfo);
     List<LecturerInfo> getLecturerInfos(Map<String, String> params);
+    LecturerInfo getLecturerInfoById(Integer id);
 }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @EnableTransactionManagement
 @ComponentScan(basePackages = {
@@ -52,12 +54,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
+
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
-                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            .requestMatchers(HttpMethod.DELETE, "/api/users/delete/**").permitAll()
+//                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception

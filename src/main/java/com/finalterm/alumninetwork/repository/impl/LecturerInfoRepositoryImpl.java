@@ -4,6 +4,7 @@ import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
@@ -20,9 +21,13 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
     @Autowired
     private LocalSessionFactoryBean sessionFactory;
     @Override
-    public void addLecturerInfo(LecturerInfo lecturerInfo) {
+    public void saveLecturerInfo(LecturerInfo lecturerInfo) {
         Session session = sessionFactory.getObject().getCurrentSession();
-        session.persist(lecturerInfo);
+        if (lecturerInfo == null) {
+            session.persist(lecturerInfo);
+        } else {
+            session.merge(lecturerInfo);
+        }
     }
 
     @Override
@@ -47,5 +52,13 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
         }
 
         return session.createQuery(criteriaQuery).list();
+    }
+
+    @Override
+    public LecturerInfo getLecturerInfoById(Integer id) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Query query = session.createQuery("from LecturerInfo where id = :id");
+        query.setParameter("id", id);
+        return (LecturerInfo) query.uniqueResult();
     }
 }

@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.filter;
 
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.service.impl.UserServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -29,32 +31,39 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private UserServiceImpl userService;
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String authToken = httpRequest.getHeader(TOKEN_HEADER);
-        if (jwtService.validateTokenLogin(authToken)) {
-            String username = jwtService.getUsernameFromToken(authToken);
-            User user = (User) userService.loadUserByUsername(username);
-            if (user != null) {
-                boolean enabled = true;
-                boolean accountNonExpired = true;
-                boolean credentialsNonExpired = true;
-                boolean accountNonLocked = true;
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            String authHeader = request.getHeader(TOKEN_HEADER);
 
-                Set<GrantedAuthority> authorities = new HashSet<>();
-                authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7); // Cắt bỏ "Bearer "
 
-                UserDetails userDetail = new org.springframework.security.core.userdetails.User(username, user.getPassword(), enabled, accountNonExpired,
-                        credentialsNonExpired, accountNonLocked, authorities);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetail,
-                        null, userDetail.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (jwtService.validateTokenLogin(token)) {
+                    String username = jwtService.getUsernameFromToken(token);
+                    User user = (User) userService.loadUserByUsername(username);
+
+                    if (user != null) {
+                        Set<GrantedAuthority> authorities = new HashSet<>();
+                        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+
+                        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                                username, user.getPassword(), true, true, true, true, authorities);
+
+                        UsernamePasswordAuthenticationToken authenticationToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        // Thiết lập xác thực vào SecurityContext
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    }
+                }
             }
         }
+
+        // Tiếp tục filter chain
         filterChain.doFilter(request, response);
     }
+
 }
 

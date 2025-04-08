@@ -17,6 +17,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -40,6 +42,7 @@ public class LecturerInfo implements Serializable {
     @Column(name = "id")
     private Integer id;
     @Column(name = "expired_reset_password_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiredResetPasswordTime;
     @Column(name = "changed_password")

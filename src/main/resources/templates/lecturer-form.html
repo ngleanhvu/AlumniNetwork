@@ -1,0 +1,31 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Manage Lecturer Info</title>
+  <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<section class="container">
+
+  <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Thay đổi thời gian đổi mật khẩu</h2>
+  <hr />
+
+  <form th:action="@{/users/admin/reset-time-password}" th:object="${lecturer}" method="post">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-floating mb-3 mt-3">
+      <input type="date" class="form-control" th:field="*{expiredResetPasswordTime}" id="expiredResetPasswordTime" placeholder="">
+      <label for="expiredResetPasswordTime">Expired Time Reset Password</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('expiredResetPasswordTime')}" th:errors="*{expiredResetPasswordTime}"></small>
+    </div>
+    <div class="form-floating mt-1">
+      <button class="btn btn-success">Cập nhật</button>
+      <!--                <button class="btn btn-success" th:if="${product.id != null}">Cập nhật sản phẩm</button>-->
+    </div>
+  </form>
+
+<div th:replace="base :: footer"></div>
+</section>
+</body>
+</html>

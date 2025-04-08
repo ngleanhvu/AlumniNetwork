@@ -2,12 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Quản lý người dùng</title>
     <th:block th:replace="base :: styles"></th:block>
 </head>
 <body>
 <div th:replace="base :: header"></div>
 <section class="container">
+    <h1 class="text-center text-info mt-1">Đăng nhập</h1>
     <form method="post" th:action="@{'/users/admin/login'}">
         <div class="form-floating mb-3 mt-3">
             <input type="text" class="form-control" id="username" placeholder="Enter email" name="username">
@@ -24,4 +25,4 @@
 </section>
 <div th:replace="base :: footer"></div>
 </body>
-</html>l>
+</html>

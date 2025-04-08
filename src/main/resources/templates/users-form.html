@@ -8,9 +8,10 @@
 <div th:replace="base :: header"></div>
 
     <section class="container">
-        <h1 class="text-center text-info mt-1">QUẢN LÝ NGƯỜI DÙNG</h1>
+        <h1 class="text-center text-info mt-1">Đăng ký người dùng</h1>
         <form method="post" th:action="@{/users/admin/add}" th:object="${user}" enctype="multipart/form-data">
             <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{avatar}">
             <div class="form-floating mb-3 mt-3">
                 <input type="text" class="form-control" th:field="*{username}" id="username" placeholder="Username">
                 <label for="username">Username</label>
@@ -31,26 +32,18 @@
                 <label for="phone">Số diện thoại</label>
                 <small class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
             </div>
-            <div class="form-floating mb-3 mt-3">
+            <div class="form-floating mb-3 mt-3" th:if="${user.username == null}">
                 <input type="password" class="form-control" id="password" placeholder="Password" th:field="*{password}" value="######">
                 <label for="password">Password</label>
                 <small class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
             </div>
-<!--            <div class="form-floating">-->
-<!--                <select class="form-select" id="category" th:field="*{category}">-->
-<!--                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"-->
-<!--                            th:selected="${product != null and product.category != null and c.id == product.category.id}">-->
-<!--                    </option>-->
-<!--                </select>-->
-<!--                <label for="category" class="form-label">Danh mục:</label>-->
-<!--            </div>-->
             <div class="form-floating mb-3 mt-3">
                 <input type="file" class="form-control" name="file" id="file">
                 <label for="file">Avatar</label>
             </div>
             <div class="form-floating mt-1">
-                <button class="btn btn-success">Thêm tài khoản</button>
-<!--                <button class="btn btn-success" th:if="${product.id != null}">Cập nhật sản phẩm</button>-->
+                <button class="btn btn-success" th:if="${user.username == null}">Thêm tài khoản</button>
+                <button class="btn btn-success" th:if="${user.username != null}">Cập nhật sản phẩm</button>
             </div>
         </form>
     </section>

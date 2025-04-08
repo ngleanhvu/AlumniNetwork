@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.pojo.AlumniInfo;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
@@ -40,6 +41,8 @@ public class UserServiceImpl implements UserService {
     private Environment environment;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -80,15 +83,54 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean login(String username, String password) {
+    public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
             throw new RuntimeException("User not found");
         if (!user.getActive())
             throw new RuntimeException("User not active");
-
-        return bCryptPasswordEncoder.matches(password, user.getPassword());
+        if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
+            throw new RuntimeException("Incorrect password");
+        return jwtService.generateTokenLogin(username);
     }
+
+    @Override
+    public List<User> getUsers(Map<String, String> params) {
+        return this.userRepository.getUsers(params);
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+        this.userRepository.deleteUser(user);
+        return true;
+    }
+
+    @Override
+    public boolean confirmUser(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+        if (user == null)
+            throw new RuntimeException("User not found");
+        user.setActive(true);
+        this.userRepository.saveUser(user);
+        return true;
+    }
+
+    @Override
+    public boolean resetTimePassword(LecturerInfo lecturerInfo) {
+        LecturerInfo existingLecturerInfo = this.lecturerInfoRepository.getLecturerInfoById(lecturerInfo.getId());
+        if (existingLecturerInfo == null)
+            throw new RuntimeException("LecturerInfo not found");
+        existingLecturerInfo.setExpiredResetPasswordTime(lecturerInfo.getExpiredResetPasswordTime());
+        lecturerInfoRepository.saveLecturerInfo(existingLecturerInfo);
+        return true;
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return this.userRepository.getUserByUsername(username);
+    }
+
 
     private void saveUserWithRole(String role, User user, Map<String, String> params) {
         UserRole userRole;
@@ -96,13 +138,13 @@ public class UserServiceImpl implements UserService {
             case "admin":
                 userRole = UserRole.ROLE_ADMIN;
                 user.setRole(userRole);
-                userRepository.addUser(user);
+                userRepository.saveUser(user);
                 break;
             case "lecturer":
                 userRole = UserRole.ROLE_LECTURER;
                 user.setRole(userRole);
                 user.setActive(true);
-                userRepository.addUser(user);
+                userRepository.saveUser(user);
                 // them thoi gian thay doi mat khau
                 LecturerInfo lecturerInfo = new LecturerInfo();
                 lecturerInfo.setUser(user);
@@ -112,14 +154,14 @@ public class UserServiceImpl implements UserService {
                 calendar.add(Calendar.HOUR,
                         Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
                 lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
-                lecturerInfoRepository.addLecturerInfo(lecturerInfo);
+                lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
                 // gui mail
                 emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
                 break;
             default:
                 userRole = UserRole.ROLE_ALUMNI;
                 user.setRole(userRole);
-                userRepository.addUser(user);
+                userRepository.saveUser(user);
                 // them mssv
                 String studentCode = params.getOrDefault("studentCode","");
                 if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");

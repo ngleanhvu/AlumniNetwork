@@ -1,6 +1,8 @@
 package com.finalterm.alumninetwork.controller.admin;
 
+import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.service.LecturerInfoService;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +11,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,11 +23,17 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private LecturerInfoService lecturerInfoService;
 
     @GetMapping("/users/admin")
-    public String manageUser(Model model) {
+    public String manageUser(Model model,
+                             @ModelAttribute("kw") String keyword) {
+        Map<String, String> params = new HashMap<>();
+        params.put("kw", keyword);
         User user = new User();
         model.addAttribute("user", user);
+        model.addAttribute("users", this.userService.getUsers(params));
         System.out.println(user);
         return "users";
     }
@@ -53,5 +63,53 @@ public class UserController {
     @GetMapping("/users/admin/login")
     public String loginPage() {
         return "users-login";
+    }
+
+    @PostMapping("/users/admin/delete/{username}")
+    public String deleteUser(@PathVariable("username") String username,
+                             RedirectAttributes redirectAttrs) {
+        boolean check = this.userService.deleteUser(username);
+        if (check) {
+            redirectAttrs.addFlashAttribute("msg", "Xóa thành công");
+        } else {
+            redirectAttrs.addFlashAttribute("msg", "Xóa thất bại");
+        }
+        return "redirect:/users/admin";
+    }
+
+    @PostMapping("/users/admin/confirm/{username}")
+    public String confirmUser(@PathVariable("username") String username,
+                             RedirectAttributes redirectAttrs) {
+        boolean check = this.userService.confirmUser(username);
+        if (check) {
+            redirectAttrs.addFlashAttribute("msg", "Xác nhận thành công");
+        } else {
+            redirectAttrs.addFlashAttribute("msg", "Xác nhận thất bại");
+        }
+        return "redirect:/users/admin";
+    }
+
+    @GetMapping("/users/admin/reset-time-password/{username}")
+    public String resetTimePasswordPage(@PathVariable("username") String username,
+                                    Model model) {
+        Map<String, String> params = new HashMap<>();
+        params.put("username", username);
+        model.addAttribute("lecturer", this.lecturerInfoService.getLecturerInfos(params).get(0));
+        return "lecturer-form";
+    }
+
+    @PostMapping("/users/admin/reset-time-password")
+    public String resetTimePassword(@ModelAttribute("lecturer") LecturerInfo lecturerInfo) {
+        if (this.userService.resetTimePassword(lecturerInfo)) {
+            return "redirect:/users/admin";
+        } else {
+            return "lecturer-form";
+        }
+    }
+
+    @GetMapping("/users/admin/update/{username}")
+    public String updateUserPage(@PathVariable("username") String username, Model model) {
+        model.addAttribute("user", this.userService.getUserByUsername(username));
+        return "users-form";
     }
 }

@@ -72,7 +72,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @Basic(optional = false)
-    @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "avatar")
     private String avatar;
@@ -87,6 +86,17 @@ public class User implements Serializable {
     private Date updatedAt;
     @Column(name = "active")
     private Boolean active;
+
+    @OneToOne(mappedBy = "user")
+    private LecturerInfo lecturerInfo;
+
+    public LecturerInfo getLecturerInfo() {
+        return lecturerInfo;
+    }
+
+    public void setLecturerInfo(LecturerInfo lecturerInfo) {
+        this.lecturerInfo = lecturerInfo;
+    }
 
     @Transient
     private MultipartFile file;

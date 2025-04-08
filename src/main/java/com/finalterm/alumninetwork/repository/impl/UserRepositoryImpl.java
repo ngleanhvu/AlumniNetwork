@@ -4,19 +4,29 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Repository
 @Transactional
 public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private LocalSessionFactoryBean factoryBean;
+    @Autowired
+    private Environment env;
 
     @Override
     public List<User> getAllAdmin() {
@@ -27,9 +37,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void addUser(User user) {
+    public void saveUser(User user) {
         Session session = this.factoryBean.getObject().getCurrentSession();
-        session.persist(user);
+        if (user.getId() == null) {
+            session.persist(user);
+        } else {
+            session.merge(user);
+        }
     }
 
     @Override
@@ -46,6 +60,53 @@ public class UserRepositoryImpl implements UserRepository {
         for (User user : users) {
             session.merge(user);
         }
+    }
+
+    @Override
+    public List<User> getUsers(Map<String, String> params) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+
+        if (params != null) {
+            List<Predicate> predicates = new ArrayList<Predicate>();
+            String keyword = params.get("kw");
+            if (!keyword.isEmpty()) {
+                predicates.add(
+                        builder.or(
+                                builder.like(root.get("username"), String.format("%%%s%%", keyword)),
+                                builder.like(root.get("email"), String.format("%%%s%%", keyword)),
+                                builder.like(root.get("phone"), String.format("%%%s%%", keyword)),
+                                builder.like(root.get("fullName"), String.format("%%%s%%", keyword))
+                        )
+                );
+            }
+            query.where(predicates.toArray(Predicate[]::new));
+        }
+
+        Query q = session.createQuery(query);
+
+        if (params != null) {
+            int PAGE_SIZE = Integer.parseInt(Objects.requireNonNull(env.getProperty("PAGE_SIZE")));
+            String page = params.get("page") == null ? "1" : params.get("page");
+            if (page != null && !page.isEmpty()) {
+                int p = Integer.parseInt(page);
+                int start = (p - 1) * PAGE_SIZE;
+
+                q.setFirstResult(start);
+                q.setMaxResults(PAGE_SIZE);
+            }
+        }
+
+        return q.getResultList();
+    }
+
+    @Override
+    public void deleteUser(User user) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        user.setActive(false);
+        session.merge(user);
     }
 
 }
