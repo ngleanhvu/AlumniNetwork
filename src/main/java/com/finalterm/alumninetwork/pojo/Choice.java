@@ -4,17 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Set;
@@ -40,7 +30,9 @@ public class Choice implements Serializable {
     @Size(max = 100)
     @Column(name = "content")
     private String content;
-
+    @JoinColumn(name = "question_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Question question;
 
     public Choice() {
     }
@@ -63,6 +55,14 @@ public class Choice implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(Question question) {
+        this.question = question;
     }
 
     @Override

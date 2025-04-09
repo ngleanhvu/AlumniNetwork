@@ -1,5 +1,7 @@
 package com.finalterm.alumninetwork.controller.admin;
 
+import com.finalterm.alumninetwork.pojo.Choice;
+import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.pojo.Survey;
 import com.finalterm.alumninetwork.service.SurveyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -27,6 +30,7 @@ public class SurveyController {
 //        params.put("startDate",startDate);
 //        params.put("endDate",endDate);
         model.addAttribute("surveys", this.surveyService.getSurveys(null));
+
         return "surveys";
     }
 
@@ -39,6 +43,12 @@ public class SurveyController {
     @PostMapping("/surveys/admin/add")
     public String saveSurvey(@ModelAttribute("survey") Survey survey,
                              RedirectAttributes redirectAttrs) {
+        for (Question question : survey.getQuestions()) {
+            question.setSurvey(survey);
+            for (Choice choice : question.getChoices()) {
+                choice.setQuestion(question);
+            }
+        }
         boolean check = this.surveyService.saveSurvey(survey);
         if (check) {
             return "redirect:/surveys/admin";
@@ -50,15 +60,25 @@ public class SurveyController {
     @GetMapping("/surveys/admin/update/{id}")
     public String updateSurveyForm(@PathVariable("id") Integer surveyId,
                                    Model model) {
-        model.addAttribute("survey", this.surveyService.getSurveyById(surveyId));
-        return "surveys-form";
+        Survey survey = this.surveyService.getSurveyById(surveyId);
+        model.addAttribute("survey", survey);
+        List<Question> questions = survey.getQuestions();
+        model.addAttribute("questions", questions);
+        return "surveys-form-update";
     }
+
+//    @GetMapping("/surveys/admin/update/{id}")
+//    public String updateSurveyForm(@PathVariable("id") Integer surveyId,
+//                                   Model model) {
+//        model.addAttribute("survey", this.surveyService.getSurveyById(surveyId));
+//        return "surveys-form";
+//    }
 
     @PostMapping("/surveys/admin/delete/{id}")
     public String deleteSurvey(@PathVariable("id") Integer surveyId,
                                RedirectAttributes redirectAttrs) {
         this.surveyService.deleteSurveyById(surveyId);
         redirectAttrs.addAttribute("msg", "Xóa thành công");
-        return "surveys";
+        return "redirect:/surveys/admin";
     }
 }

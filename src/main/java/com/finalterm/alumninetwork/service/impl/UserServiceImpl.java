@@ -159,6 +159,7 @@ public class UserServiceImpl implements UserService {
             case "admin":
                 userRole = UserRole.ROLE_ADMIN;
                 user.setRole(userRole);
+                user.setActive(true);
                 userRepository.saveUser(user);
                 break;
             case "lecturer":
