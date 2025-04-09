@@ -12,4 +12,5 @@ public interface UserRepository {
     void saveAllUser(List<User> users);
     List<User> getUsers(Map<String, String> params);
     void deleteUser(User user);
+    User getUserByEmail(String email);
 }

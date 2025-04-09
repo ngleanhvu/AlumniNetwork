@@ -3,6 +3,7 @@ package com.finalterm.alumninetwork.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.component.JwtService;
+import com.finalterm.alumninetwork.dto.ChangePasswordDto;
 import com.finalterm.alumninetwork.pojo.AlumniInfo;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
@@ -131,6 +132,26 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.getUserByUsername(username);
     }
 
+    @Override
+    public boolean changePassword(ChangePasswordDto changePasswordDto) {
+        if (!changePasswordDto.getPassword().equals(changePasswordDto.getConfirmPassword()))
+            throw new RuntimeException("Password do not match");
+        User user = this.userRepository.getUserByEmail(changePasswordDto.getEmail());
+        if (user == null)
+            throw new RuntimeException("User not found");
+        if (user.getRole() != UserRole.ROLE_LECTURER)
+            throw new RuntimeException("User not lecturer");
+        LecturerInfo lecturerInfo = user.getLecturerInfo();
+        if (lecturerInfo.getExpiredResetPasswordTime().before(new Date()))
+            throw new RuntimeException("Expired reset password");
+        lecturerInfo.setChangedPassword(true);
+        user.setPassword(bCryptPasswordEncoder.encode(changePasswordDto.getPassword()));
+        user.setActive(true);
+        this.userRepository.saveUser(user);
+        this.lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
+        return true;
+    }
+
 
     private void saveUserWithRole(String role, User user, Map<String, String> params) {
         UserRole userRole;
@@ -182,5 +203,6 @@ public class UserServiceImpl implements UserService {
         return new org.springframework.security.core.userdetails.User(
                 u.getUsername(), u.getPassword(), authorities);
     }
+
 
 }

@@ -1,0 +1,42 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Survey</title>
+  <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<section class="container">
+  <h3 class="d-flex justify-content-center fw-bold font-monospace p-3" >Thêm bài khảo sát</h3>
+  <form method="post" th:action="@{/surveys/admin/add}" th:object="${survey}">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-floating mb-3 mt-3">
+      <input type="text" class="form-control" th:field="*{title}" id="title" placeholder="Tiêu đề">
+      <label for="title">Tiêu đề</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
+    </div>
+    <div class="form-floating mb-3 mt-3">
+      <input type="text" class="form-control" th:field="*{description}" id="description" placeholder="Mô tả">
+      <label for="description">Mô tả</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+    </div>
+    <div class="form-floating mb-3 mt-3">
+      <input type="date" class="form-control" th:field="*{startTime}" id="startTime" placeholder="Thời gian bắt đầu">
+      <label for="startTime">Thời gian bắt đầu</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}"></small>
+    </div>
+    <div class="form-floating mb-3 mt-3">
+      <input type="date" class="form-control" th:field="*{endTime}" id="endTime" placeholder="Thời gian kết thúc">
+      <label for="endTime">Thời gian kết thúc</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('endTime')}" th:errors="*{endTime}"></small>
+    </div>
+    <div class="form-floating mt-1">
+      <button class="btn btn-success" th:if="${survey.id == null}">Thêm khảo sát</button>
+      <button class="btn btn-success" th:if="${survey.id != null}">Cập nhật khảo sát</button>
+    </div>
+  </form>
+</section>
+<div th:replace="base :: footer"></div>
+</body>
+</html>

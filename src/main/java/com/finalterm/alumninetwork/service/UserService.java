@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.service;
 
+import com.finalterm.alumninetwork.dto.ChangePasswordDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,4 +18,5 @@ public interface UserService extends UserDetailsService {
     boolean confirmUser(String username);
     boolean resetTimePassword(LecturerInfo lecturerInfo);
     User getUserByUsername(String username);
+    boolean changePassword(ChangePasswordDto changePasswordDto);
 }

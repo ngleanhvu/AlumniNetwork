@@ -102,11 +102,24 @@ public class UserRepositoryImpl implements UserRepository {
         return q.getResultList();
     }
 
+
+
     @Override
     public void deleteUser(User user) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         user.setActive(false);
         session.merge(user);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+        query.where(builder.equal(root.get("email"), email));
+        Query q = session.createQuery(query);
+        return (User) q.getSingleResult();
     }
 
 }

@@ -20,6 +20,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
@@ -52,10 +54,12 @@ public class Survey implements Serializable {
     @Size(max = 255)
     @Column(name = "title")
     private String title;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
     @Column(name = "end_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
     @Size(max = 6)
@@ -124,7 +128,7 @@ public class Survey implements Serializable {
         return user;
     }
 
-    public void setUserId(User userId) {
+    public void setUser(User user) {
         this.user = user;
     }
 
