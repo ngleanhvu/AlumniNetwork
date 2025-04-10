@@ -56,6 +56,7 @@ public class SecurityConfig {
                     authorizeRequests
 
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password").permitAll()
+                            .requestMatchers("/api/surveys/stats/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/users/current-user").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
 //                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")

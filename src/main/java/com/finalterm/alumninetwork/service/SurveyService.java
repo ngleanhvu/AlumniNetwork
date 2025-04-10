@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.service;
 
+import com.finalterm.alumninetwork.dto.StatsSurveyDto;
 import com.finalterm.alumninetwork.pojo.Survey;
 
 import java.util.List;
@@ -10,4 +11,5 @@ public interface SurveyService {
     boolean saveSurvey(Survey survey);
     Survey getSurveyById(Integer surveyId);
     void deleteSurveyById(Integer surveyId);
+    List<StatsSurveyDto> statUserSurveyChoices(Integer surveyId);
 }

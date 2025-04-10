@@ -7,6 +7,7 @@ package com.finalterm.alumninetwork.pojo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,6 +34,16 @@ public class Choice implements Serializable {
     @JoinColumn(name = "question_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Question question;
+    @OneToMany(mappedBy = "choice")
+    private List<UserSurveyChoice>  userSurveyChoices;
+
+    public List<UserSurveyChoice> getUserSurveyChoices() {
+        return userSurveyChoices;
+    }
+
+    public void setUserSurveyChoices(List<UserSurveyChoice> userSurveyChoices) {
+        this.userSurveyChoices = userSurveyChoices;
+    }
 
     public Choice() {
     }

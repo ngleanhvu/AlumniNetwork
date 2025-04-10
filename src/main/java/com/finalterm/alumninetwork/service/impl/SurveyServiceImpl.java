@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.service.impl;
 
+import com.finalterm.alumninetwork.dto.StatsSurveyDto;
 import com.finalterm.alumninetwork.pojo.Survey;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.SurveyRepository;
@@ -45,6 +46,10 @@ public class SurveyServiceImpl implements SurveyService {
     @Override
     public void deleteSurveyById(Integer surveyId) {
         this.surveyRepository.deleteSurveyById(surveyId);
+    }
+    @Override
+    public List<StatsSurveyDto> statUserSurveyChoices(Integer surveyId) {
+        return this.surveyRepository.statsUserSurveyChoice(surveyId);
     }
 
 }

@@ -1,12 +1,13 @@
 package com.finalterm.alumninetwork.repository.impl;
 
+import com.finalterm.alumninetwork.dto.StatsSurveyDto;
+import com.finalterm.alumninetwork.pojo.Choice;
+import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.pojo.Survey;
+import com.finalterm.alumninetwork.pojo.UserSurveyChoice;
 import com.finalterm.alumninetwork.repository.SurveyRepository;
 import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -111,5 +112,52 @@ public class SurveyRepositoryImpl implements SurveyRepository {
         Session session = sessionFactory.getObject().getCurrentSession();
         Survey survey = getSurveyById(surveyId);
         session.remove(survey);
+    }
+
+    @Override
+    public List<StatsSurveyDto> statsUserSurveyChoice(Integer surveyId) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Survey survey = getSurveyById(surveyId);
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
+        Root<Question> root = query.from(Question.class);
+        Join<Question, Choice> choiceJoin = root.join("choices", JoinType.INNER);
+        Join<Choice, UserSurveyChoice> userSurveyChoiceJoin = choiceJoin.join("userSurveyChoices", JoinType.LEFT);
+        query.multiselect(
+                root.get("content"),
+                choiceJoin.get("content"),
+                builder.count(userSurveyChoiceJoin.get("id"))
+        );
+        query.where(builder.equal(root.get("survey"), survey));
+        query.groupBy(root.get("id"), choiceJoin.get("id"));
+        Query q = session.createQuery(query);
+
+        List<Object[]> results = q.getResultList();
+
+        List<StatsSurveyDto> statsSurveyDtos = new ArrayList<>();
+
+        Map<String, String> questionMap = new HashMap<>();
+        Map<String, Long> choicesMap = new HashMap<>();
+        questionMap.put("keyword", (String) results.get(0)[0]);
+
+        for (Object[] result : results) {
+            if (!questionMap.get("keyword").equals(result[0]))  {
+                StatsSurveyDto statsSurveyDto = new StatsSurveyDto();
+                statsSurveyDto.setContent(questionMap.get("keyword"));
+                statsSurveyDto.setChocies(choicesMap);
+                choicesMap.clear();
+                questionMap.clear();
+                statsSurveyDtos.add(statsSurveyDto);
+            }
+            questionMap.put("keyword", (String) result[0]);
+            choicesMap.put((String) result[1], (Long) result[2]);
+        }
+
+        StatsSurveyDto statsSurveyDto = new StatsSurveyDto();
+        statsSurveyDto.setContent(questionMap.get("keyword"));
+        statsSurveyDto.setChocies(choicesMap);
+        statsSurveyDtos.add(statsSurveyDto);
+
+        return statsSurveyDtos;
     }
 }
