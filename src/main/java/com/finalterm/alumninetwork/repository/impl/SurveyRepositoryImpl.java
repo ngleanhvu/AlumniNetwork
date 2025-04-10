@@ -144,10 +144,11 @@ public class SurveyRepositoryImpl implements SurveyRepository {
             if (!questionMap.get("keyword").equals(result[0]))  {
                 StatsSurveyDto statsSurveyDto = new StatsSurveyDto();
                 statsSurveyDto.setContent(questionMap.get("keyword"));
-                statsSurveyDto.setChocies(choicesMap);
-                choicesMap.clear();
-                questionMap.clear();
+                Map<String, Long> choiceMap = new HashMap<>(choicesMap);
                 statsSurveyDtos.add(statsSurveyDto);
+                statsSurveyDto.setChocies(choiceMap);
+                questionMap.clear();
+                choicesMap.clear();
             }
             questionMap.put("keyword", (String) result[0]);
             choicesMap.put((String) result[1], (Long) result[2]);
