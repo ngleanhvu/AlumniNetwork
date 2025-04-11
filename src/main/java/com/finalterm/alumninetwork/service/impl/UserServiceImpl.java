@@ -101,15 +101,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean deleteUser(String username) {
-        User user = this.userRepository.getUserByUsername(username);
+    public boolean deleteUser(Integer userId) {
+        User user = this.userRepository.getUserById(userId);
         this.userRepository.deleteUser(user);
         return true;
     }
 
     @Override
-    public boolean confirmUser(String username) {
-        User user = this.userRepository.getUserByUsername(username);
+    public boolean confirmUser(Integer userId) {
+        User user = this.userRepository.getUserById(userId);
         if (user == null)
             throw new RuntimeException("User not found");
         user.setActive(true);
@@ -150,6 +150,16 @@ public class UserServiceImpl implements UserService {
         this.userRepository.saveUser(user);
         this.lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
         return true;
+    }
+
+    @Override
+    public List<User> getAllUserExactAdmin() {
+        return this.userRepository.getAllUserExactAdmin();
+    }
+
+    @Override
+    public List<User> getUserByIds(List<Integer> userIds) {
+        return this.userRepository.getUserByIds(userIds);
     }
 
 

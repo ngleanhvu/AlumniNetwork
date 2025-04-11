@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -86,6 +87,16 @@ public class User implements Serializable {
     private Date updatedAt;
     @Column(name = "active")
     private Boolean active;
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private Set<GroupNetwork> groupNetworkUsers = new HashSet<>();
+
+    public Set<GroupNetwork> getGroupNetworkUsers() {
+        return groupNetworkUsers;
+    }
+
+    public void setGroupNetworkUsers(Set<GroupNetwork> groupNetworkUsers) {
+        this.groupNetworkUsers = groupNetworkUsers;
+    }
 
     @OneToOne(mappedBy = "user")
     private LecturerInfo lecturerInfo;

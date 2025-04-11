@@ -50,13 +50,20 @@
       <td th:text="${u.active ? 'True' : 'False'}"></td>
       <td>
         <div class="d-flex">
-          <form method="post" th:action="@{'/users/admin/delete/' + ${u.username}}" class="me-2">
+          <form method="post"
+                th:action="@{'/users/admin/delete'}" class="me-2"
+                th:object="${u}"
+          >
+            <input type="hidden" th:value="${u.id}" name="id">
             <button class="btn btn-danger" type="submit">Xoá</button>
           </form>
           <form method="post"
                 th:if="${u.active == false and u.role.name == 'ROLE_ALUMNI'}"
-                th:action="@{'/users/admin/confirm/' + ${u.username}}">
-            <button class="btn btn-primary" type="submit">Xác nhận</button>
+                th:action="@{'/users/admin/confirm'}"
+                th:object="${u}"
+          >
+            <input type="hidden" th:value="${u.id}" name="id">
+            <button class="btn btn-primary" type="submit"  onclick="return confirm('Bạn có chắc muốn xoá không?');">Xác nhận</button>
           </form>
           <button class="btn btn-secondary" type="button"
                   th:if="${u.active == false and u.role.name == 'ROLE_LECTURER'}"

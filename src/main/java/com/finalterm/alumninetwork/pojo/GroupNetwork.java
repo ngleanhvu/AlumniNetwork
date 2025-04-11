@@ -4,22 +4,11 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -48,6 +37,17 @@ public class GroupNetwork implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
+
+    @OneToMany(mappedBy = "groupNetwork", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<GroupNetworkUser> groupNetworkUsers = new HashSet<>();
+
+    public Set<GroupNetworkUser> getGroupNetworkUsers() {
+        return groupNetworkUsers;
+    }
+
+    public void setGroupNetworkUsers(Set<GroupNetworkUser> groupNetworkUsers) {
+        this.groupNetworkUsers = groupNetworkUsers;
+    }
 
     public GroupNetwork() {
     }

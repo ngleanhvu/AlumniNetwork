@@ -13,4 +13,7 @@ public interface UserRepository {
     List<User> getUsers(Map<String, String> params);
     void deleteUser(User user);
     User getUserByEmail(String email);
+    User getUserById(Integer userId);
+    List<User> getAllUserExactAdmin();
+    List<User> getUserByIds(List<Integer> userIds);
 }

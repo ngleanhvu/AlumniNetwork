@@ -14,9 +14,11 @@ public interface UserService extends UserDetailsService {
     void addUser(Map<String, String> params, MultipartFile avatar);
     String login(String username, String password);
     List<User> getUsers(Map<String, String> params);
-    boolean deleteUser(String username);
-    boolean confirmUser(String username);
+    boolean deleteUser(Integer userId);
+    boolean confirmUser(Integer id);
     boolean resetTimePassword(LecturerInfo lecturerInfo);
     User getUserByUsername(String username);
     boolean changePassword(ChangePasswordDto changePasswordDto);
+    List<User> getAllUserExactAdmin();
+    List<User> getUserByIds(List<Integer> userIds);
 }

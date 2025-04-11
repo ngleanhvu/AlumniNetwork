@@ -4,9 +4,11 @@ import com.finalterm.alumninetwork.pojo.Choice;
 import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.pojo.Survey;
 import com.finalterm.alumninetwork.service.SurveyService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -30,7 +32,6 @@ public class SurveyController {
 //        params.put("startDate",startDate);
 //        params.put("endDate",endDate);
         model.addAttribute("surveys", this.surveyService.getSurveys(null));
-
         return "surveys";
     }
 
@@ -41,8 +42,12 @@ public class SurveyController {
     }
 
     @PostMapping("/surveys/admin/add")
-    public String saveSurvey(@ModelAttribute("survey") Survey survey,
-                             RedirectAttributes redirectAttrs) {
+    public String saveSurvey(@Valid @ModelAttribute("survey") Survey survey,
+                             RedirectAttributes redirectAttrs,
+                             BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "surveys-form";
+        }
         for (Question question : survey.getQuestions()) {
             question.setSurvey(survey);
             for (Choice choice : question.getChoices()) {

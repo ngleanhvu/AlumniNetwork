@@ -65,10 +65,10 @@ public class UserController {
         return "users-login";
     }
 
-    @PostMapping("/users/admin/delete/{username}")
-    public String deleteUser(@PathVariable("username") String username,
+    @PostMapping("/users/admin/delete")
+    public String deleteUser(@ModelAttribute("user") User user,
                              RedirectAttributes redirectAttrs) {
-        boolean check = this.userService.deleteUser(username);
+        boolean check = this.userService.deleteUser(user.getId());
         if (check) {
             redirectAttrs.addFlashAttribute("msg", "Xóa thành công");
         } else {
@@ -77,10 +77,10 @@ public class UserController {
         return "redirect:/users/admin";
     }
 
-    @PostMapping("/users/admin/confirm/{username}")
-    public String confirmUser(@PathVariable("username") String username,
+    @PostMapping("/users/admin/confirm")
+    public String confirmUser(@ModelAttribute("user") User user,
                              RedirectAttributes redirectAttrs) {
-        boolean check = this.userService.confirmUser(username);
+        boolean check = this.userService.confirmUser(user.getId());
         if (check) {
             redirectAttrs.addFlashAttribute("msg", "Xác nhận thành công");
         } else {

@@ -4,10 +4,7 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -120,6 +117,38 @@ public class UserRepositoryImpl implements UserRepository {
         query.where(builder.equal(root.get("email"), email));
         Query q = session.createQuery(query);
         return (User) q.getSingleResult();
+    }
+
+    @Override
+    public User getUserById(Integer userId) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        Query query = session.createNamedQuery("User.findById", User.class);
+        query.setParameter("id", userId);
+        return (User) query.getSingleResult();
+    }
+
+    @Override
+    public List<User> getAllUserExactAdmin() {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+        query.where(builder.not(
+                builder.equal(root.get("role"), UserRole.ROLE_ADMIN)
+        ));
+        Query q = session.createQuery(query);
+        return q.getResultList();
+    }
+
+    @Override
+    public List<User> getUserByIds(List<Integer> userIds) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+        Expression<Integer> expressionGetId = root.get("id");
+        query.where(builder.equal(expressionGetId, userIds.get(0)));
+        return session.createQuery(query).getResultList();
     }
 
 }

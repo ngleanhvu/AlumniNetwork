@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.formatter.GroupNetworkFormatter;
 import com.finalterm.alumninetwork.formatter.SurveyFormatter;
 import com.finalterm.alumninetwork.formatter.UserFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
     public void addFormatters(FormatterRegistry registry) {
         registry.addFormatter(new UserFormatter());
         registry.addFormatter(new SurveyFormatter());
+        registry.addFormatter(new GroupNetworkFormatter());
     }
 
     @Bean
