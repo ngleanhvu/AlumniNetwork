@@ -39,6 +39,11 @@ public class PostServiceImpl implements PostService {
         return this.postRepository.getAll().stream().map(PostMapper::toPostDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public Post getPostById(int id) {
+        return this.postRepository.getPostById(id);
+    }
+
     @Transactional
     @Override
     public Post saveOrUpdate(String content, List<MultipartFile> fileImages, User user) {

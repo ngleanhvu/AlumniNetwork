@@ -54,12 +54,14 @@ public class SecurityConfig {
                     authorizeRequests
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
-                            .requestMatchers(HttpMethod.GET,"/api/posts").authenticated()
-                            .requestMatchers(HttpMethod.POST,"/api/posts").authenticated()
+//                            .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
+                            .requestMatchers(HttpMethod.GET,"/api/posts/**").authenticated()
+                            .requestMatchers(HttpMethod.POST,"/api/posts/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT,"/api/posts/**").authenticated()
                             .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception

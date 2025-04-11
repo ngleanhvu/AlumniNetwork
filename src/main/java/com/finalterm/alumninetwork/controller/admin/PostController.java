@@ -30,11 +30,5 @@ public class PostController {
         return  "redirect:/posts/admin";
     }
 
-    //---------------------------------ROLE CLIENT-------------------------------------
-    @PostMapping("/add")
-    public Post uploadPost(@RequestBody Post p) {
-        return null;
-    }
-
 
 }

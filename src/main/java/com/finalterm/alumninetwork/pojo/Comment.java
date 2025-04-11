@@ -8,7 +8,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author nguoideptrangian
@@ -38,14 +40,17 @@ public class Comment implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Comment parentCommentId;
     @JoinColumn(name = "post_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Post post;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
+    //Neu' replies.size() > 0 thi` truy van' th con
+    @OneToMany(mappedBy = "parentCommentId", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Comment> replies;
 
     public Comment() {
     }
@@ -56,6 +61,14 @@ public class Comment implements Serializable {
 
     public Integer getId() {
         return id;
+    }
+
+    public List<Comment> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<Comment> replies) {
+        this.replies = replies;
     }
 
     public void setId(Integer id) {

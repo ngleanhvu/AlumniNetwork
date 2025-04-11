@@ -14,4 +14,5 @@ public interface PostService {
     void delete(int id);
     List<PostDTO> getMyPosts(int userId);
     void lockComments(Post post);
+    Post getPostById(int id);
 }

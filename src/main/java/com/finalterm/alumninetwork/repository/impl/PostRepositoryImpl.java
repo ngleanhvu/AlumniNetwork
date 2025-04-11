@@ -34,6 +34,12 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public Post getPostById(int id) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        return session.get(Post.class, id);
+    }
+
+    @Override
     public void delete(int id) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Post p = session.get(Post.class, id);

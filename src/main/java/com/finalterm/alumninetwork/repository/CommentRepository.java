@@ -5,6 +5,10 @@ import com.finalterm.alumninetwork.pojo.Comment;
 import java.util.List;
 
 public interface CommentRepository {
-    void addComment(Comment comment);
-    List<Comment> getCommentsByPostId();
+
+    Comment saveOrUpdate(Comment comment);
+    Comment getCommentById(int id);
+    List<Comment> getRootCommentsByPostId(int id);
+    List<Comment> getCommentsByParentCommentId(int id);
+    void deleteComment(int id);
 }

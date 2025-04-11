@@ -10,4 +10,5 @@ public interface PostRepository {
     Post saveOrUpdate(Post p);
     void delete(int id);
     List<Post> getMyPost(int userId);
+    Post getPostById(int id);
 }
