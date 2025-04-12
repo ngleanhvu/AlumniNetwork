@@ -22,6 +22,8 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
@@ -62,7 +64,9 @@ public class Event implements Serializable {
     private String content;
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "end_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
@@ -146,7 +150,7 @@ public class Event implements Serializable {
         return user;
     }
 
-    public void setUser(User userId) {
+    public void setUser(User user) {
         this.user = user;
     }
 

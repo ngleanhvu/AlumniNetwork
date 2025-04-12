@@ -76,14 +76,14 @@ public class GroupController {
                                  @ModelAttribute("userIds") List<Integer> userIds) {
         List<User> users = this.userService.getUserByIds(userIds);
         for (User user : users) {
-            Predicate<User> isUserInGroup = u -> user.getGroupNetworkUsers().stream()
+           Predicate<User> isUserInGroup = u -> user.getGroupNetworkUsers().stream()
                     .anyMatch(userNetwork -> userNetwork.getId().equals(groupNetwork.getId()));
-            if (!isUserInGroup.test(user)) {
+           if (!isUserInGroup.test(user)) {
                 GroupNetworkUser groupNetworkUser = new GroupNetworkUser();
                 groupNetworkUser.setUser(user);
                 groupNetworkUser.setGroupNetwork(groupNetwork);
                 groupNetwork.getGroupNetworkUsers().add(groupNetworkUser);
-            }
+           }
         }
         this.groupService.saveGroup(groupNetwork);
         return "redirect:/groups/admin";

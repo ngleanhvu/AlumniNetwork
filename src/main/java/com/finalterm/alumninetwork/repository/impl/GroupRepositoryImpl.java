@@ -1,6 +1,8 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.GroupNetwork;
+import com.finalterm.alumninetwork.pojo.GroupNetworkUser;
+import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.GroupRepository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -15,10 +17,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Repository
 @Transactional
@@ -84,5 +83,21 @@ public class GroupRepositoryImpl implements GroupRepository {
         Session session = sessionFactory.getObject().getCurrentSession();
         session.remove(getGroupById(groupId));
         return true;
+    }
+
+    @Override
+    public List<User> getAllUserGroupsById(List<Integer> groupIds) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<GroupNetworkUser> cq = cb.createQuery(GroupNetworkUser.class);
+        Root<GroupNetworkUser> root = cq.from(GroupNetworkUser.class);
+        Predicate predicate = root.get("groupNetwork").get("id").in(groupIds);
+        cq.where(predicate);
+        List<GroupNetworkUser> groupNetworkUsers = session.createQuery(cq).getResultList();
+        Set<User> users = new HashSet<>();
+        for (GroupNetworkUser groupNetworkUser : groupNetworkUsers) {
+            users.add(groupNetworkUser.getUser());
+        }
+        return new ArrayList<>(users);
     }
 }

@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Trang chủ</title>
@@ -9,45 +9,50 @@
 
 <main class="container">
 
-    <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Add more event</h2>
+    <h2 class="d-flex justify-content-center fw-bold font-monospace p-3">Add more event</h2>
 
     <form th:action="@{/events/admin/add}" th:object="${event}" method="post">
+        <input type="hidden" th:field="*{id}" />
+
+        <!-- Title -->
         <div class="mb-3 mt-3">
             <label class="form-label">Title</label>
-            <input type="text" class="form-control mt-1" th:field="*{title}" placeholder="Event title" />
+            <input type="text" class="form-control mt-1" th:field="*{title}" placeholder="Event title" required />
         </div>
+
+        <!-- Content -->
         <div class="mb-3 mt-3">
             <label class="form-label">Content</label>
-            <textarea class="form-control" th:field="*{content}" required></textarea>
-        </div>
-        <div class="mb-3 mt-3">
-            <label class="form-label">Description</label>
-            <input type="text" class="form-control mt-1" th:field="*{description}" placeholder="Description" />
+            <textarea class="form-control" th:field="*{content}" placeholder="Event content" required></textarea>
         </div>
 
+        <!-- Zoom type (radio) -->
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="offline" value="false" id="onlineOption">
+            <label class="form-check-label" for="onlineOption">
+                Online
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="offline" value="true" id="offlineOption" checked>
+            <label class="form-check-label" for="offlineOption">
+                Offline
+            </label>
+        </div>
+
+        <!-- Start Time -->
         <div class="mb-3 mt-3">
             <label class="form-label">Start time</label>
-            <input id="startTime" class="form-control" type="datetime-local" th:field="*{startTime}" placeholder="Start date"/>
+            <input type="datetime-local" class="form-control" th:field="*{startTime}" required />
         </div>
+
+        <!-- End Time -->
         <div class="mb-3 mt-3">
             <label class="form-label">End time</label>
-            <input id="endTime" class="form-control" type="datetime-local" th:field="*{endTime}" placeholder="End date" />
+            <input type="datetime-local" class="form-control" th:field="*{endTime}" required />
         </div>
 
-        <div class="mb-3 mt-3">
-            <label class="form-label">URL Zoom:</label>
-            <input type="text" class="form-control" th:field="*{urlZoom}" placeholder="URL Zoom" />
-        </div>
-
-        <div class="mb-3 mt-3">
-            <label class="form-label">Admin:</label>
-            <select class="form-select" th:field="*{user.id}">
-                <option th:each="u :${user}" th:value="${u.id}" th:text="${u.username}"></option>
-            </select>
-        </div>
-<!--        <input type="hidden" th:field="*{id}" />-->
         <button type="submit" class="btn btn-success">Thêm event</button>
-
     </form>
 
 </main>

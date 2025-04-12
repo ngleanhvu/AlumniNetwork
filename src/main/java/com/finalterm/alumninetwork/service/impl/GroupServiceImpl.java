@@ -45,4 +45,9 @@ public class GroupServiceImpl implements GroupService {
     public boolean deleteGroupNetworkById(Integer id) {
         return this.groupRepository.deleteGroup(id);
     }
+
+    @Override
+    public List<User> getUserGroupNetworksByIds(List<Integer> ids) {
+        return this.groupRepository.getAllUserGroupsById(ids);
+    }
 }

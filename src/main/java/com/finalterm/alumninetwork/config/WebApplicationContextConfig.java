@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.formatter.EventFormatter;
 import com.finalterm.alumninetwork.formatter.GroupNetworkFormatter;
 import com.finalterm.alumninetwork.formatter.SurveyFormatter;
 import com.finalterm.alumninetwork.formatter.UserFormatter;
@@ -57,6 +58,7 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
         registry.addFormatter(new UserFormatter());
         registry.addFormatter(new SurveyFormatter());
         registry.addFormatter(new GroupNetworkFormatter());
+        registry.addFormatter(new EventFormatter());
     }
 
     @Bean

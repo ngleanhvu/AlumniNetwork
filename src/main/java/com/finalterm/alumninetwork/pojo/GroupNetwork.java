@@ -38,7 +38,7 @@ public class GroupNetwork implements Serializable {
     @ManyToOne(optional = false)
     private User user;
 
-    @OneToMany(mappedBy = "groupNetwork", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "groupNetwork", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<GroupNetworkUser> groupNetworkUsers = new HashSet<>();
 
     public Set<GroupNetworkUser> getGroupNetworkUsers() {

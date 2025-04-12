@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Manage Event</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<main class="container">
+
+    <h2 class="d-flex justify-content-center fw-bold font-monospace p-3">Gửi email sự kiện</h2>
+
+    <form th:action="@{/events/admin/send-email}" th:object="${event}" method="post">
+        <input type="hidden" th:field="*{id}">
+        <div class="mb-3">
+            <label for="users" class="form-label fw-semibold">Chọn thành viên</label>
+            <select class="form-select" id="users" name="userIds" multiple size="5">
+                <option th:each="u : ${users}"
+                        th:value="${u.id}"
+                        th:text="${u.username}">
+                </option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="groups" class="form-label fw-semibold">Chọn nhóm</label>
+            <select class="form-select" id="groups" name="groupIds" multiple size="5">
+                <option th:each="g : ${groups}"
+                        th:value="${g.id}"
+                        th:text="${g.name}">
+                </option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Gửi email</button>
+    </form>
+</main>
+<div th:replace="base :: footer"></div>
+</body>
+</html>

@@ -87,7 +87,7 @@ public class User implements Serializable {
     private Date updatedAt;
     @Column(name = "active")
     private Boolean active;
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<GroupNetwork> groupNetworkUsers = new HashSet<>();
 
     public Set<GroupNetwork> getGroupNetworkUsers() {
