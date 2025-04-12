@@ -162,6 +162,11 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.getUserByIds(userIds);
     }
 
+    @Override
+    public User getUserByEmail(String email) {
+        return this.userRepository.getUserByEmail(email);
+    }
+
 
     private void saveUserWithRole(String role, User user, Map<String, String> params) {
         UserRole userRole;

@@ -21,4 +21,5 @@ public interface UserService extends UserDetailsService {
     boolean changePassword(ChangePasswordDto changePasswordDto);
     List<User> getAllUserExactAdmin();
     List<User> getUserByIds(List<Integer> userIds);
+    User getUserByEmail(String email);
 }
