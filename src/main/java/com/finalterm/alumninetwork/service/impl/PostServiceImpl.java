@@ -2,7 +2,7 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.finalterm.alumninetwork.dto.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.mapper.PostMapper;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;

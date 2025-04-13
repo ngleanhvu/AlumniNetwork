@@ -1,6 +1,6 @@
 package com.finalterm.alumninetwork.mapper;
 
-import com.finalterm.alumninetwork.dto.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;
 

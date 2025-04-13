@@ -1,9 +1,8 @@
 package com.finalterm.alumninetwork.service;
 
-import com.finalterm.alumninetwork.dto.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

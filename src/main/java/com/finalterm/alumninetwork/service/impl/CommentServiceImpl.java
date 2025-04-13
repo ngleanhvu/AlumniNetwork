@@ -1,6 +1,6 @@
 package com.finalterm.alumninetwork.service.impl;
 
-import com.finalterm.alumninetwork.dto.CommentDto;
+import com.finalterm.alumninetwork.dto.response.CommentDto;
 import com.finalterm.alumninetwork.mapper.CommentMapper;
 import com.finalterm.alumninetwork.pojo.Comment;
 import com.finalterm.alumninetwork.pojo.Post;

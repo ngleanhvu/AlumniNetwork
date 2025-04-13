@@ -1,10 +1,7 @@
 package com.finalterm.alumninetwork.mapper;
 
-import com.finalterm.alumninetwork.dto.CommentDto;
+import com.finalterm.alumninetwork.dto.response.CommentDto;
 import com.finalterm.alumninetwork.pojo.Comment;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CommentMapper {
     public static CommentDto toCommentDTO(Comment comment) {

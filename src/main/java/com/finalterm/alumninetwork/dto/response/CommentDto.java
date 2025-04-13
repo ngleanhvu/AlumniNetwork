@@ -1,9 +1,6 @@
-package com.finalterm.alumninetwork.dto;
-
-import com.finalterm.alumninetwork.pojo.User;
+package com.finalterm.alumninetwork.dto.response;
 
 import java.util.Date;
-import java.util.List;
 
 public class CommentDto {
         private int id;

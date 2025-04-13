@@ -16,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -49,19 +52,18 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
-//                            .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
-                            .requestMatchers(HttpMethod.GET,"/api/posts/**").authenticated()
-                            .requestMatchers(HttpMethod.POST,"/api/posts/**").authenticated()
-                            .requestMatchers(HttpMethod.PUT,"/api/posts/**").authenticated()
-                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            .requestMatchers("/api/posts/**").authenticated()
+                            .requestMatchers("/api/posts/*/reactions/**").authenticated()
+//                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            //.requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception
@@ -99,5 +101,15 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000/");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration); // Áp dụng cho các URL bắt đầu bằng /api/
+        return source;
+    }
 }

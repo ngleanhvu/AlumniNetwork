@@ -18,7 +18,10 @@ import java.io.Serializable;
 @NamedQueries({
         @NamedQuery(name = "Reaction.findAll", query = "SELECT r FROM Reaction r"),
         @NamedQuery(name = "Reaction.findById", query = "SELECT r FROM Reaction r WHERE r.id = :id"),
-        @NamedQuery(name = "Reaction.findByType", query = "SELECT r FROM Reaction r WHERE r.type = :type")})
+        @NamedQuery(name = "Reaction.findByType", query = "SELECT r FROM Reaction r WHERE r.type = :type"),
+        @NamedQuery(name = "Reaction.countByPostIdAndType", query = "SELECT COUNT(r) FROM Reaction r WHERE r.post.id = :postId AND r.type = :type"),
+        @NamedQuery(name = "Reaction.countTotalByPostId", query = "SELECT COUNT(r) FROM Reaction r WHERE r.post.id = :postId"),
+})
 public class Reaction implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -27,9 +30,11 @@ public class Reaction implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Size(max = 4)
+
     @Column(name = "type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private EnumReaction type;
+
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Post post;
@@ -52,11 +57,11 @@ public class Reaction implements Serializable {
         this.id = id;
     }
 
-    public String getType() {
+    public EnumReaction getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(EnumReaction type) {
         this.type = type;
     }
 

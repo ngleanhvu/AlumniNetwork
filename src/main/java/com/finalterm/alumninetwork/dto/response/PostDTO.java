@@ -1,4 +1,4 @@
-package com.finalterm.alumninetwork.dto;
+package com.finalterm.alumninetwork.dto.response;
 
 import java.util.Date;
 import java.util.List;
