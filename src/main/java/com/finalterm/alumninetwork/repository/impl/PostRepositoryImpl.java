@@ -5,10 +5,7 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -73,5 +70,29 @@ public class PostRepositoryImpl implements PostRepository {
 
         Query query = session.createQuery(criteriaQuery);
         return query.getResultList();
+    }
+
+    @Override
+    public List<Object[]> statisticPosts(String timeType, int year) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
+        Root<Post> root = query.from(Post.class);
+
+        // timeType: "MONTH" hoặc "QUARTER"
+        Expression<Integer> timeExpression = builder.function(timeType, Integer.class, root.get("createdAt"));
+        Expression<Long> countExpression = builder.count(root);
+
+        query.multiselect(timeExpression, countExpression);
+        query.where(
+                builder.equal(
+                        builder.function("YEAR", Integer.class, root.get("createdAt")),
+                        year
+                )
+        );
+        query.groupBy(timeExpression);
+        query.orderBy(builder.asc(timeExpression));
+
+        return session.createQuery(query).getResultList();
     }
 }

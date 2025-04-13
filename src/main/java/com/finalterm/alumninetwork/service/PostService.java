@@ -14,4 +14,5 @@ public interface PostService {
     List<PostDTO> getMyPosts(int userId);
     void lockComments(Post post);
     Post getPostById(int id);
+    List<Object[]> statisticPosts(String timeType, int year);
 }

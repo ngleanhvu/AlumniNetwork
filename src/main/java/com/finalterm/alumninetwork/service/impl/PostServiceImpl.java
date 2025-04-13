@@ -96,4 +96,9 @@ public class PostServiceImpl implements PostService {
     public List<PostDTO> getMyPosts(int userId) {
         return this.postRepository.getMyPost(userId).stream().map(PostMapper::toPostDTO).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Object[]> statisticPosts(String timeType, int year) {
+        return this.postRepository.statisticPosts(timeType, year);
+    }
 }

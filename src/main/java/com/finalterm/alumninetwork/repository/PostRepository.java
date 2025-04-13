@@ -11,4 +11,5 @@ public interface PostRepository {
     void delete(int id);
     List<Post> getMyPost(int userId);
     Post getPostById(int id);
+    List<Object[]> statisticPosts(String timeType, int year);
 }
