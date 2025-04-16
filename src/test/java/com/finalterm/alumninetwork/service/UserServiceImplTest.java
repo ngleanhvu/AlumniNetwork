@@ -2,7 +2,11 @@ package com.finalterm.alumninetwork.service;
 
 import com.cloudinary.Cloudinary;
 import com.finalterm.alumninetwork.component.JwtService;
+import com.finalterm.alumninetwork.dto.ChangePasswordDto;
+import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.pojo.UserRole;
+import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.*;
@@ -14,8 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +34,9 @@ public class UserServiceImplTest {
 
     @Mock
     private JwtService jwtService;
+
+    @Mock
+    private LecturerInfoRepository lecturerInfoRepository;
 
     List<User> users = new ArrayList<>();
 
@@ -161,5 +167,194 @@ public class UserServiceImplTest {
         assertEquals(jwtToken, token);
     }
 
+    @Test
+    @Tag("confirm-user")
+    void testConfirmUser_NotFound_ShouldThrowException() {
+        Integer userId = 20;
+        when(userRepository.getUserById(20)).thenReturn(null);
 
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.confirmUser(userId));
+        assertEquals("User not found", exception.getMessage());
+    }
+
+    @Test
+    @Tag(("confirm-user"))
+    void testConfirmUser_Success() {
+        Integer userId = 1;
+
+        User mockUser = new User();
+        mockUser.setId(1);
+        mockUser.setUsername("anhvu");
+        mockUser.setEmail("anhvu@gmail.com");
+        mockUser.setActive(false);
+
+        when(userRepository.getUserById(userId)).thenReturn(mockUser);
+        doNothing().when(userRepository).saveUser(mockUser);
+
+        boolean result = userService.confirmUser(userId);
+
+        assertTrue(result);
+        assertTrue(mockUser.getActive());
+        assertEquals(true, result);
+    }
+
+    @Test
+    @Tag("reset-time-password")
+    void testResetTimePassword_NotFound_ShouldThrowException() {
+        Integer lecturerId = 20;
+        LecturerInfo lecturerInfo = new LecturerInfo();
+        lecturerInfo.setId(lecturerId);
+
+        when(lecturerInfoRepository.getLecturerInfoById(lecturerId)).thenReturn(null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.resetTimePassword(lecturerInfo));
+
+        assertEquals("LecturerInfo not found", exception.getMessage());
+    }
+
+    @Test
+    @Tag("reset-time-password")
+    void testResetTimeChangePassword_Success() {
+        Integer lecturerId = 1;
+        LecturerInfo lecturerInfo = new LecturerInfo();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date()); // thời gian hiện tại
+        calendar.add(Calendar.HOUR, 1); // cộng thêm 1 giờ
+        lecturerInfo.setId(lecturerId);
+        lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
+
+        LecturerInfo mockLecturerInfo = new LecturerInfo();
+        mockLecturerInfo.setId(lecturerId);
+        calendar.setTime(new Date()); // thời gian hiện tại
+        calendar.add(Calendar.HOUR, 1); // cộng thêm 1 giờ
+        mockLecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
+
+        when(lecturerInfoRepository.getLecturerInfoById(lecturerId))
+                .thenReturn(mockLecturerInfo);
+
+        boolean result = userService.resetTimePassword(lecturerInfo);
+
+        assertTrue(result);
+        assertEquals(mockLecturerInfo.getExpiredResetPasswordTime(),
+                        lecturerInfo.getExpiredResetPasswordTime());
+    }
+
+    @Test
+    @Tag("changed-password")
+    void testChangedPassword_PasswordNotMatch_ShouldThrowException() {
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto();
+        changePasswordDto.setPassword("123456");
+        changePasswordDto.setConfirmPassword("123");
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.changePassword(changePasswordDto));
+
+        assertEquals("Password do not match", exception.getMessage());
+    }
+
+    @Test
+    @Tag("changed-password")
+    void testChangedPassword_UserNotFound_ShouldThrowException() {
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto();
+        changePasswordDto.setPassword("123456");
+        changePasswordDto.setConfirmPassword("123456");
+        changePasswordDto.setEmail("anhvu@gmail.com");
+
+        when(userRepository.getUserByEmail(changePasswordDto.getEmail())).thenReturn(null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.changePassword(changePasswordDto));
+
+        assertEquals("User not found", exception.getMessage());
+
+    }
+
+    @Test
+    @Tag("changed-password")
+    void testChangedPassword_RoleNotLecturer_ShouldThrowException() {
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto();
+        changePasswordDto.setPassword("123456");
+        changePasswordDto.setConfirmPassword("123456");
+        changePasswordDto.setEmail("anhvu@gmail.com");
+
+        User mockUser = new User();
+        mockUser.setId(1);
+        mockUser.setUsername("anhvu");
+        mockUser.setEmail("anhvu@gmail.com");
+        mockUser.setRole(UserRole.ROLE_ALUMNI);
+
+        when(userRepository.getUserByEmail(changePasswordDto.getEmail()))
+                .thenReturn(mockUser);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.changePassword(changePasswordDto));
+
+        assertEquals("User not lecturer", exception.getMessage());
+    }
+
+    @Test
+    @Tag("changed-password")
+    void testChangedPassword_ExpiredResetPasswordTime_ShouldThrowException() {
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto();
+        changePasswordDto.setPassword("123456");
+        changePasswordDto.setConfirmPassword("123456");
+        changePasswordDto.setEmail("anhvu@gmail.com");
+
+        User mockUser = new User();
+        mockUser.setId(1);
+        mockUser.setUsername("anhvu");
+        mockUser.setEmail("anhvu@gmail.com");
+        mockUser.setRole(UserRole.ROLE_LECTURER);
+
+        when(userRepository.getUserByEmail(changePasswordDto.getEmail()))
+                .thenReturn(mockUser);
+
+        LecturerInfo mockLecturerInfo = new LecturerInfo();
+        mockLecturerInfo.setId(1);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, -1);
+        mockLecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
+        mockUser.setLecturerInfo(mockLecturerInfo);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                userService.changePassword(changePasswordDto));
+
+        assertEquals("Expired reset password", exception.getMessage());
+    }
+
+    @Test
+    @Tag("changed-password")
+    void testChangedPassword_Success () {
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto();
+        changePasswordDto.setPassword("123456");
+        changePasswordDto.setConfirmPassword("123456");
+        changePasswordDto.setEmail("anhvu@gmail.com");
+
+        User mockUser = new User();
+        mockUser.setId(1);
+        mockUser.setUsername("anhvu");
+        mockUser.setEmail("anhvu@gmail.com");
+        mockUser.setRole(UserRole.ROLE_LECTURER);
+
+        when(userRepository.getUserByEmail(changePasswordDto.getEmail()))
+                .thenReturn(mockUser);
+
+        LecturerInfo mockLecturerInfo = new LecturerInfo();
+        mockLecturerInfo.setId(1);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 1);
+        mockLecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
+        mockUser.setLecturerInfo(mockLecturerInfo);
+
+        when(bCryptPasswordEncoder.encode(changePasswordDto.getPassword())).thenReturn("12312421");
+
+        doNothing().when(userRepository).saveUser(mockUser);
+        doNothing().when(lecturerInfoRepository).saveLecturerInfo(mockLecturerInfo);
+
+        boolean result = userService.changePassword(changePasswordDto);
+
+        assertTrue(result);
+    }
 }
