@@ -146,6 +146,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public void lockComments(Post post) {
         post.setBlockedComment(true);
+        invalidatePostListCache(post.getUser().getId());
         this.postRepository.saveOrUpdate(post);
     }
 

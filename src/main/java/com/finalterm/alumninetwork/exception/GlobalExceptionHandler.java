@@ -26,6 +26,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(PostBlockedComment.class)
+    public ResponseEntity<Map<String, String>> handleCommentBlocked(PostBlockedComment ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Post Blocked");
+        error.put("message", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN); // 403
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {

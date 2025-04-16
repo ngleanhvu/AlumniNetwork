@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.service.impl;
 
 import com.finalterm.alumninetwork.dto.response.CommentDto;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.exception.PostBlockedComment;
 import com.finalterm.alumninetwork.mapper.CommentMapper;
 import com.finalterm.alumninetwork.mapper.PostMapper;
 import com.finalterm.alumninetwork.pojo.Comment;
@@ -33,8 +34,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentDto addComment(Map<String, String> params, Post post, User user) {
-        Comment comment = new Comment();
+        if (post.getBlockedComment())
+            throw new PostBlockedComment("This Post is blocked");
 
+        Comment comment = new Comment();
         comment.setCreatedAt(new Date());
         comment.setActive(true);
         comment.setContent(params.get("content"));

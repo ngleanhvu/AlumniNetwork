@@ -73,4 +73,20 @@ public class ApiPostController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{postId}/block_comment")
+    public ResponseEntity<PostDTO> blockComment(@RequestParam(value = "postId") int postId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = this.userService.getUserByUsername(auth.getName());
+        Post post = this.postService.getPostById(postId);
+
+        if (post == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        if (post.getUser().getId() != user.getId())
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        else {
+            this.postService.lockComments(post);
+            return ResponseEntity.noContent().build();
+        }
+    }
 }
