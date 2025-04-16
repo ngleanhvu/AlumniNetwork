@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.Comment;
+import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Reaction;
 import com.finalterm.alumninetwork.repository.ReactionRepository;
 import jakarta.persistence.NoResultException;
@@ -15,9 +16,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @Transactional
@@ -78,7 +77,7 @@ public class ReactionRepositoryImpl implements ReactionRepository {
     }
 
     @Override
-    public long countTotalByPostId(int postId) {
+    public Integer countTotalByPostId(int postId) {
         Session session = sessionFactory.getObject().getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -87,11 +86,11 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         query.select(builder.count(root));
         query.where(builder.equal(root.get("post").get("id"), postId));
 
-        return session.createQuery(query).getSingleResult();
+        return session.createQuery(query).getSingleResult().intValue();
     }
 
     @Override
-    public long countByPostIdAndType(int postId, String type) {
+    public Integer countByPostIdAndType(int postId, String type) {
         Session session = sessionFactory.getObject().getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -103,7 +102,7 @@ public class ReactionRepositoryImpl implements ReactionRepository {
                 builder.equal(root.get("type"), type)
         ));
 
-        return session.createQuery(query).getSingleResult();
+        return session.createQuery(query).getSingleResult().intValue();
     }
 
     @Override
@@ -121,5 +120,15 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         );
         List<Reaction> result = session.createQuery(query).getResultList();
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+    }
+
+    @Override
+    public Map<String, Integer> statsReactionByPostId(int postId) {
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("Like", countByPostIdAndType(postId, EnumReaction.LIKE.name()));
+        stats.put("Love", countByPostIdAndType(postId, EnumReaction.LOVE.name()));
+        stats.put("Haha", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
+        stats.put("Total", countTotalByPostId(postId));
+        return stats;
     }
 }

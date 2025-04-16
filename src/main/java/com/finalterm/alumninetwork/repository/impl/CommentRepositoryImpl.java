@@ -36,6 +36,20 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
+    public int countTotalCommentsByPostId(int id) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        Root<Comment> root = query.from(Comment.class);
+
+        query.where(builder.equal(root.get("post").get("id"), id));
+        query.select(builder.count(root));
+
+        Long result = session.createQuery(query).uniqueResult();
+        return (result != null) ? result.intValue() : 0;
+    }
+
+    @Override
     public Comment getCommentById(int id) {
         Session s = this.sessionFactory.getObject().getCurrentSession();
         return s.get(Comment.class, id);

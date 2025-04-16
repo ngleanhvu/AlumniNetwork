@@ -9,7 +9,7 @@ public interface PostRepository {
     List<Post> getAll();
     Post saveOrUpdate(Post p);
     void delete(int id);
-    List<Post> getMyPost(int userId);
+    List<Integer> getMyPostIds(int userId);
     Post getPostById(int id);
     List<Object[]> statisticPosts(String timeType, int year);
 }

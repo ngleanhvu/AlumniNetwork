@@ -13,6 +13,7 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
                 AsyncConfig.class,
                 RabbitMQConfig.class,
                 SecurityConfig.class,
+                RedisConfig.class
         };
     }
 

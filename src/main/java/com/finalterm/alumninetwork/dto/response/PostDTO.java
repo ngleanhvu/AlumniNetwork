@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.dto.response;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class PostDTO {
     private Integer id;
@@ -11,6 +12,8 @@ public class PostDTO {
     private Date createdAt;
     private Integer userId;
     List<String> imgUrls;
+    Map<String, Integer> statsReaction;
+    int totalComments;
 
     public PostDTO() {}
 
@@ -80,5 +83,19 @@ public class PostDTO {
         this.imgUrls = imgUrls;
     }
 
+    public Map<String, Integer> getStatsReaction() {
+        return statsReaction;
+    }
 
+    public void setStatsReaction(Map<String, Integer> statsReaction) {
+        this.statsReaction = statsReaction;
+    }
+
+    public int getTotalComments() {
+        return totalComments;
+    }
+
+    public void setTotalComments(int totalComments) {
+        this.totalComments = totalComments;
+    }
 }

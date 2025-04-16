@@ -28,8 +28,8 @@ public class ApiReactionController {
     private ReactionService reactionService;
 
     @GetMapping("/{postId}/reactions/stats")
-    public ResponseEntity<Map<String, Long>> getReactions(@PathVariable(value = "postId") int postId) {
-        Map<String, Long> stats = this.reactionService.statsReactionByPostId(postId);
+    public ResponseEntity<Map<String, Integer>> getReactions(@PathVariable(value = "postId") int postId) {
+        Map<String, Integer> stats = this.reactionService.statsReactionByPostId(postId);
         return new ResponseEntity<>(stats, HttpStatus.OK);
     }
     @GetMapping("/{postId}/reactions")

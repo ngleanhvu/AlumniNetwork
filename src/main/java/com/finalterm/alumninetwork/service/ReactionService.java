@@ -10,6 +10,7 @@ import java.util.Map;
 public interface ReactionService {
     ReactionDto reactToPost(int postId, int userId, EnumReaction type);
     void removeReaction(int postId, int userId);
-    Map<String, Long> statsReactionByPostId(int postId);
+    Map<String, Integer> statsReactionByPostId(int postId);
     List<ReactionDto> getTypeReactionByPostId(int postId, String type);
+    Map<String, Integer> initStatsReaction();
 }

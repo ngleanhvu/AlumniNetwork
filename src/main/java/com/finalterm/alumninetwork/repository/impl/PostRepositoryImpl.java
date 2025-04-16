@@ -59,14 +59,16 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> getMyPost(int userId) {
+    public List<Integer> getMyPostIds(int userId) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-        CriteriaQuery<Post> criteriaQuery = criteriaBuilder.createQuery(Post.class);
+        CriteriaQuery<Integer> criteriaQuery = criteriaBuilder.createQuery(Integer.class);
         Root root = criteriaQuery.from(Post.class);
 
         Predicate userPredicate = criteriaBuilder.equal(root.get("user").get("id"), userId);
+        criteriaQuery.select(root.get("id")); // Lấy ID thôi
         criteriaQuery.where(userPredicate);
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
 
         Query query = session.createQuery(criteriaQuery);
         return query.getResultList();

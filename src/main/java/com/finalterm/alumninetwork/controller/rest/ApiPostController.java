@@ -16,7 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/api/posts")
@@ -42,17 +44,27 @@ public class ApiPostController {
         return ResponseEntity.ok(this.postService.getMyPosts(u.getId()));
     }
 
+
     //Tạo một bài Post -> có thể gửi Images hoặc không
     @PostMapping(path = "",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE}
     )
     @CrossOrigin
-    public ResponseEntity<Post> uploadPost(@RequestParam("content") String content ,@RequestParam(value = "images", required = false) List<MultipartFile> images) {
+    public ResponseEntity<PostDTO> uploadPostOrUpdate(@RequestParam(value = "content") String content,
+                                                   @RequestParam(value = "postId", required = false) Integer postId, //For update
+                                                   @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(auth.getName());
 
-        return ResponseEntity.ok(this.postService.saveOrUpdate(content, images, user));
+        Map<String, String> params = new HashMap<>();
+        params.put("content", content);
+
+        if (postId != null) {
+            params.put("postId", String.valueOf(postId));
+        }
+
+        return ResponseEntity.ok(this.postService.saveOrUpdate(params, images, user));
     }
 
     @DeleteMapping("/{id}")

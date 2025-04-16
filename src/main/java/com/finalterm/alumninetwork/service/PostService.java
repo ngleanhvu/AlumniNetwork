@@ -6,10 +6,11 @@ import com.finalterm.alumninetwork.pojo.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PostService {
     List<PostDTO> getPosts();
-    Post saveOrUpdate(String content, List<MultipartFile> fileImages, User user);
+    PostDTO saveOrUpdate(Map<String, String> params, List<MultipartFile> fileImages, User user);
     void delete(int id);
     List<PostDTO> getMyPosts(int userId);
     void lockComments(Post post);

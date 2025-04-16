@@ -13,12 +13,14 @@ import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +35,9 @@ public class ReactionServiceImpl implements ReactionService {
     @Autowired
     ReactionRepository reactionRepository;
 
+    @Autowired
+    RedisTemplate redisTemplate;
+
     @Override
     @Transactional
     public ReactionDto reactToPost(int postId, int userId, EnumReaction type) {
@@ -44,36 +49,78 @@ public class ReactionServiceImpl implements ReactionService {
         }
         //Kiem tra da Reaction chua
         Optional<Reaction> existingReaction = reactionRepository.existsReaction(postId, userId);
+        ReactionDto result;
 
         if (existingReaction.isPresent()) { //Update reaction
             Reaction reaction = existingReaction.get();
             reaction.setType(type);
-            return ReactionMapper.toReactionDto(reactionRepository.addOrUpdateReaction(reaction));
+            result = ReactionMapper.toReactionDto(reactionRepository.addOrUpdateReaction(reaction));
         } else {// Tao reaction
             Reaction reaction = new Reaction();
             reaction.setPost(post);
             reaction.setUser(user);
             reaction.setType(type);
-            return ReactionMapper.toReactionDto(reactionRepository.addOrUpdateReaction(reaction));
+            result = ReactionMapper.toReactionDto(reactionRepository.addOrUpdateReaction(reaction));
         }
+
+        // Xóa cache stats để đảm bảo lần sau sẽ lấy dữ liệu mới
+        String keyReactionStats = "post:" + postId + ":reactionStats";
+        String keyReactionPosts = "user:posts:" + post.getUser().getId();
+        redisTemplate.delete(keyReactionStats);
+        redisTemplate.delete(keyReactionPosts);
+
+        return result;
     }
 
     @Override
     @Transactional
     public void removeReaction(int postId, int userId) {
+        Post post = postService.getPostById(postId);
         this.reactionRepository.deleteReaction(postId, userId);
+
+        String keyReactionStats = "post:" + postId + ":reactionStats";
+        if (post != null) {
+            String keyReactionPosts = "user:posts:" + post.getUser().getId();
+            redisTemplate.delete(keyReactionPosts);
+        }
+
+        redisTemplate.delete(keyReactionStats);
+
     }
 
     @Override
     @Transactional
-    public Map<String, Long> statsReactionByPostId(int postId) {
-        Map<String, Long> counts = new HashMap<>();
-        counts.put("Like", reactionRepository.countByPostIdAndType(postId, EnumReaction.LIKE.name()));
-        counts.put("Love", reactionRepository.countByPostIdAndType(postId, EnumReaction.LOVE.name()));
-        counts.put("Haha", reactionRepository.countByPostIdAndType(postId, EnumReaction.HAHA.name()));
-        counts.put("Total", reactionRepository.countTotalByPostId(postId));
-        return counts;
+    public Map<String, Integer> statsReactionByPostId(int postId) {
+        String key = "post:" + postId + ":reactionStats";
+        Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
+
+        if (map == null || map.isEmpty()) {
+            Map<String, Integer> stats = this.reactionRepository.statsReactionByPostId(postId);
+
+            redisTemplate.opsForHash().putAll(key, stats);
+            redisTemplate.expire(key, 10, TimeUnit.MINUTES);
+
+            return stats;
+        }
+
+        // convert Object to Map<String, Integer>
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> (String) e.getKey(),
+                        e -> ((Number) e.getValue()).intValue()
+                ));
     }
+
+    @Override
+    public Map<String, Integer> initStatsReaction() {
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("Like", 0);
+        stats.put("Love", 0);
+        stats.put("Haha", 0);
+        stats.put("Total", 0);
+        return stats;
+    }
+
 
     @Override
     public List<ReactionDto> getTypeReactionByPostId(int postId, String type) {
