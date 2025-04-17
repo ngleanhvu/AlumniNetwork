@@ -44,6 +44,10 @@ public class UserServiceImpl implements UserService {
     private EmailService emailService;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserRegistrationService userRegistrationService;
 
     @Override
     public List<User> getAllAdmin() {
@@ -79,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
         // Set role and add other information with each user role
         String role = params.get("role");
-        saveUserWithRole(role, user, params);
+        userRegistrationService.registerUser(role, user, params);
 
     }
 
@@ -168,46 +172,46 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    private void saveUserWithRole(String role, User user, Map<String, String> params) {
-        UserRole userRole;
-        switch (role) {
-            case "admin":
-                userRole = UserRole.ROLE_ADMIN;
-                user.setRole(userRole);
-                user.setActive(true);
-                userRepository.saveUser(user);
-                break;
-            case "lecturer":
-                userRole = UserRole.ROLE_LECTURER;
-                user.setRole(userRole);
-                user.setActive(true);
-                userRepository.saveUser(user);
-                // them thoi gian thay doi mat khau
-                LecturerInfo lecturerInfo = new LecturerInfo();
-                lecturerInfo.setUser(user);
-                lecturerInfo.setChangedPassword(false);
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(new Date());
-                calendar.add(Calendar.HOUR,
-                        Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
-                lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
-                lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
-                // gui mail
-                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
-                break;
-            default:
-                userRole = UserRole.ROLE_ALUMNI;
-                user.setRole(userRole);
-                userRepository.saveUser(user);
-                // them mssv
-                String studentCode = params.getOrDefault("studentCode","");
-                if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
-                AlumniInfo alumniInfo = new AlumniInfo();
-                alumniInfo.setStudentCode(studentCode);
-                alumniInfo.setUser(user);
-                alumniInfoRepository.addAlumniInfo(alumniInfo);
-        }
-    }
+//    private void saveUserWithRole(String role, User user, Map<String, String> params) {
+//        UserRole userRole;
+//        switch (role) {
+//            case "admin":
+//                userRole = UserRole.ROLE_ADMIN;
+//                user.setRole(userRole);
+//                user.setActive(true);
+//                userRepository.saveUser(user);
+//                break;
+//            case "lecturer":
+//                userRole = UserRole.ROLE_LECTURER;
+//                user.setRole(userRole);
+//                user.setActive(true);
+//                userRepository.saveUser(user);
+//                // them thoi gian thay doi mat khau
+//                LecturerInfo lecturerInfo = new LecturerInfo();
+//                lecturerInfo.setUser(user);
+//                lecturerInfo.setChangedPassword(false);
+//                Calendar calendar = Calendar.getInstance();
+//                calendar.setTime(new Date());
+//                calendar.add(Calendar.HOUR,
+//                        Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
+//                lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
+//                lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
+//                // gui mail
+//                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
+//                break;
+//            default:
+//                userRole = UserRole.ROLE_ALUMNI;
+//                user.setRole(userRole);
+//                userRepository.saveUser(user);
+//                // them mssv
+//                String studentCode = params.getOrDefault("studentCode","");
+//                if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
+//                AlumniInfo alumniInfo = new AlumniInfo();
+//                alumniInfo.setStudentCode(studentCode);
+//                alumniInfo.setUser(user);
+//                alumniInfoRepository.addAlumniInfo(alumniInfo);
+//        }
+//    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User u = this.userRepository.getUserByUsername(username);
