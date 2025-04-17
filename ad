@@ -1,0 +1,314 @@
+[33mcommit 407cdaec3c1130492e5d00a8361eae2dec60e5f8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mthanhan[m[33m, [m[1;31morigin/thanhan[m[33m)[m
+Author: thanhanz <daothanhanz95@gmail.com>
+Date:   Wed Apr 16 17:38:08 2025 +0700
+
+    Complete lockComment - Post
+
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[1mindex c55c5a4..a04e1e4 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[36m@@ -73,4 +73,20 @@[m [mpublic class ApiPostController {[m
+         return ResponseEntity.noContent().build();[m
+     }[m
+ [m
+[32m+[m[32m    @PostMapping("/{postId}/block_comment")[m
+[32m+[m[32m    public ResponseEntity<PostDTO> blockComment(@RequestParam(value = "postId") int postId) {[m
+[32m+[m[32m        Authentication auth = SecurityContextHolder.getContext().getAuthentication();[m
+[32m+[m[32m        User user = this.userService.getUserByUsername(auth.getName());[m
+[32m+[m[32m        Post post = this.postService.getPostById(postId);[m
+[32m+[m
+[32m+[m[32m        if (post == null)[m
+[32m+[m[32m            return new ResponseEntity<>(HttpStatus.NOT_FOUND);[m
+[32m+[m
+[32m+[m[32m        if (post.getUser().getId() != user.getId())[m
+[32m+[m[32m            return new ResponseEntity<>(HttpStatus.FORBIDDEN);[m
+[32m+[m[32m        else {[m
+[32m+[m[32m            this.postService.lockComments(post);[m
+[32m+[m[32m            return ResponseEntity.noContent().build();[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+ }[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/exception/GlobalExceptionHandler.java b/src/main/java/com/finalterm/alumninetwork/exception/GlobalExceptionHandler.java[m
+[1mindex f522b8b..a23bea2 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/exception/GlobalExceptionHandler.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/exception/GlobalExceptionHandler.java[m
+[36m@@ -26,6 +26,14 @@[m [mpublic class GlobalExceptionHandler extends ResponseEntityExceptionHandler {[m
+         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);[m
+     }[m
+ [m
+[32m+[m[32m    @ExceptionHandler(PostBlockedComment.class)[m
+[32m+[m[32m    public ResponseEntity<Map<String, String>> handleCommentBlocked(PostBlockedComment ex) {[m
+[32m+[m[32m        Map<String, String> error = new HashMap<>();[m
+[32m+[m[32m        error.put("error", "Post Blocked");[m
+[32m+[m[32m        error.put("message", ex.getMessage());[m
+[32m+[m[32m        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN); // 403[m
+[32m+[m[32m    }[m
+[32m+[m
+     @Override[m
+     protected ResponseEntity<Object> handleMethodArgumentNotValid([m
+             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/exception/PostBlockedComment.java b/src/main/java/com/finalterm/alumninetwork/exception/PostBlockedComment.java[m
+[1mnew file mode 100644[m
+[1mindex 0000000..76266b1[m
+[1m--- /dev/null[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/exception/PostBlockedComment.java[m
+[36m@@ -0,0 +1,7 @@[m
+[32m+[m[32mpackage com.finalterm.alumninetwork.exception;[m
+[32m+[m
+[32m+[m[32mpublic class PostBlockedComment extends RuntimeException {[m
+[32m+[m[32m    public PostBlockedComment(String message) {[m
+[32m+[m[32m        super(message);[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/service/impl/CommentServiceImpl.java b/src/main/java/com/finalterm/alumninetwork/service/impl/CommentServiceImpl.java[m
+[1mindex d04bbdf..310ab96 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/service/impl/CommentServiceImpl.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/service/impl/CommentServiceImpl.java[m
+[36m@@ -2,6 +2,7 @@[m [mpackage com.finalterm.alumninetwork.service.impl;[m
+ [m
+ import com.finalterm.alumninetwork.dto.response.CommentDto;[m
+ import com.finalterm.alumninetwork.dto.response.PostDTO;[m
+[32m+[m[32mimport com.finalterm.alumninetwork.exception.PostBlockedComment;[m
+ import com.finalterm.alumninetwork.mapper.CommentMapper;[m
+ import com.finalterm.alumninetwork.mapper.PostMapper;[m
+ import com.finalterm.alumninetwork.pojo.Comment;[m
+[36m@@ -33,8 +34,10 @@[m [mpublic class CommentServiceImpl implements CommentService {[m
+     @Override[m
+     @Transactional[m
+     public CommentDto addComment(Map<String, String> params, Post post, User user) {[m
+[31m-        Comment comment = new Comment();[m
+[32m+[m[32m        if (post.getBlockedComment())[m
+[32m+[m[32m            throw new PostBlockedComment("This Post is blocked");[m
+ [m
+[32m+[m[32m        Comment comment = new Comment();[m
+         comment.setCreatedAt(new Date());[m
+         comment.setActive(true);[m
+         comment.setContent(params.get("content"));[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/service/impl/PostServiceImpl.java b/src/main/java/com/finalterm/alumninetwork/service/impl/PostServiceImpl.java[m
+[1mindex 95b0d16..2f0fcd8 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/service/impl/PostServiceImpl.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/service/impl/PostServiceImpl.java[m
+[36m@@ -146,6 +146,7 @@[m [mpublic class PostServiceImpl implements PostService {[m
+     @Override[m
+     public void lockComments(Post post) {[m
+         post.setBlockedComment(true);[m
+[32m+[m[32m        invalidatePostListCache(post.getUser().getId());[m
+         this.postRepository.saveOrUpdate(post);[m
+     }[m
+ [m
+
+[33mcommit 2e2da824e610ce37e0134b21a7474f9e528ed08b[m
+Author: thanhanz <daothanhanz95@gmail.com>
+Date:   Wed Apr 16 17:08:10 2025 +0700
+
+    Success caching PostDto(Post, Comment, Reaction) using Redis
+
+[1mdiff --git a/pom.xml b/pom.xml[m
+[1mindex 057f5cc..eac678b 100644[m
+[1m--- a/pom.xml[m
+[1m+++ b/pom.xml[m
+[36m@@ -169,6 +169,41 @@[m
+             <artifactId>nimbus-jose-jwt</artifactId>[m
+             <version>9.31</version>[m
+         </dependency>[m
+[32m+[m[32m        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.springframework.boot</groupId>[m
+[32m+[m[32m            <artifactId>spring-boot-starter-data-redis</artifactId>[m
+[32m+[m[32m            <version>3.4.4</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.springframework.boot</groupId>[m
+[32m+[m[32m            <artifactId>spring-boot-starter-cache</artifactId>[m
+[32m+[m[32m            <version>3.1.5</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m[32m        <!-- Serialization với Jackson -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>com.fasterxml.jackson.core</groupId>[m
+[32m+[m[32m            <artifactId>jackson-databind</artifactId>[m
+[32m+[m[32m            <version>2.18.3</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m[32m        <!-- Redis client - Lettuce -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>io.lettuce</groupId>[m
+[32m+[m[32m            <artifactId>lettuce-core</artifactId>[m
+[32m+[m[32m            <version>6.2.1.RELEASE</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m[32m        <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.springframework.data</groupId>[m
+[32m+[m[32m            <artifactId>spring-data-redis</artifactId>[m
+[32m+[m[32m            <version>2.7.5</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m[32m        <!-- Jackson support cho Java 8 date/time API -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>com.fasterxml.jackson.datatype</groupId>[m
+[32m+[m[32m            <artifactId>jackson-datatype-jsr310</artifactId>[m
+[32m+[m[32m            <version>2.14.0</version>[m
+[32m+[m[32m        </dependency>[m
+     </dependencies>[m
+ [m
+     <build>[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/config/DispatcherServletInit.java b/src/main/java/com/finalterm/alumninetwork/config/DispatcherServletInit.java[m
+[1mindex 3509651..5b0f3bb 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/config/DispatcherServletInit.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/config/DispatcherServletInit.java[m
+[36m@@ -13,6 +13,7 @@[m [mpublic class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer[m
+                 AsyncConfig.class,[m
+                 RabbitMQConfig.class,[m
+                 SecurityConfig.class,[m
+[32m+[m[32m                RedisConfig.class[m
+         };[m
+     }[m
+ [m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/config/RabbitMQConfig.java b/src/main/java/com/finalterm/alumninetwork/config/RabbitMQConfig.java[m
+[1mindex 4d3bdf0..ca617c1 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/config/RabbitMQConfig.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/config/RabbitMQConfig.java[m
+[36m@@ -1,7 +1,5 @@[m
+ package com.finalterm.alumninetwork.config;[m
+ [m
+[31m-import com.finalterm.alumninetwork.service.EmailService;[m
+[31m-import com.rabbitmq.client.AMQP;[m
+ import org.springframework.amqp.core.*;[m
+ import org.springframework.amqp.rabbit.annotation.EnableRabbit;[m
+ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;[m
+[36m@@ -9,10 +7,7 @@[m [mimport org.springframework.amqp.rabbit.connection.CachingConnectionFactory;[m
+ import org.springframework.amqp.rabbit.connection.ConnectionFactory;[m
+ import org.springframework.amqp.rabbit.core.RabbitAdmin;[m
+ import org.springframework.amqp.rabbit.core.RabbitTemplate;[m
+[31m-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;[m
+ import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;[m
+[31m-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;[m
+[31m-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;[m
+ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;[m
+ import org.springframework.amqp.support.converter.MessageConverter;[m
+ import org.springframework.beans.factory.annotation.Autowired;[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/config/RedisConfig.java b/src/main/java/com/finalterm/alumninetwork/config/RedisConfig.java[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1b6a288[m
+[1m--- /dev/null[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/config/RedisConfig.java[m
+[36m@@ -0,0 +1,68 @@[m
+[32m+[m[32mpackage com.finalterm.alumninetwork.config;[m
+[32m+[m
+[32m+[m[32mimport com.fasterxml.jackson.databind.DeserializationFeature;[m
+[32m+[m[32mimport com.fasterxml.jackson.databind.ObjectMapper;[m
+[32m+[m[32mimport com.fasterxml.jackson.databind.SerializationFeature;[m
+[32m+[m[32mimport com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;[m
+[32m+[m[32mimport org.springframework.beans.factory.annotation.Value;[m
+[32m+[m[32mimport org.springframework.context.annotation.Bean;[m
+[32m+[m[32mimport org.springframework.context.annotation.Configuration;[m
+[32m+[m[32mimport org.springframework.data.redis.connection.RedisStandaloneConfiguration;[m
+[32m+[m[32mimport org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;[m
+[32m+[m[32mimport org.springframework.data.redis.core.RedisTemplate;[m
+[32m+[m[32mimport org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;[m
+[32m+[m[32mimport org.springframework.data.redis.serializer.StringRedisSerializer;[m
+[32m+[m
+[32m+[m[32m@Configuration[m
+[32m+[m[32mpublic class RedisConfig {[m
+[32m+[m
+[32m+[m[32m    @Value("${spring.data.redis.host}")[m
+[32m+[m[32m    private String redisHost;[m
+[32m+[m
+[32m+[m[32m    @Value("${spring.data.redis.port}")[m
+[32m+[m[32m    private int redisPort;[m
+[32m+[m
+[32m+[m[32m    @Bean[m
+[32m+[m[32m    public LettuceConnectionFactory redisConnectionFactory() {[m
+[32m+[m[32m        RedisStandaloneConfiguration config = new[m
+[32m+[m[32m                RedisStandaloneConfiguration(redisHost, redisPort);[m
+[32m+[m[32m        return new LettuceConnectionFactory(config);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    @Bean[m
+[32m+[m[32m    public RedisTemplate<String, Object> redisTemplate() {[m
+[32m+[m[32m        RedisTemplate<String, Object> template = new RedisTemplate<>();[m
+[32m+[m[32m        template.setConnectionFactory(redisConnectionFactory());[m
+[32m+[m
+[32m+[m[32m        template.setKeySerializer(new StringRedisSerializer());[m
+[32m+[m[32m        template.setHashKeySerializer(new StringRedisSerializer());[m
+[32m+[m
+[32m+[m[32m        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);[m
+[32m+[m[32m        jackson2JsonRedisSerializer.setObjectMapper(objectMapper());[m
+[32m+[m
+[32m+[m[32m        template.setValueSerializer(jackson2JsonRedisSerializer);[m
+[32m+[m[32m        template.setHashValueSerializer(jackson2JsonRedisSerializer);[m
+[32m+[m[32m        template.afterPropertiesSet();[m
+[32m+[m
+[32m+[m[32m        return template;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    @Bean[m
+[32m+[m[32m    public ObjectMapper objectMapper() {[m
+[32m+[m[32m        ObjectMapper mapper = new ObjectMapper();[m
+[32m+[m[32m        // Sử dụng JavaTimeModule thay vì SimpleModule[m
+[32m+[m[32m        mapper.registerModule(new JavaTimeModule());[m
+[32m+[m
+[32m+[m[32m        // Định dạng date-time dưới dạng ISO[m
+[32m+[m[32m        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);[m
+[32m+[m
+[32m+[m[32m        // Cấu hình khác cho ObjectMapper[m
+[32m+[m[32m        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);[m
+[32m+[m[32m        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);[m
+[32m+[m
+[32m+[m[32m        //Giữ nguyên datatype khi serialize/deserialize[m
+[32m+[m[32m        mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(),[m
+[32m+[m[32m                                        ObjectMapper.DefaultTyping.NON_FINAL);[m
+[32m+[m[32m        return mapper;[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[1mindex daa5b61..c55c5a4 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiPostController.java[m
+[36m@@ -16,7 +16,9 @@[m [mimport org.springframework.stereotype.Controller;[m
+ import org.springframework.web.bind.annotation.*;[m
+ import org.springframework.web.multipart.MultipartFile;[m
+ [m
+[32m+[m[32mimport java.util.HashMap;[m
+ import java.util.List;[m
+[32m+[m[32mimport java.util.Map;[m
+ [m
+ @Controller[m
+ @RequestMapping("/api/posts")[m
+[36m@@ -42,17 +44,27 @@[m [mpublic class ApiPostController {[m
+         return ResponseEntity.ok(this.postService.getMyPosts(u.getId()));[m
+     }[m
+ [m
+[32m+[m
+     //Tạo một bài Post -> có thể gửi Images hoặc không[m
+     @PostMapping(path = "",[m
+             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},[m
+             produces = {MediaType.APPLICATION_JSON_VALUE}[m
+     )[m
+     @CrossOrigin[m
+[31m-    public ResponseEntity<Post> uploadPost(@RequestParam("content") String content ,@RequestParam(value = "images", required = false) List<MultipartFile> images) {[m
+[32m+[m[32m    public ResponseEntity<PostDTO> uploadPostOrUpdate(@RequestParam(value = "content") String content,[m
+[32m+[m[32m                                                   @RequestParam(value = "postId", required = false) Integer postId, //For update[m
+[32m+[m[32m                                                   @RequestParam(value = "images", required = false) List<MultipartFile> images) {[m
+         Authentication auth = SecurityContextHolder.getContext().getAuthentication();[m
+         User user = this.userService.getUserByUsername(auth.getName());[m
+ [m
+[31m-        return ResponseEntity.ok(this.postService.saveOrUpdate(content, images, user));[m
+[32m+[m[32m        Map<String, String> params = new HashMap<>();[m
+[32m+[m[32m        params.put("content", content);[m
+[32m+[m
+[32m+[m[32m        if (postId != null) {[m
+[32m+[m[32m            params.put("postId", String.valueOf(postId));[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return ResponseEntity.ok(this.postService.saveOrUpdate(params, images, user));[m
+     }[m
+ [m
+     @DeleteMapping("/{id}")[m
+[1mdiff --git a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiReactionController.java b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiReactionController.java[m
+[1mindex e917135..e9929e7 100644[m
+[1m--- a/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiReactionController.java[m
+[1m+++ b/src/main/java/com/finalterm/alumninetwork/controller/rest/ApiReactionController.java[m
+[36m@@ -28,8 +28,8 @@[m [mpublic class ApiReactionController {[m
+     private ReactionService reactionService;[m
+ [m
+     @GetMapping("/{postId}/reactions/stats")[m
+[31m-    public ResponseEntity<Map<String,

@@ -82,7 +82,7 @@ public class ApiPostController {
         if (post == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        if (post.getUser().getId() != user.getId())
+        if (!post.getUser().getId().equals(user.getId()))
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         else {
             this.postService.lockComments(post);
