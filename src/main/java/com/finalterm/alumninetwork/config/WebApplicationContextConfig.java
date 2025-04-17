@@ -2,6 +2,10 @@ package com.finalterm.alumninetwork.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.finalterm.alumninetwork.formatter.EventFormatter;
+import com.finalterm.alumninetwork.formatter.GroupNetworkFormatter;
+import com.finalterm.alumninetwork.formatter.SurveyFormatter;
+import com.finalterm.alumninetwork.formatter.UserFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -48,10 +52,13 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
         configurer.enable();
     }
 
-//    @Override
-//    public void addFormatters(FormatterRegistry registry) {
-//        registry.addFormatter(new UserFormatter());
-//    }
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addFormatter(new UserFormatter());
+        registry.addFormatter(new SurveyFormatter());
+        registry.addFormatter(new GroupNetworkFormatter());
+        registry.addFormatter(new EventFormatter());
+    }
 
     @Bean
     public Cloudinary cloudinary() {
@@ -111,6 +118,7 @@ public class WebApplicationContextConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/js/**").addResourceLocations("/WEB-INF/resources/js/");
+        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
+
     }
 }

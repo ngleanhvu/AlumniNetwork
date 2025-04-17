@@ -31,7 +31,6 @@ public class EmailServiceImpl implements EmailService {
         rabbitTemplate.convertAndSend(Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
                 Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
                 emailRecord);
-        System.out.println("Email is sent successfully");
     }
 
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
@@ -42,6 +41,5 @@ public class EmailServiceImpl implements EmailService {
         message.setText(emailRecord.body());
         message.setTo(emailRecord.to());
         mailSender.send(message);
-        System.out.println("Email is receive successfully");
     }
 }

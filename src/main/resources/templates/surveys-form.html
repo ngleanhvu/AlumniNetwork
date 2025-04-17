@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Manage Survey</title>
+  <th:block th:replace="base :: styles"></th:block>
+  <script>
+    function addQuestion() {
+      let container = document.getElementById("questions");
+      let idx = container.children.length;
+
+      let html = `
+                <div class="question-block mt-1">
+                    <label>Câu hỏi:</label>
+                    <input type="text" name="questions[${idx}].content" class="form-control mt-1" />
+                    <div class="choices">
+                        <label>Lựa chọn:</label>
+                        <input type="text" name="questions[${idx}].choices[0].content" class="form-control mt-1" />
+                    </div>
+                    <button type="button" onclick="addChoice(this, ${idx})" class="btn btn-primary mt-1">+ Thêm lựa chọn</button>
+                    <hr>
+                </div>`;
+      container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function addChoice(btn, questionIdx) {
+      let choiceDiv = btn.previousElementSibling;
+      let inputCount = choiceDiv.querySelectorAll("input").length;
+
+      let input = document.createElement("input");
+      input.type = "text";
+      input.name = `questions[${questionIdx}].choices[${inputCount}].content`;
+      input.classList.add("form-control");
+      input.classList.add("mt-1");
+
+      choiceDiv.appendChild(input);
+    }
+  </script>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+<section class="container">
+  <h3 class="d-flex justify-content-center fw-bold font-monospace p-3" >Quản lý bài khảo sát</h3>
+  <hr />
+  <div class="alert alert-info" role="alert"
+       th:if="${msg != null}"
+       th:text="${msg}"
+  >
+  </div>
+  <form th:action="@{/surveys/admin/add}" method="post" th:object="${survey}">
+    <label>Tiêu đề:</label>
+    <input type="text" th:field="*{title}" class="form-control mt-1"/>
+
+    <label>Mô tả:</label>
+    <textarea th:field="*{description}" class="form-control mt-1"></textarea>
+
+    <label>Thời gian bắt đầu: </label>
+    <input type="date" th:field="*{startTime}" class="form-control mt-1">
+
+    <label>Thời gian kết thúc: </label>
+    <input type="date" th:field="*{endTime}" class="form-control mt-1">
+
+    <div id="questions"></div>
+    <button type="button" onclick="addQuestion()" class="btn btn-danger mt-1">+ Thêm câu hỏi</button>
+
+    <hr>
+    <button type="submit" class="btn btn-success mt-1">Tạo khảo sát</button>
+  </form>
+</section>
+<div th:replace="base :: footer"></div>
+</body>
+</html>

@@ -6,24 +6,28 @@ package com.finalterm.alumninetwork.pojo;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Survey")
 @NamedQueries({
-        @NamedQuery(name = "Survey.findAll", query = "SELECT s FROM Survey s"),
-        @NamedQuery(name = "Survey.findById", query = "SELECT s FROM Survey s WHERE s.id = :id"),
-        @NamedQuery(name = "Survey.findByDescription", query = "SELECT s FROM Survey s WHERE s.description = :description"),
-        @NamedQuery(name = "Survey.findByTitle", query = "SELECT s FROM Survey s WHERE s.title = :title"),
-        @NamedQuery(name = "Survey.findByStartTime", query = "SELECT s FROM Survey s WHERE s.startTime = :startTime"),
-        @NamedQuery(name = "Survey.findByEndTime", query = "SELECT s FROM Survey s WHERE s.endTime = :endTime"),
-        @NamedQuery(name = "Survey.findByStatus", query = "SELECT s FROM Survey s WHERE s.status = :status")})
+    @NamedQuery(name = "Survey.findAll", query = "SELECT s FROM Survey s"),
+    @NamedQuery(name = "Survey.findById", query = "SELECT s FROM Survey s WHERE s.id = :id"),
+    @NamedQuery(name = "Survey.findByDescription", query = "SELECT s FROM Survey s WHERE s.description = :description"),
+    @NamedQuery(name = "Survey.findByTitle", query = "SELECT s FROM Survey s WHERE s.title = :title"),
+    @NamedQuery(name = "Survey.findByStartTime", query = "SELECT s FROM Survey s WHERE s.startTime = :startTime"),
+    @NamedQuery(name = "Survey.findByEndTime", query = "SELECT s FROM Survey s WHERE s.endTime = :endTime"),
+    @NamedQuery(name = "Survey.findByStatus", query = "SELECT s FROM Survey s WHERE s.status = :status")})
 public class Survey implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -38,10 +42,12 @@ public class Survey implements Serializable {
     @Size(max = 255)
     @Column(name = "title")
     private String title;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
     @Column(name = "end_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
     @Size(max = 6)
@@ -50,8 +56,17 @@ public class Survey implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Question> questions = new ArrayList<>();
 
-    
+    public List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+    }
+
     public Survey() {
     }
 
@@ -115,6 +130,7 @@ public class Survey implements Serializable {
         this.user = user;
     }
 
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -139,5 +155,5 @@ public class Survey implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Survey[ id=" + id + " ]";
     }
-
+    
 }

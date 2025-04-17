@@ -4,18 +4,28 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "User_Survey_Choice")
 @NamedQueries({
-        @NamedQuery(name = "UserSurveyChoice.findAll", query = "SELECT u FROM UserSurveyChoice u"),
-        @NamedQuery(name = "UserSurveyChoice.findById", query = "SELECT u FROM UserSurveyChoice u WHERE u.id = :id")})
+    @NamedQuery(name = "UserSurveyChoice.findAll", query = "SELECT u FROM UserSurveyChoice u"),
+    @NamedQuery(name = "UserSurveyChoice.findById", query = "SELECT u FROM UserSurveyChoice u WHERE u.id = :id")})
 public class UserSurveyChoice implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -97,5 +107,5 @@ public class UserSurveyChoice implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.UserSurveyChoice[ id=" + id + " ]";
     }
-
+    
 }

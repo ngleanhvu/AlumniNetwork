@@ -1,10 +1,10 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
-import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +21,13 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
     @Autowired
     private LocalSessionFactoryBean sessionFactory;
     @Override
-    public void addLecturerInfo(LecturerInfo lecturerInfo) {
+    public void saveLecturerInfo(LecturerInfo lecturerInfo) {
         Session session = sessionFactory.getObject().getCurrentSession();
-        session.persist(lecturerInfo);
+        if (lecturerInfo == null) {
+            session.persist(lecturerInfo);
+        } else {
+            session.merge(lecturerInfo);
+        }
     }
 
     @Override
@@ -49,5 +52,13 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
         }
 
         return session.createQuery(criteriaQuery).list();
+    }
+
+    @Override
+    public LecturerInfo getLecturerInfoById(Integer id) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Query query = session.createQuery("from LecturerInfo where id = :id");
+        query.setParameter("id", id);
+        return (LecturerInfo) query.uniqueResult();
     }
 }

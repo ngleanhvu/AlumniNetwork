@@ -7,19 +7,21 @@ package com.finalterm.alumninetwork.pojo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Question")
 @NamedQueries({
-        @NamedQuery(name = "Question.findAll", query = "SELECT q FROM Question q"),
-        @NamedQuery(name = "Question.findById", query = "SELECT q FROM Question q WHERE q.id = :id"),
-        @NamedQuery(name = "Question.findByContent", query = "SELECT q FROM Question q WHERE q.content = :content")})
+    @NamedQuery(name = "Question.findAll", query = "SELECT q FROM Question q"),
+    @NamedQuery(name = "Question.findById", query = "SELECT q FROM Question q WHERE q.id = :id"),
+    @NamedQuery(name = "Question.findByContent", query = "SELECT q FROM Question q WHERE q.content = :content")})
 public class Question implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -36,6 +38,16 @@ public class Question implements Serializable {
     @JoinColumn(name = "survey_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Survey survey;
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Choice> choices = new ArrayList<>();
+
+    public List<Choice> getChoices() {
+        return choices;
+    }
+
+    public void setChoices(List<Choice> choices) {
+        this.choices = choices;
+    }
 
     public Question() {
     }
@@ -97,5 +109,5 @@ public class Question implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Question[ id=" + id + " ]";
     }
-
+    
 }

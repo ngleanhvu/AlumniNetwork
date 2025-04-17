@@ -4,19 +4,29 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
-@Table(name = "Event_Invitation_Group_Network")
+@Table(name = "Notification_Group_Network")
 @NamedQueries({
-        @NamedQuery(name = "EventInvitationGroupNetwork.findAll", query = "SELECT e FROM EventInvitationGroupNetwork e"),
-        @NamedQuery(name = "EventInvitationGroupNetwork.findById", query = "SELECT e FROM EventInvitationGroupNetwork e WHERE e.id = :id")})
-public class EventInvitationGroupNetwork implements Serializable {
+    @NamedQuery(name = "NotificationGroupNetwork.findAll", query = "SELECT n FROM NotificationGroupNetwork n"),
+    @NamedQuery(name = "NotificationGroupNetwork.findById", query = "SELECT n FROM NotificationGroupNetwork n WHERE n.id = :id")})
+public class NotificationGroupNetwork implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -24,17 +34,17 @@ public class EventInvitationGroupNetwork implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @JoinColumn(name = "event_invitation_id", referencedColumnName = "id")
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private EventInvitation eventInvitation;
+    private Event event;
     @JoinColumn(name = "group_network_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private GroupNetwork groupNetwork;
 
-    public EventInvitationGroupNetwork() {
+    public NotificationGroupNetwork() {
     }
 
-    public EventInvitationGroupNetwork(Integer id) {
+    public NotificationGroupNetwork(Integer id) {
         this.id = id;
     }
 
@@ -46,12 +56,12 @@ public class EventInvitationGroupNetwork implements Serializable {
         this.id = id;
     }
 
-    public EventInvitation getEventInvitation() {
-        return eventInvitation;
+    public Event getEvent() {
+        return event;
     }
 
-    public void setEventInvitation(EventInvitation eventInvitation) {
-        this.eventInvitation = eventInvitation;
+    public void setEvent(Event event) {
+        this.event = event;
     }
 
     public GroupNetwork getGroupNetwork() {
@@ -72,10 +82,10 @@ public class EventInvitationGroupNetwork implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof EventInvitationGroupNetwork)) {
+        if (!(object instanceof NotificationGroupNetwork)) {
             return false;
         }
-        EventInvitationGroupNetwork other = (EventInvitationGroupNetwork) object;
+        NotificationGroupNetwork other = (NotificationGroupNetwork) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -84,7 +94,7 @@ public class EventInvitationGroupNetwork implements Serializable {
 
     @Override
     public String toString() {
-        return "com.finalterm.alumninetwork.pojo.EventInvitationGroupNetwork[ id=" + id + " ]";
+        return "com.finalterm.alumninetwork.pojo.NotificationGroupNetwork[ id=" + id + " ]";
     }
-
+    
 }

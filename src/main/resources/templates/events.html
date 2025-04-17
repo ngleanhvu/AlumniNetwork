@@ -19,19 +19,20 @@
     <table class="table">
         <tr>
             <th>Title</th>
-            <th>Content</th>
+            <th>Zoom</th>
             <th>Start Date</th>
             <th>End Date</th>
             <th>Action</th>
         </tr>
         <tr th:each="e: ${events}">
             <td th:text="${e.title}"></td>
-            <td th:text="${e.content}"></td>
+            <td>
+                <a th:href="@{${e.urlZoom}}" th:text="${e.urlZoom}" target="_blank"></a>
+            </td>
             <td th:text="${e.startTime} "></td>
             <td th:text="${e.endTime}"></td>
             <td>
-                <a th:href="@{/events/admin/delete/{id}(id=${e.id})}" class="btn btn-danger"
-                   onclick="return confirm('Bạn có chắc chắn muốn xóa event này?')">Xóa</a>
+                <a th:href="@{'/events/admin/send-event/' + ${e.id}}" class="btn btn-primary text-white">Send Email</a>
             </td>
         </tr>
     </table>

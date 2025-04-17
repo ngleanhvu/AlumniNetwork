@@ -1,12 +1,13 @@
 package com.finalterm.alumninetwork.repository;
 
 import com.finalterm.alumninetwork.pojo.Event;
-import com.finalterm.alumninetwork.pojo.Post;
 
 import java.util.List;
+import java.util.Map;
 
 public interface EventRepository {
-    List<Event> getAll();
-    Event saveOrUpdate(Event e);
-    void delete(int id);
+    List<Event> getAllEvent(Map<String, String> params);
+    Event saveEvent(Event e);
+    boolean deleteEventById(Integer eventId);
+    Event getEventById(Integer eventId);
 }

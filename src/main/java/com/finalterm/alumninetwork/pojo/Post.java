@@ -4,7 +4,6 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,7 +12,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -36,27 +34,29 @@ public class Post implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "title")
+    private String title;
     @Lob
     @Size(max = 65535)
     @Column(name = "content")
-    @NotNull
-    private String title;
+    private String content;
     @Column(name = "blocked_comment")
-    private Boolean blockedComment = false;
+    private Boolean blockedComment;
     @Column(name = "active")
-    private Boolean active = true;
+    private Boolean active;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private Date createdAt;
-
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
-    List<PostImage> images = new ArrayList<>();
+    List<PostImage> images;
 
     public Post() {
 
@@ -64,6 +64,11 @@ public class Post implements Serializable {
 
     public Post(Integer id) {
         this.id = id;
+    }
+
+    public Post(Integer id, String title) {
+        this.id = id;
+        this.title = title;
     }
 
     public Integer getId() {
@@ -79,7 +84,15 @@ public class Post implements Serializable {
     }
 
     public void setTitle(String title) {
-        this.title = title  ;
+        this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public Boolean getBlockedComment() {

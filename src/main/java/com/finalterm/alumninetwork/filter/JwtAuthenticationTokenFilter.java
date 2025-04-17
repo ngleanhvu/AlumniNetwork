@@ -2,7 +2,6 @@ package com.finalterm.alumninetwork.filter;
 
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.pojo.User;
-import com.finalterm.alumninetwork.service.UserService;
 import com.finalterm.alumninetwork.service.impl.UserServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,38 +28,34 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            String authHeader = request.getHeader(TOKEN_HEADER);
+            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7); // Cắt bỏ "Bearer "
 
-        String bearerToken = httpRequest.getHeader(TOKEN_HEADER);
+                if (jwtService.validateTokenLogin(token)) {
+                    String username = jwtService.getUsernameFromToken(token);
+                    User user = this.userService.getUserByUsername(username);
 
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            String authToken = bearerToken.substring(7);
+                    if (user != null) {
+                        Set<GrantedAuthority> authorities = new HashSet<>();
+                        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
 
-            if (jwtService.validateTokenLogin(authToken)) {
-                String username = jwtService.getUsernameFromToken(authToken);
-                User user = this.userService.getUserByUsername(username);
-                if (user != null) {
-                    boolean enabled = true;
-                    boolean accountNonExpired = true;
-                    boolean credentialsNonExpired = true;
-                    boolean accountNonLocked = true;
+                        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                                username, user.getPassword(), true, true, true, true, authorities);
 
-                    Set<GrantedAuthority> authorities = new HashSet<>();
-                    authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+                        UsernamePasswordAuthenticationToken authenticationToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    UserDetails userDetail = new org.springframework.security.core.userdetails.User(username, user.getPassword(), enabled, accountNonExpired,
-                            credentialsNonExpired, accountNonLocked, authorities);
-
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetail,
-                            null, userDetail.getAuthorities());
-
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                        // Thiết lập xác thực vào SecurityContext
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    }
                 }
             }
         }

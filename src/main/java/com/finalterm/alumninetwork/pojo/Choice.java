@@ -6,19 +6,20 @@ package com.finalterm.alumninetwork.pojo;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Choice")
 @NamedQueries({
-        @NamedQuery(name = "Choice.findAll", query = "SELECT c FROM Choice c"),
-        @NamedQuery(name = "Choice.findById", query = "SELECT c FROM Choice c WHERE c.id = :id"),
-        @NamedQuery(name = "Choice.findByContent", query = "SELECT c FROM Choice c WHERE c.content = :content")})
+    @NamedQuery(name = "Choice.findAll", query = "SELECT c FROM Choice c"),
+    @NamedQuery(name = "Choice.findById", query = "SELECT c FROM Choice c WHERE c.id = :id"),
+    @NamedQuery(name = "Choice.findByContent", query = "SELECT c FROM Choice c WHERE c.content = :content")})
 public class Choice implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,6 +31,19 @@ public class Choice implements Serializable {
     @Size(max = 100)
     @Column(name = "content")
     private String content;
+    @JoinColumn(name = "question_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Question question;
+    @OneToMany(mappedBy = "choice")
+    private List<UserSurveyChoice>  userSurveyChoices;
+
+    public List<UserSurveyChoice> getUserSurveyChoices() {
+        return userSurveyChoices;
+    }
+
+    public void setUserSurveyChoices(List<UserSurveyChoice> userSurveyChoices) {
+        this.userSurveyChoices = userSurveyChoices;
+    }
 
     public Choice() {
     }
@@ -52,6 +66,14 @@ public class Choice implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(Question question) {
+        this.question = question;
     }
 
     @Override
@@ -78,5 +100,5 @@ public class Choice implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.Choice[ id=" + id + " ]";
     }
-
+    
 }

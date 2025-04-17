@@ -1,0 +1,28 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Manage Group</title>
+  <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<div th:replace="base :: header"></div>
+
+<section class="container">
+  <h1 class="text-center text-info mt-1">Tạo nhóm</h1>
+  <form method="post" th:action="@{/groups/admin/save}" th:object="${group}">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-floating mb-3 mt-3">
+      <input type="text" class="form-control" id="name" placeholder="Tên nhóm" th:field="*{name}">
+      <label for="name">Tên nhóm</label>
+      <small class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+    </div>
+    <div class="form-floating mt-1">
+      <button class="btn btn-success" th:if="${group.id == null}">Thêm nhóm</button>
+      <button class="btn btn-success" th:if="${group.id != null}">Cập nhật nhóm</button>
+    </div>
+  </form>
+</section>
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>

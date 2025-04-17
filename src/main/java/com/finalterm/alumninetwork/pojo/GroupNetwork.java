@@ -7,19 +7,20 @@ package com.finalterm.alumninetwork.pojo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
+ *
  * @author nguoideptrangian
  */
 @Entity
 @Table(name = "Group_Network")
 @NamedQueries({
-        @NamedQuery(name = "GroupNetwork.findAll", query = "SELECT g FROM GroupNetwork g"),
-        @NamedQuery(name = "GroupNetwork.findById", query = "SELECT g FROM GroupNetwork g WHERE g.id = :id"),
-        @NamedQuery(name = "GroupNetwork.findByName", query = "SELECT g FROM GroupNetwork g WHERE g.name = :name")})
+    @NamedQuery(name = "GroupNetwork.findAll", query = "SELECT g FROM GroupNetwork g"),
+    @NamedQuery(name = "GroupNetwork.findById", query = "SELECT g FROM GroupNetwork g WHERE g.id = :id"),
+    @NamedQuery(name = "GroupNetwork.findByName", query = "SELECT g FROM GroupNetwork g WHERE g.name = :name")})
 public class GroupNetwork implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -37,6 +38,16 @@ public class GroupNetwork implements Serializable {
     @ManyToOne(optional = false)
     private User user;
 
+    @OneToMany(mappedBy = "groupNetwork", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private Set<GroupNetworkUser> groupNetworkUsers = new HashSet<>();
+
+    public Set<GroupNetworkUser> getGroupNetworkUsers() {
+        return groupNetworkUsers;
+    }
+
+    public void setGroupNetworkUsers(Set<GroupNetworkUser> groupNetworkUsers) {
+        this.groupNetworkUsers = groupNetworkUsers;
+    }
 
     public GroupNetwork() {
     }
@@ -98,5 +109,5 @@ public class GroupNetwork implements Serializable {
     public String toString() {
         return "com.finalterm.alumninetwork.pojo.GroupNetwork[ id=" + id + " ]";
     }
-
+    
 }

@@ -1,17 +1,90 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Quản lý người dùng</title>
+  <title>Manage User</title>
   <th:block th:replace="base :: styles"></th:block>
 </head>
 <body>
 <div th:replace="base :: header"></div>
 
 <section class="container">
-  <h1 class="text-center text-info mt-1">QUẢN LÝ NGƯỜI DÙNG</h1>
-  <a th:href="@{/users/admin/add}" class="btn btn-success m-2">Thêm tài khoản</a>
+
+  <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Quản lý người dùng</h2>
+  <hr />
+  <div class="alert alert-info" role="alert"
+       th:if="${msg != null}"
+       th:text="${msg}"
+  >
+  </div>
+  <form th:action="@{/users/admin}">
+    <div class="row d-flex">
+      <div class="col-md-3">
+        <input type="text" class="form-control" name="kw" placeholder="Từ khóa" />
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-info" type="submit">Tìm kiếm</button>
+      </div>
+    </div>
+  </form>
+  <div class="d-flex justify-content-end">
+    <a  th:href="@{/users/admin/add}" class="btn btn-success">Thêm người dùng</a>
+  </div>
+  <hr />
+
+  <table class="table">
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Họ tên</th>
+      <th>Vai trò</th>
+      <th>Số điện thoại</th>
+      <th>Active</th>
+      <th>Tác vụ</th>
+    </tr>
+    <tr th:each="u: ${users}">
+      <td th:text="${u.username}"></td>
+      <td th:text="${u.email}"></td>
+      <td th:text="${u.fullName} "></td>
+      <td th:text="${u.role}"></td>
+      <td th:text="${u.phone}"></td>
+      <td th:text="${u.active ? 'True' : 'False'}"></td>
+      <td>
+        <div class="d-flex">
+          <form method="post"
+                th:action="@{'/users/admin/delete'}" class="me-2"
+                th:object="${u}"
+          >
+            <input type="hidden" th:value="${u.id}" name="id">
+            <button class="btn btn-danger" type="submit">Xoá</button>
+          </form>
+          <form method="post"
+                th:if="${u.active == false and u.role.name == 'ROLE_ALUMNI'}"
+                th:action="@{'/users/admin/confirm'}"
+                th:object="${u}"
+          >
+            <input type="hidden" th:value="${u.id}" name="id">
+            <button class="btn btn-primary" type="submit"  onclick="return confirm('Bạn có chắc muốn xoá không?');">Xác nhận</button>
+          </form>
+          <button class="btn btn-secondary" type="button"
+                  th:if="${u.active == false and u.role.name == 'ROLE_LECTURER'}"
+          >
+            <a class="text-white" th:href="@{'/users/admin/reset-time-password/'+${u.username}}">
+              Reset thời gian
+            </a>
+          </button>
+          <button class="btn btn-dark" type="button">
+            <a class="text-white" th:href="@{'/users/admin/update/'+${u.username}}">
+              Cập nhật
+            </a>
+          </button>
+        </div>
+      </td>
+    </tr>
+  </table>
 </section>
 
 <div th:replace="base :: footer"></div>
+
+<script th:src="@{/js/user.js}"></script>
 </body>
 </html>

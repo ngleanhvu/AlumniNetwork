@@ -1,24 +1,42 @@
 package com.finalterm.alumninetwork.controller.rest;
 
+import com.cloudinary.provisioning.Account;
 import com.finalterm.alumninetwork.component.JwtService;
+import com.finalterm.alumninetwork.dto.ChangePasswordDto;
+import com.finalterm.alumninetwork.dto.ConfirmUserDto;
 import com.finalterm.alumninetwork.dto.LoginDto;
+import com.finalterm.alumninetwork.dto.ResponseUserDto;
+import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.service.UserService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import static org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames.CLIENT_ID;
 
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private Environment env;
 
     @PostMapping(path = "/register",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
@@ -32,28 +50,53 @@ public class ApiUserController {
 
     @PostMapping("/login")
     @CrossOrigin
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto loginDto) {
-        try {
-            String token = userService.login(loginDto.getUsername(), loginDto.getPassword());
-            return ResponseEntity.ok().body(Map.of("Token", token));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Error", e.getMessage()));
-        }
+    public ResponseEntity<String> loginUser(@Valid @RequestBody LoginDto loginDto) {
+        return ResponseEntity
+                .ok(this.userService.login(loginDto.getUsername(), loginDto.getPassword()));
     }
 
+    @PostMapping("/change-password")
+    @CrossOrigin
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
+        this.userService.changePassword(changePasswordDto);
+        return ResponseEntity.ok().build();
+    }
 
-//    @PostMapping(path = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    @CrossOrigin
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public void registerUser(@RequestPart("user") RegisterDto user,
-//                             @RequestPart("avatar") MultipartFile avatar,
-//                             @RequestPart Map<String, String> params1) {
-//        Map<String, String> params = new HashMap<>();
-//        params.put("username", user.getUsername());
-//        params.put("password", user.getPassword());
-//        params.put("fullName", user.getFullName());
-//        params.put("email", user.getEmail());
-//        params.put("phone", user.getPhone());
-//        params.put("role", user.getRole());
-//    }
+    @GetMapping("/current-user")
+    @CrossOrigin
+    public ResponseEntity<?> getCurrentUser() {
+        User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        ResponseUserDto responseUserDto = new ResponseUserDto();
+        responseUserDto.setUsername(user.getUsername());
+        responseUserDto.setEmail(user.getEmail());
+        responseUserDto.setPhone(user.getPhone());
+        responseUserDto.setAvatar(user.getAvatar());
+        responseUserDto.setCoverAvatar(user.getCoverAvatar());
+        responseUserDto.setRole(user.getRole().name());
+        return ResponseEntity.ok(responseUserDto);
+    }
+
+    @CrossOrigin
+    @PostMapping("/google/login")
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
+        String idTokenStr = payload.get("idToken");
+
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(env.getProperty("google.client_id")))
+                .build();
+        try {
+            GoogleIdToken idToken = verifier.verify(idTokenStr);
+            if (idToken != null) {
+                String email = idToken.getPayload().getEmail();
+                User user = this.userService.getUserByEmail(email);
+                String jwt = this.jwtService.generateTokenLogin(user.getUsername());
+                return ResponseEntity.ok(Map.of("token", jwt));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Token");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying token");
+        }
+    }
 }
