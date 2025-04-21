@@ -46,7 +46,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User getUserByUsername(String username) {
         Session session = this.factoryBean.getObject().getCurrentSession();
-        Query query = session.createQuery("FROM User WHERE username = :username", User.class);
+        Query query = session.createNamedQuery("User.findByUsername", User.class);
         query.setParameter("username", username);
         return (User) query.getSingleResult();
     }
@@ -146,8 +146,7 @@ public class UserRepositoryImpl implements UserRepository {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<User> query = builder.createQuery(User.class);
         Root<User> root = query.from(User.class);
-        Expression<Integer> expressionGetId = root.get("id");
-        query.where(builder.equal(expressionGetId, userIds.get(0)));
+        query.select(root).where(root.get("id").in(userIds));
         return session.createQuery(query).getResultList();
     }
 

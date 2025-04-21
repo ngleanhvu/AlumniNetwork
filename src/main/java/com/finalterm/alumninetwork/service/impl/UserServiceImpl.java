@@ -3,6 +3,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
+import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
@@ -12,7 +13,9 @@ import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,10 +23,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -43,6 +49,9 @@ public class UserServiceImpl implements UserService {
     private EmailService emailService;
     @Autowired
     private UserRegistrationService userRegistrationService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    private static final String USER_PREFIX = "user";
 
     @Autowired
     private JwtService jwtService;
@@ -130,14 +139,26 @@ public class UserServiceImpl implements UserService {
         if (existingLecturerInfo == null)
             throw new RuntimeException("LecturerInfo not found");
         existingLecturerInfo.setExpiredResetPasswordTime(lecturerInfo.getExpiredResetPasswordTime());
+        User user = existingLecturerInfo.getUser();
+        user.setActive(true);
+        userRepository.saveUser(user);
         lecturerInfoRepository.saveLecturerInfo(existingLecturerInfo);
         return true;
     }
 
     @Override
     public User getUserByUsername(String username) {
-        return this.userRepository.getUserByUsername(username);
+        User user;
+        String key = String.format("%s:%s:%s", USER_PREFIX, "username", username);
+        user = (User) redisTemplate.opsForValue().get(key);
+        if (user != null) {
+            return user;
+        }
+        user = this.userRepository.getUserByUsername(username);
+        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
+        return user;
     }
+
 
     @Override
     public boolean changePassword(ChangePasswordDto changePasswordDto) {
@@ -169,52 +190,12 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.getUserByIds(userIds);
     }
 
+    @Cacheable(value = "user", key = "#email")
     @Override
     public User getUserByEmail(String email) {
         return this.userRepository.getUserByEmail(email);
     }
 
-
-//    private void saveUserWithRole(String role, User user, Map<String, String> params) {
-//        UserRole userRole;
-//        switch (role) {
-//            case "admin":
-//                userRole = UserRole.ROLE_ADMIN;
-//                user.setRole(userRole);
-//                user.setActive(true);
-//                userRepository.saveUser(user);
-//                break;
-//            case "lecturer":
-//                userRole = UserRole.ROLE_LECTURER;
-//                user.setRole(userRole);
-//                user.setActive(true);
-//                userRepository.saveUser(user);
-//                // them thoi gian thay doi mat khau
-//                LecturerInfo lecturerInfo = new LecturerInfo();
-//                lecturerInfo.setUser(user);
-//                lecturerInfo.setChangedPassword(false);
-//                Calendar calendar = Calendar.getInstance();
-//                calendar.setTime(new Date());
-//                calendar.add(Calendar.HOUR,
-//                        Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));// Lấy ngày hiện tại
-//                lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
-//                lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
-//                // gui mail
-//                emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
-//                break;
-//            default:
-//                userRole = UserRole.ROLE_ALUMNI;
-//                user.setRole(userRole);
-//                userRepository.saveUser(user);
-//                // them mssv
-//                String studentCode = params.getOrDefault("studentCode","");
-//                if (studentCode.isEmpty()) throw new IllegalArgumentException("student code is empty");
-//                AlumniInfo alumniInfo = new AlumniInfo();
-//                alumniInfo.setStudentCode(studentCode);
-//                alumniInfo.setUser(user);
-//                alumniInfoRepository.addAlumniInfo(alumniInfo);
-//        }
-//    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User u = this.userRepository.getUserByUsername(username);

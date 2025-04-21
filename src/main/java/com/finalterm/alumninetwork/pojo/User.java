@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -85,17 +86,10 @@ public class User implements Serializable {
     private Date updatedAt;
     @Column(name = "active")
     private Boolean active;
+    @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
-    private Set<GroupNetwork> groupNetworkUsers = new HashSet<>();
-
-    public Set<GroupNetwork> getGroupNetworkUsers() {
-        return groupNetworkUsers;
-    }
-
-    public void setGroupNetworkUsers(Set<GroupNetwork> groupNetworkUsers) {
-        this.groupNetworkUsers = groupNetworkUsers;
-    }
-
+    private Set<GroupNetworkUser> groupNetworkUsers = new HashSet<>();
+    @JsonIgnore
     @OneToOne(mappedBy = "user")
     private LecturerInfo lecturerInfo;
 
@@ -105,6 +99,15 @@ public class User implements Serializable {
 
     public void setLecturerInfo(LecturerInfo lecturerInfo) {
         this.lecturerInfo = lecturerInfo;
+    }
+
+
+    public Set<GroupNetworkUser> getGroupNetworkUsers() {
+        return groupNetworkUsers;
+    }
+
+    public void setGroupNetworkUsers(Set<GroupNetworkUser> groupNetworkUsers) {
+        this.groupNetworkUsers = groupNetworkUsers;
     }
 
     @Transient

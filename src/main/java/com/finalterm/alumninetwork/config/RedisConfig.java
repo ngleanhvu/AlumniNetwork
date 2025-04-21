@@ -62,7 +62,7 @@ public class RedisConfig {
 
         //Giữ nguyên datatype khi serialize/deserialize
         mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(),
-                                        ObjectMapper.DefaultTyping.NON_FINAL);
+                ObjectMapper.DefaultTyping.NON_FINAL);
         return mapper;
     }
 }

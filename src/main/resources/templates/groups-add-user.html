@@ -23,7 +23,7 @@
     <!-- Danh sách người dùng để thêm -->
     <div class="mb-3">
       <label for="users" class="form-label fw-semibold">Chọn thành viên</label>
-      <select class="form-select" id="users" name="userIds" multiple size="5">
+      <select class="form-select" id="users" name="userIds[]" multiple size="5">
         <option th:each="u : ${users}"
                 th:value="${u.id}"
                 th:text="${u.username}"

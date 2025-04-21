@@ -14,9 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -73,22 +71,22 @@ public class GroupController {
 
     @PostMapping("/groups/admin/add-user")
     public String addUserToGroup(@ModelAttribute("group") GroupNetwork groupNetwork,
-                                 @ModelAttribute("userIds") List<Integer> userIds) {
+                                @RequestParam(name = "userIds", required = false) List<Integer> userIds) {
         List<User> users = this.userService.getUserByIds(userIds);
+        List<GroupNetworkUser> groupNetworkUsers = new ArrayList<>();
         for (User user : users) {
-           Predicate<User> isUserInGroup = u -> user.getGroupNetworkUsers().stream()
-                    .anyMatch(userNetwork -> userNetwork.getId().equals(groupNetwork.getId()));
-           if (!isUserInGroup.test(user)) {
                 GroupNetworkUser groupNetworkUser = new GroupNetworkUser();
                 groupNetworkUser.setUser(user);
                 groupNetworkUser.setGroupNetwork(groupNetwork);
-                groupNetwork.getGroupNetworkUsers().add(groupNetworkUser);
-           }
+                groupNetworkUsers.add(groupNetworkUser);
         }
-        this.groupService.saveGroup(groupNetwork);
+        groupService.saveGroupNetworkUser(groupNetworkUsers);
         return "redirect:/groups/admin";
     }
 
-
-
+    @GetMapping("/groups/admin/update/{id}")
+    public String updateGroupPage(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("group", this.groupService.getGroupNetworkById(id));
+        return "groups-form";
+    }
 }

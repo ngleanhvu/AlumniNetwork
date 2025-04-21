@@ -75,4 +75,16 @@ public class EventController {
         this.eventService.sendEvent(event, userIds, groupIds);
         return "redirect:/events/admin";
     }
+
+    @GetMapping("/admin/update/{id}")
+    public String updateEventPage(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("event", this.eventService.getEventById(id));
+        return "event-forms";
+    }
+
+    @PostMapping("/admin/delete/{id}")
+    public String deleteEvent(@PathVariable("id") int id) {
+        this.eventService.deleteEvent(id);
+        return "redirect:/events/admin";
+    }
 }

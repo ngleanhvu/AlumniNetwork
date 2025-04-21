@@ -32,7 +32,14 @@
             <td th:text="${e.startTime} "></td>
             <td th:text="${e.endTime}"></td>
             <td>
-                <a th:href="@{'/events/admin/send-event/' + ${e.id}}" class="btn btn-primary text-white">Send Email</a>
+                <div class="d-flex">
+                    <a th:href="@{'/events/admin/send-event/' + ${e.id}}" class="btn btn-primary text-white m-1">Send Email</a>
+                    <form method="post"
+                          th:action="@{'/events/admin/delete/' + ${e.id}}">
+                        <button class="btn btn-danger m-1" type="submit">Xóa</button>
+                    </form>
+                    <a class="m-1 btn btn-info" th:href="@{'/events/admin/update/'+${e.id}}">Cập nhật</a>
+                </div>
             </td>
         </tr>
     </table>

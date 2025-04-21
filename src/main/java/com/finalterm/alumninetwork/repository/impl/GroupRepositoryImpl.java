@@ -100,4 +100,12 @@ public class GroupRepositoryImpl implements GroupRepository {
         }
         return new ArrayList<>(users);
     }
+
+    @Override
+    public void saveGroupNetworkUser(List<GroupNetworkUser> groupNetworkUsers) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        for (GroupNetworkUser groupNetworkUser : groupNetworkUsers) {
+            session.persist(groupNetworkUser);
+        }
+    }
 }
