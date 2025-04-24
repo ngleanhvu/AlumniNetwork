@@ -190,7 +190,6 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.getUserByIds(userIds);
     }
 
-    @Cacheable(value = "user", key = "#email")
     @Override
     public User getUserByEmail(String email) {
         return this.userRepository.getUserByEmail(email);

@@ -70,12 +70,15 @@ public class EventServiceImpl implements EventService {
             allReceiptUsers.addAll(groupUsers);
         }
 
-        for (User user : allReceiptUsers) {
-            EmailRecord emailRecord = new EmailRecord(user.getEmail(), event.getTitle(), event.getContent());
-            rabbitTemplate.convertAndSend(Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
-                    Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
-                    emailRecord);
-        }
+        List<EmailRecord> emailRecords = allReceiptUsers.stream()
+                .map(user -> new EmailRecord(user.getEmail(), event.getTitle(), event.getContent()))
+                .toList();
+
+        rabbitTemplate.convertAndSend(
+                Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
+                Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
+                emailRecords
+        );
 
     }
 

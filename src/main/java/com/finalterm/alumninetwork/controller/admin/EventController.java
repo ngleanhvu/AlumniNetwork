@@ -69,8 +69,8 @@ public class EventController {
 
     @PostMapping("/admin/send-email")
     public String sendEvent(@ModelAttribute("event") Event e,
-                            @ModelAttribute("userIds") List<Integer> userIds,
-                            @ModelAttribute("groupIds") List<Integer> groupIds) {
+                            @RequestParam("userIds") List<Integer> userIds,
+                            @RequestParam("groupIds") List<Integer> groupIds) {
         Event event = this.eventService.getEventById(e.getId());
         this.eventService.sendEvent(event, userIds, groupIds);
         return "redirect:/events/admin";

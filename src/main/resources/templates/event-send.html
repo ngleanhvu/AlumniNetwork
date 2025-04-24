@@ -15,7 +15,7 @@
         <input type="hidden" th:field="*{id}">
         <div class="mb-3">
             <label for="users" class="form-label fw-semibold">Chọn thành viên</label>
-            <select class="form-select" id="users" name="userIds" multiple size="5">
+            <select class="form-select" id="users" name="userIds[]" multiple size="5">
                 <option th:each="u : ${users}"
                         th:value="${u.id}"
                         th:text="${u.username}">
@@ -24,7 +24,7 @@
         </div>
         <div class="mb-3">
             <label for="groups" class="form-label fw-semibold">Chọn nhóm</label>
-            <select class="form-select" id="groups" name="groupIds" multiple size="5">
+            <select class="form-select" id="groups" name="groupIds[]" multiple size="5">
                 <option th:each="g : ${groups}"
                         th:value="${g.id}"
                         th:text="${g.name}">
