@@ -32,8 +32,9 @@ public class ApiReactionController {
         Map<String, Integer> stats = this.reactionService.statsReactionByPostId(postId);
         return new ResponseEntity<>(stats, HttpStatus.OK);
     }
+
     @GetMapping("/{postId}/reactions")
-    public ResponseEntity<List<ReactionDto>> getTypeStatsByPostId(@PathVariable(value = "postId") int postId, @RequestBody Map<String, String> params) {
+    public ResponseEntity<List<ReactionDto>> getTypeStatsByPostId(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
         Post post = this.postService.getPostById(postId);
 
         if (post == null)
@@ -48,7 +49,7 @@ public class ApiReactionController {
     }
 
     @PostMapping("/{postId}/reactions")
-    public ResponseEntity<ReactionDto> reactToPost(@PathVariable(value = "postId") int postId, @RequestBody Map<String, String> params) {
+    public ResponseEntity<?> reactToPost(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
         Post post = this.postService.getPostById(postId);
@@ -64,10 +65,13 @@ public class ApiReactionController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         EnumReaction typeReaction = EnumReaction.valueOf(type.toUpperCase());
-        return new ResponseEntity<>(this.reactionService.reactToPost(postId, user.getId(), typeReaction), HttpStatus.CREATED);
+        this.reactionService.reactToPost(postId, user, typeReaction);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
-    @DeleteMapping("/{postId}/reactions")
-    public ResponseEntity<Void> removeReaction(@PathVariable("postId") int postId) {
+    @DeleteMapping("/{postId}/reactions/{reactionId}")
+    public ResponseEntity<Void> removeReaction(@PathVariable("postId") int postId,
+                                               @PathVariable("reactionId") int reactionId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
 
@@ -75,7 +79,7 @@ public class ApiReactionController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        reactionService.removeReaction(postId, user.getId());
+        reactionService.removeReaction(postId, reactionId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

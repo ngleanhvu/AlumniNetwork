@@ -15,6 +15,6 @@ public interface ReactionRepository {
     Integer countByPostIdAndType(int postId, String type);
     Optional<Reaction> existsReaction(int postId, int userId);
     Map<String, Integer> statsReactionByPostId(int postId);
-
-
+    List<Reaction> getReactionsByPostId(int postId);
+    void deleteReactionById(int reactionId);
 }

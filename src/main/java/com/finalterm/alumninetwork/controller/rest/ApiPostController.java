@@ -53,7 +53,7 @@ public class ApiPostController {
     @CrossOrigin
     public ResponseEntity<PostDTO> uploadPostOrUpdate(@RequestParam(value = "content") String content,
                                                    @RequestParam(value = "postId", required = false) Integer postId, //For update
-                                                   @RequestParam(value = "images", required = false) List<MultipartFile> images) {
+                                                   @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(auth.getName());
 

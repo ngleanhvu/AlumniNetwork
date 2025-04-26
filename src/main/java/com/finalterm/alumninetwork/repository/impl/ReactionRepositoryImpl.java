@@ -5,6 +5,7 @@ import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Reaction;
 import com.finalterm.alumninetwork.repository.ReactionRepository;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -130,5 +131,20 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         stats.put("Haha", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
         stats.put("Total", countTotalByPostId(postId));
         return stats;
+    }
+
+    @Override
+    public List<Reaction> getReactionsByPostId(int postId) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Query query = session.createNamedQuery("Reaction.findByPostId");
+        query.setParameter("postId", postId);
+        return query.getResultList();
+    }
+
+    @Override
+    public void deleteReactionById(int reactionId) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Reaction reaction = session.get(Reaction.class, reactionId);
+        session.remove(reaction);
     }
 }

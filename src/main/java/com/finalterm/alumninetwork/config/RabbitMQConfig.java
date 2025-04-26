@@ -47,18 +47,44 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue queue() {
+    public Queue emailQueue() {
         return new Queue(Objects.requireNonNull(environment.getProperty("rabbitmq.queue.name")), true);
     }
 
     @Bean
-    public DirectExchange directExchange() {
+    public DirectExchange emailExchange() {
         return new DirectExchange("emailExchange", true, false);
     }
 
+
     @Bean
-    public Binding binding(Queue queue, DirectExchange directExchange) {
-        return BindingBuilder.bind(queue).to(directExchange).with(environment.getProperty("rabbitmq.routing.key.name"));
+    public Binding emailBinding(Queue emailQueue, DirectExchange emailExchange) {
+        return BindingBuilder.bind(emailQueue).to(emailExchange).with(environment.getProperty("rabbitmq.routing.key.name"));
+    }
+
+    @Bean
+    public DirectExchange reactionExchange() {
+        return new DirectExchange(Objects.requireNonNull(environment.getProperty("rabbitmq.post.reaction.exchange.name")));
+    }
+
+    @Bean
+    public Queue reactionQueue() {
+        return new Queue(Objects.requireNonNull(environment.getProperty("rabbitmq.post.reaction.db.queue")));
+    }
+
+    @Bean
+    public Binding reactionBinding(Queue reactionQueue, DirectExchange reactionExchange) {
+        return BindingBuilder.bind(reactionQueue).to(reactionExchange).with(environment.getProperty("rabbitmq.post.reaction.save"));
+    }
+
+    @Bean
+    public Queue reactionDeleteQueue() {
+        return new Queue(Objects.requireNonNull(environment.getProperty("rabbitmq.post.reaction.delete.queue")));
+    }
+
+    @Bean
+    public Binding reactionDeleteBinding(Queue reactionDeleteQueue, DirectExchange reactionExchange) {
+        return BindingBuilder.bind(reactionDeleteQueue).to(reactionExchange()).with(environment.getProperty("rabbitmq.post.reaction.delete"));
     }
 
     @Bean
@@ -84,11 +110,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public ApplicationRunner runner(AmqpAdmin amqpAdmin, Queue queue, DirectExchange exchange, Binding binding) {
+    public ApplicationRunner runner(AmqpAdmin admin) {
         return args -> {
-            amqpAdmin.declareQueue(queue);
-            amqpAdmin.declareExchange(exchange);
-            amqpAdmin.declareBinding(binding);
+            admin.declareExchange(emailExchange());
+            admin.declareQueue(emailQueue());
+            admin.declareBinding(emailBinding(emailQueue(), emailExchange()));
+
+            admin.declareExchange(reactionExchange());
+            admin.declareQueue(reactionQueue());
+            admin.declareBinding(reactionBinding(reactionQueue(), reactionExchange()));
+
+            admin.declareBinding(reactionDeleteBinding(reactionDeleteQueue(), reactionExchange()));
+            admin.declareQueue(reactionDeleteQueue());
         };
     }
 

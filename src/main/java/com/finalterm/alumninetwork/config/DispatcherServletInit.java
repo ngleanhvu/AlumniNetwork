@@ -31,14 +31,14 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
 
     @Override
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {
-        // Cấu hình upload file
-        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
-                "/",   // Thư mục lưu file tạm
-                5 * 1024 * 1024,  // Kích thước file tối đa (5MB)
-                20 * 1024 * 1024, // Tổng kích thước request tối đa (20MB)
-                0  // Ngưỡng lưu trên RAM trước khi ghi ra ổ cứng
+        // Cấu hình upload file đa phần
+        MultipartConfigElement multipartConfig = new MultipartConfigElement(
+               null, // Thư mục lưu file tạm (thư mục tạm của hệ thống)
+                5 * 1024 * 1024,    // Kích thước tối đa của mỗi file (5MB)
+                20 * 1024 * 1024,   // Tổng kích thước tối đa của toàn bộ request (20MB)
+                1 * 1024 * 1024     // Ngưỡng kích thước file (1MB) trước khi ghi ra ổ cứng
         );
 
-        registration.setMultipartConfig(multipartConfigElement);
+        registration.setMultipartConfig(multipartConfig);
     }
 }
