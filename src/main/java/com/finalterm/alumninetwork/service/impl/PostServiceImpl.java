@@ -4,19 +4,15 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.mapper.PostMapper;
-import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;
 import com.finalterm.alumninetwork.pojo.User;
-import com.finalterm.alumninetwork.repository.CommentRepository;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
 import com.finalterm.alumninetwork.repository.PostRepository;
-import com.finalterm.alumninetwork.repository.ReactionRepository;
 import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +27,6 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
     @Autowired
     private PostRepository postRepository;
-
     @Autowired
     private PostImageRepository postImageRepository;
 
@@ -90,7 +85,9 @@ public class PostServiceImpl implements PostService {
                 throw new RuntimeException("Post not found");
         }
 
-        p.setTitle(params.get("content"));
+        p.setTitle(params.get("title"));
+        p.setContent(params.get("content"));
+
         this.postRepository.saveOrUpdate(p);
 
         // Upload ảnh nếu có
@@ -112,20 +109,18 @@ public class PostServiceImpl implements PostService {
                         throw new RuntimeException("Error upload Cloudinary", e);
                     }
 
-
-
         // Cache lại
         int totalComments = isNew ? 0 : commentService.getTotalCommentByPostId(p.getId());
         Map<String, Integer> statsReaction = isNew
                 ? reactionService.initStatsReaction()
                 : reactionService.statsReactionByPostId(p.getId());
 
-        cachePost(p, totalComments, statsReaction, user.getId());
-
         // Nếu là tạo mới, xóa cache danh sách
-        if (isNew)
-            invalidatePostListCache(user.getId());
-
+        if (isNew) {
+            String userPostZSetKey = "user:postIds:" + user.getId();
+            redisTemplate.opsForZSet().add(userPostZSetKey, p.getId(), p.getCreatedAt().getTime());
+            redisTemplate.expire(userPostZSetKey, 30, TimeUnit.MINUTES);
+        }
         return PostMapper.toPostDTO(p, totalComments, statsReaction);
     }
 
@@ -151,18 +146,35 @@ public class PostServiceImpl implements PostService {
     }
 
     //------------------------------------------- REDIS CACHE -----------------------------------------------------
-
     @Override
     @Transactional(readOnly = true)
-    public List<PostDTO> getMyPosts(int userId) {
-        String postIdsKey = "user:postIds:" + userId;
-        List<Integer> postIds = (List<Integer>) redisTemplate.opsForValue().get(postIdsKey);
+    public List<PostDTO> getMyPosts(int userId, Date createdDate, int limit) {
+        String userPostIdsKey = "user:postIds:" + userId;
 
-        // Nếu chưa có danh sách postId cache -> lấy từ DB
-        if (postIds == null) {
-            postIds = postRepository.getMyPostIds(userId); // cần thêm hàm này
-            redisTemplate.opsForValue().set(postIdsKey, postIds, 30, TimeUnit.MINUTES);
+        String type = String.valueOf(redisTemplate.type(userPostIdsKey));
+        
+        long cursorTime = createdDate.getTime();
+
+        Set<Object> cachePostIds = redisTemplate.opsForZSet()
+                .reverseRangeByScore(userPostIdsKey, 0, cursorTime - 1, 0, limit);
+
+        System.out.println("Data type: " + cachePostIds.size());
+
+        //When redis is expired -> cache miss
+        if (cachePostIds == null || cachePostIds.isEmpty()) {
+
+            List<Post> allPosts = this.postRepository.getPostsByUserId(userId);
+            for (Post post : allPosts)
+                redisTemplate.opsForZSet().add(userPostIdsKey, post.getId().toString(), post.getCreatedAt().getTime());
+            redisTemplate.expire(userPostIdsKey, 30, TimeUnit.MINUTES);
+
+            cachePostIds = redisTemplate.opsForZSet().reverseRangeByScore(userPostIdsKey, 0, cursorTime - 1, 0, limit);
         }
+
+        List<Integer> postIds = cachePostIds.stream()
+                .map(Object::toString)
+                .map(Integer::parseInt)
+                .toList();
 
         List<PostDTO> result = new ArrayList<>();
         for (Integer postId : postIds) {
@@ -196,18 +208,15 @@ public class PostServiceImpl implements PostService {
         return result;
     }
 
-
     //Save post to cache
-    private void cachePost(Post post, Integer totalComments, Map<String, Integer> statsReaction, int userId) {
-
+    private void cachePost(int userId) {
         String userPostIdsKey = "user:postIds:" + userId;
         // Lấy danh sách hiện tại từ cache (nếu có)
-        List<Integer> userPostIds = (List<Integer>) redisTemplate.opsForValue().get(userPostIdsKey);
+        List<Post> posts = this.postRepository.getPostsByUserId(userId);
 
-        if (userPostIds != null) {
-            userPostIds.add(0, post.getId());
-            redisTemplate.opsForValue().set(userPostIdsKey, userPostIds, 30, TimeUnit.MINUTES);
-        }
+        for (Post post : posts)
+            redisTemplate.opsForZSet().add(userPostIdsKey, post.getId().toString(), post.getCreatedAt().getTime());
+        redisTemplate.expire(userPostIdsKey, 30, TimeUnit.MINUTES);
     }
 
     //Xóa cache Id của bài Post cá nhân

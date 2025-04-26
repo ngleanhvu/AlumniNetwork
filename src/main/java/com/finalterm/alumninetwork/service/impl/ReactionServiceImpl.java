@@ -47,8 +47,9 @@ public class ReactionServiceImpl implements ReactionService {
         if (post == null || user == null) {
             throw new RuntimeException("Post or User not found");
         }
-        //Kiem tra da Reaction chua
+        //Kiem tra da Reaction chua -> Kiem tra key tren redis
         Optional<Reaction> existingReaction = reactionRepository.existsReaction(postId, userId);
+
         ReactionDto result;
 
         if (existingReaction.isPresent()) { //Update reaction
@@ -66,6 +67,7 @@ public class ReactionServiceImpl implements ReactionService {
         // Xóa cache stats để đảm bảo lần sau sẽ lấy dữ liệu mới
         String keyReactionStats = "post:" + postId + ":reactionStats";
         String keyReactionPosts = "user:posts:" + post.getUser().getId();
+
         redisTemplate.delete(keyReactionStats);
         redisTemplate.delete(keyReactionPosts);
 
@@ -91,6 +93,7 @@ public class ReactionServiceImpl implements ReactionService {
     @Override
     @Transactional
     public Map<String, Integer> statsReactionByPostId(int postId) {
+
         String key = "post:" + postId + ":reactionStats";
         Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
 

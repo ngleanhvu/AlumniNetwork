@@ -37,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
         if (post.getBlockedComment())
             throw new PostBlockedComment("This Post is blocked");
 
+
         Comment comment = new Comment();
         comment.setCreatedAt(new Date());
         comment.setActive(true);
@@ -150,7 +151,7 @@ public class CommentServiceImpl implements CommentService {
         Integer count = (Integer) redisTemplate.opsForValue().get(key);
         if (count == null) {
             count = commentRepository.countTotalCommentsByPostId(postId);
-            redisTemplate.opsForValue().set(key, count, 10, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(key, count, 30, TimeUnit.MINUTES);
         }
         return count;
     }

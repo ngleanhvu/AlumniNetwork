@@ -67,6 +67,7 @@ public class ApiUserController {
     public ResponseEntity<?> getCurrentUser() {
         User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         ResponseUserDto responseUserDto = new ResponseUserDto();
+        responseUserDto.setFullName(user.getFullName());
         responseUserDto.setUsername(user.getUsername());
         responseUserDto.setEmail(user.getEmail());
         responseUserDto.setPhone(user.getPhone());

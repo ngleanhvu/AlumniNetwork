@@ -13,6 +13,7 @@
     <table class="table">
         <tr>
             <th>User</th>
+            <th>Title</th>
             <th>Content</th>
             <th>Images</th>
             <th>Action</th>
@@ -20,6 +21,7 @@
         <tr th:each="p: ${posts}">
             <td th:if="${p.userId != null}" th:text="${p.userId}"></td>
             <td th:text="${p.title}"></td>
+            <td th:text="${p.content}"></td>
             <td>
                 <table th:if="${not #lists.isEmpty(p.imgUrls)}">
                     <tr th:each="image : ${p.imgUrls}">

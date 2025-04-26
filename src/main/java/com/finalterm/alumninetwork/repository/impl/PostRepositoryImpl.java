@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 @Transactional
@@ -50,27 +54,44 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public List<Post> getAll() {
         Session session = this.factoryBean.getObject().getCurrentSession();
-//        CriteriaBuilder builder = session.getCriteriaBuilder();
-//        CriteriaQuery<Post> query = builder.createQuery(Post.class);
-//        Root root = query.from(Post.class);
-//        query.select(root);
         Query query = session.createQuery("FROM Post", Post.class);
         return query.getResultList();
     }
 
     @Override
-    public List<Integer> getMyPostIds(int userId) {
+    public List<Integer> getMyPostIds(int userId, Date createdDate, int limit) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<Integer> criteriaQuery = criteriaBuilder.createQuery(Integer.class);
         Root root = criteriaQuery.from(Post.class);
 
-        Predicate userPredicate = criteriaBuilder.equal(root.get("user").get("id"), userId);
+        List<Predicate> predicates = new ArrayList<Predicate>();
+        predicates.add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+
+        if (createdDate != null)
+            predicates.add(criteriaBuilder.lessThan(root.get("createdAt"), createdDate));
+
         criteriaQuery.select(root.get("id")); // Lấy ID thôi
-        criteriaQuery.where(userPredicate);
+
+        criteriaQuery.where(predicates.toArray(Predicate[]::new));
         criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
 
         Query query = session.createQuery(criteriaQuery);
+        return query.setMaxResults(limit).getResultList();
+    }
+
+    @Override
+    public List<Post> getPostsByUserId(int userId) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<Post> criteriaQuery = criteriaBuilder.createQuery(Post.class);
+        Root<Post> root = criteriaQuery.from(Post.class);
+
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get("user").get("id"), userId));
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
+
+        Query query = session.createQuery(criteriaQuery);
+
         return query.getResultList();
     }
 

@@ -2,11 +2,20 @@ package com.finalterm.alumninetwork.dto;
 
 public class ResponseUserDto {
     private String username;
+    private String fullName;
     private String email;
     private String phone;
     private String role;
     private String avatar;
     private String coverAvatar;
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
     public String getAvatar() {
         return avatar;

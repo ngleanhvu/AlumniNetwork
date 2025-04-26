@@ -12,8 +12,9 @@ public class PostMapper {
     public static PostDTO toPostDTO(Post post, int totalComments, Map<String, Integer> statsReactions) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
+        postDTO.setContent(post.getContent());
         postDTO.setTitle(post.getTitle());
-        postDTO.setUserId(post.getUser() != null ? post.getUser().getId() : null);
+        postDTO.setUser(UserWithPostMapper.toUserWithPostDto(post.getUser()));
         postDTO.setCreatedAt(post.getCreatedAt());
 
         if (post.getImages() != null) {
@@ -27,7 +28,5 @@ public class PostMapper {
 
         return postDTO;
     }
-
-
 }
 
