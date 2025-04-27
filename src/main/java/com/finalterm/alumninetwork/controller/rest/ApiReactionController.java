@@ -45,7 +45,9 @@ public class ApiReactionController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type), HttpStatus.OK);
+        int page = params.get("page") == null ? 1 : Integer.parseInt(params.get("page"));
+
+        return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
     }
 
     @PostMapping("/{postId}/reactions")

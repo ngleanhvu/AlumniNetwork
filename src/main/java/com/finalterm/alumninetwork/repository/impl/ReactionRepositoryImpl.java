@@ -39,7 +39,7 @@ public class ReactionRepositoryImpl implements ReactionRepository {
     }
 
     @Override
-    public List<Reaction> getTypeReactionsByPostId(int postId, String type) {
+    public List<Reaction> getTypeReactionsByPostId(int postId, String type, int page) {
         Session session = sessionFactory.getObject().getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Reaction> query = builder.createQuery(Reaction.class);
@@ -51,8 +51,18 @@ public class ReactionRepositoryImpl implements ReactionRepository {
                         builder.equal(root.get("post").get("id"), postId),
                         builder.equal(root.get("type"),type))
         );
-        query.where(predicates.toArray(Predicate[]::new));
-        return session.createQuery(query).getResultList();
+
+        query.where(predicates.toArray(Predicate[]::new)).orderBy(builder.desc(root.get("createdDate")));
+
+
+        int start = (page - 1) * 6;
+        int end = start + 6;
+
+        Query query2 = session.createQuery(query);
+        query2.setFirstResult(start);
+        query2.setMaxResults(end);
+
+        return query2.getResultList();
     }
 
     @Override
@@ -126,10 +136,10 @@ public class ReactionRepositoryImpl implements ReactionRepository {
     @Override
     public Map<String, Integer> statsReactionByPostId(int postId) {
         Map<String, Integer> stats = new HashMap<>();
-        stats.put("Like", countByPostIdAndType(postId, EnumReaction.LIKE.name()));
-        stats.put("Love", countByPostIdAndType(postId, EnumReaction.LOVE.name()));
-        stats.put("Haha", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
-        stats.put("Total", countTotalByPostId(postId));
+        stats.put("LIKE", countByPostIdAndType(postId, EnumReaction.LIKE.name()));
+        stats.put("LOVE", countByPostIdAndType(postId, EnumReaction.LOVE.name()));
+        stats.put("HAHA", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
+        stats.put("TOTAL", countTotalByPostId(postId));
         return stats;
     }
 
@@ -146,5 +156,13 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         Session session = sessionFactory.getObject().getCurrentSession();
         Reaction reaction = session.get(Reaction.class, reactionId);
         session.remove(reaction);
+    }
+
+    @Override
+    public Reaction getReactionById(int reactionId) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Query query = session.createNamedQuery("Reaction.findById", Reaction.class);
+        query.setParameter("id", reactionId);
+        return (Reaction) query.getSingleResult();
     }
 }

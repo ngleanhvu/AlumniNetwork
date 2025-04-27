@@ -89,4 +89,13 @@ public class ApiPostController {
             return ResponseEntity.noContent().build();
         }
     }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<?> getPostById(@PathVariable int postId) {
+        User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        if (user == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        Post post = this.postService.getPostById(postId);
+        return ResponseEntity.ok(post);
+    }
 }

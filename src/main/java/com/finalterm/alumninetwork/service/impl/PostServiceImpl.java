@@ -164,6 +164,8 @@ public class PostServiceImpl implements PostService {
             redisTemplate.opsForValue().set(postIdsKey, postIds, 30, TimeUnit.MINUTES);
         }
 
+
+
         List<PostDTO> result = new ArrayList<>();
         for (Integer postId : postIds) {
             // Load post
@@ -176,7 +178,7 @@ public class PostServiceImpl implements PostService {
             }
 
             // Load reaction stats
-            Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + postId + ":reactionStats");
+            Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + postId + ":reaction:");
             Map<String, Integer> reactionStats;
             if (cacheMap.isEmpty()) {
                 reactionStats = reactionService.statsReactionByPostId(postId); // DB fallback
@@ -192,6 +194,8 @@ public class PostServiceImpl implements PostService {
             PostDTO dto = PostMapper.toPostDTO(post, commentCount, reactionStats);
             result.add(dto);
         }
+
+
 
         return result;
     }

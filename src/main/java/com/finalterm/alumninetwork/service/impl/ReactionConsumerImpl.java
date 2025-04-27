@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ReactionConsumerImpl implements ReactionConsumer {
@@ -65,12 +66,7 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         reactionRepository.addOrUpdateReaction(reaction);
 
         // Update Redis
-        String oldHashReactionKey = ReactionUtil.generateReactionHashKey(reactionDto.getId());
         String newHashReactionKey = ReactionUtil.generateReactionHashKey(reaction.getId().toString());
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(post.getId(), reactionDto.getType().name());
-
-        // Xóa hash cũ
-        redisTemplate.delete(oldHashReactionKey);
 
         // Thêm hash mới
         Map<String, String> fields = new HashMap<>();
@@ -82,11 +78,13 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         fields.put("username", user.getUsername());
         redisTemplate.opsForHash().putAll(newHashReactionKey, fields);
 
-        // Xóa element cũ trong ZSet
-        redisTemplate.opsForZSet().remove(zSetPostKey, oldHashReactionKey);
-
-        // Add element mới vào ZSet
-        redisTemplate.opsForZSet().add(zSetPostKey, newHashReactionKey, reaction.getCreatedDate().getTime());
+        redisTemplate.expire(newHashReactionKey, 2, TimeUnit.MINUTES);
+//
+//        // Xóa element cũ trong ZSet
+//        redisTemplate.opsForZSet().remove(zSetPostKey, oldHashReactionKey);
+//
+//        // Add element mới vào ZSet
+//        redisTemplate.opsForZSet().add(zSetPostKey, newHashReactionKey, reaction.getCreatedDate().getTime());
     }
 
 

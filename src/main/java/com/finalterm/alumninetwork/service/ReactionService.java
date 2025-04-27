@@ -12,6 +12,6 @@ public interface ReactionService {
     void reactToPost(int postId, User user, EnumReaction type);
     void removeReaction(int postId, int reactionId);
     Map<String, Integer> statsReactionByPostId(int postId);
-    List<ReactionDto> getTypeReactionByPostId(int postId, String type);
+    List<ReactionDto> getTypeReactionByPostId(int postId, String type, int page);
     Map<String, Integer> initStatsReaction();
 }
