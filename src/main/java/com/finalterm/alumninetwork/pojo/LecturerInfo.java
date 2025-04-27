@@ -36,7 +36,7 @@ public class LecturerInfo implements Serializable {
     @Column(name = "changed_password")
     private Boolean changedPassword;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @OneToOne(optional = false, fetch = FetchType.EAGER)
     private User user;
 
     public LecturerInfo() {

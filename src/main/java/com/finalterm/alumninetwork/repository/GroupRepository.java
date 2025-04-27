@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.repository;
 
 import com.finalterm.alumninetwork.pojo.GroupNetwork;
+import com.finalterm.alumninetwork.pojo.GroupNetworkUser;
 import com.finalterm.alumninetwork.pojo.User;
 
 import java.util.List;
@@ -12,4 +13,5 @@ public interface GroupRepository {
     GroupNetwork getGroupById(Integer groupId);
     boolean deleteGroup(Integer groupId);
     List<User> getAllUserGroupsById(List<Integer> groupIds);
+    void saveGroupNetworkUser(List<GroupNetworkUser> groupNetworkUsers);
 }

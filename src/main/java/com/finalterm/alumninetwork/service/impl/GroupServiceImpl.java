@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.service.impl;
 
 import com.finalterm.alumninetwork.pojo.GroupNetwork;
+import com.finalterm.alumninetwork.pojo.GroupNetworkUser;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.GroupRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
@@ -49,5 +50,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<User> getUserGroupNetworksByIds(List<Integer> ids) {
         return this.groupRepository.getAllUserGroupsById(ids);
+    }
+
+    @Override
+    public void saveGroupNetworkUser(List<GroupNetworkUser> groupNetworkUsers) {
+        this.groupRepository.saveGroupNetworkUser(groupNetworkUsers);
     }
 }

@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
 
-                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password").permitAll()
+                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password", "/api/chat").permitAll()
                             .requestMatchers("/api/users/google/login").permitAll()
                             .requestMatchers("/api/surveys/stats/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()

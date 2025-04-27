@@ -152,11 +152,6 @@ public class PostServiceImpl implements PostService {
 
     //------------------------------------------- REDIS CACHE -----------------------------------------------------
 
-
-    // SỬA LẠI NẾU SẼ PHÂN TRANG THEO CURSOR được lấy từ Repository
-
-
-    //................................... SAU ĐÓ ADD VÀO ZSET
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getMyPosts(int userId, Date createdDate, int limit) {
