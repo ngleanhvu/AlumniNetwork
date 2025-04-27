@@ -25,7 +25,9 @@ import java.util.List;
         @NamedQuery(name = "Post.findById", query = "SELECT p FROM Post p WHERE p.id = :id"),
         @NamedQuery(name = "Post.findByBlockedComment", query = "SELECT p FROM Post p WHERE p.blockedComment = :blockedComment"),
         @NamedQuery(name = "Post.findByActive", query = "SELECT p FROM Post p WHERE p.active = :active"),
-        @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt")})
+        @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt"),
+        @NamedQuery(name = "Post.findAllByUserId", query = "SELECT p from Post p WHERE p.user = :userId")})
+
 public class Post implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -54,7 +56,7 @@ public class Post implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
     List<PostImage> images;
 

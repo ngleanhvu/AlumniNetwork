@@ -11,14 +11,12 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.CommentRepository;
 import com.finalterm.alumninetwork.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -29,14 +27,16 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository commentRepository;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, Integer> redisTemplate;
+
+    @Autowired
+    private RedisTemplate<String, String> stringRedisTemplate;
 
     @Override
     @Transactional
     public CommentDto addComment(Map<String, String> params, Post post, User user) {
         if (post.getBlockedComment())
             throw new PostBlockedComment("This Post is blocked");
-
 
         Comment comment = new Comment();
         comment.setCreatedAt(new Date());
@@ -58,10 +58,10 @@ public class CommentServiceImpl implements CommentService {
                 this.commentRepository.saveOrUpdate(parentComment);
 
                 String commentCountKey = "post:" + post.getId() + ":commentCount";
-                redisTemplate.opsForValue().increment(commentCountKey);
+                redisTemplate.opsForValue().increment(commentCountKey, 1);
 
                 //Xoa cache cu de sau khi them comment moi
-                redisTemplate.delete("post:" + savedComment.getPost().getId() + ":comments");
+                redisTemplate.delete("post:" + post.getId() + ":comments:" + parentCommentId + ":parentComments");
 
                 return CommentMapper.toCommentDTO(savedComment);
             } else throw new RuntimeException("parentCommentId is null");
@@ -72,53 +72,85 @@ public class CommentServiceImpl implements CommentService {
             String commentCountKey = "post:" + post.getId() + ":commentCount";
             redisTemplate.opsForValue().increment(commentCountKey);
             //Xoa cache cu de sau khi them comment moi
-            redisTemplate.delete("post:" + comment.getPost().getId() + ":comments");
+            redisTemplate.delete("post:" + post.getId() + ":rootComments");
             return CommentMapper.toCommentDTO(comment);
         }
     }
 
     @Override
     @Transactional
-    public List<CommentDto> getRootCommentsByPostId(int postId) {
-        String key = "post:" + postId + ":comments";
-        Object cached = redisTemplate.opsForValue().get(key);
+    public List<CommentDto> getPaginateComments(int postId, Date createdAt, int limit, Integer parentCommentId) {
+        String commentRedisKey = "post:" + postId + ":rootComments";
 
-        if (cached != null) {
-            return (List<CommentDto>) cached;
+        if (parentCommentId != null) {
+            commentRedisKey = "post:" + postId + ":comments:" + parentCommentId + ":parentComments";
         }
 
-        List<CommentDto> listRootComments = this.commentRepository.getRootCommentsByPostId(postId)
-                .stream()
-                .map(CommentMapper::toCommentDTO)
-                .collect(Collectors.toList());
+        Set<String> commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
+                commentRedisKey,
+                0,
+                createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY,
+                0,
+                limit
+        );
 
-        redisTemplate.opsForValue().set(key, listRootComments, 5, TimeUnit.MINUTES);
-        return listRootComments;
+        if (commentIds == null || commentIds.isEmpty()) {
+            List<Comment> commentList = this.commentRepository.getPaginateComment(postId, createdAt, limit, parentCommentId);
+
+            if (commentList.isEmpty())
+                return Collections.emptyList();
+
+            cacheComments(commentRedisKey, commentList);
+
+            commentIds = commentList.stream()
+                    .map(c -> String.valueOf(c.getId()))
+                    .collect(Collectors.toSet());
+
+//            //Cache lại
+//            commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
+//                    commentRedisKey,
+//                    0,
+//                    createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY,
+//                    0,
+//                    limit
+//            );
+
+        }
+
+        List<Integer> commentIdList = commentIds.stream()
+                .map(Integer::valueOf)
+                .toList();
+
+
+        List<Comment> comments = commentRepository.getCommentsByList(commentIdList);
+
+        // Chuyển đổi sang DTO
+        return comments.stream()
+                .map(CommentMapper::toCommentDTO)
+                .toList();
     }
 
-    @Override
-    @Transactional
-    public List<CommentDto> getCommentsByParentCommentId(int parentCommentId) {
-        String key = "parentComments:" + parentCommentId + ":comments";
-        Object cached = redisTemplate.opsForValue().get(key);
+    private void cacheComments(String commentIdsKey, List<Comment> comments) {
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for (Comment comment : comments) {
+                connection.zAdd(
+                        commentIdsKey.getBytes(),
+                        comment.getCreatedAt().getTime(),
+                        String.valueOf(comment.getId()).getBytes()
+                );
+            }
 
-        if (cached != null) {
-            return (List<CommentDto>) cached;
-        }
-
-        List<CommentDto> listChildComments = this.commentRepository.getCommentsByParentCommentId(parentCommentId)
-                .stream()
-                .map(CommentMapper::toCommentDTO)
-                .collect(Collectors.toList());
-
-        redisTemplate.opsForValue().set(key, listChildComments, 5, TimeUnit.MINUTES);
-        return listChildComments;
+            // Đặt TTL cho ZSet
+            connection.expire(commentIdsKey.getBytes(), 1800);
+            return null;
+        });
     }
 
     @Override
     @Transactional
     public void deleteComment(int commentId) {
         Comment comment = this.commentRepository.getCommentById(commentId);
+
         if (comment != null) {
             int postId = comment.getPost().getId();
             this.commentRepository.deleteComment(commentId);
@@ -129,7 +161,11 @@ public class CommentServiceImpl implements CommentService {
             if (count < 0) {
                 redisTemplate.opsForValue().set(commentCountKey, 0);
             }
-            redisTemplate.delete("post:" + postId + ":comments");
+
+            if (comment.getParentCommentId() != null) {
+                redisTemplate.delete( "post:" + postId + ":comments:" + comment.getParentCommentId() + ":parentComments");
+            }
+            redisTemplate.delete( "post:" + postId + ":rootComments");
         }
     }
 
@@ -148,11 +184,15 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Integer getTotalCommentByPostId(int postId) {
         String key = "post:" + postId + ":commentCount";
-        Integer count = (Integer) redisTemplate.opsForValue().get(key);
+
+        Integer count = redisTemplate.opsForValue().get(key);
+
         if (count == null) {
             count = commentRepository.countTotalCommentsByPostId(postId);
             redisTemplate.opsForValue().set(key, count, 30, TimeUnit.MINUTES);
         }
         return count;
     }
+
+
 }

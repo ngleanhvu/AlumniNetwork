@@ -3,6 +3,7 @@ package com.finalterm.alumninetwork.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ser.std.NumberSerializers;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,10 +31,10 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, String> redisTemplate(LettuceConnectionFactory connectionFactory) {
+    public RedisTemplate<String, String> redisTemplateString(LettuceConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
 
+        template.setConnectionFactory(connectionFactory);
         // Key and hash key serializers
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
@@ -43,28 +44,29 @@ public class RedisConfig {
         template.setHashValueSerializer(new StringRedisSerializer());
 
         template.afterPropertiesSet();
+
         return template;
     }
 
-    // Optional: RedisTemplate for JSON-serialized objects (if post IDs are complex objects)
     @Bean
-    public RedisTemplate<String, Object> jsonRedisTemplate(LettuceConnectionFactory connectionFactory, ObjectMapper objectMapper) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+    public RedisTemplate<String, Integer> redisTemplateInteger(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, Integer> template = new RedisTemplate<>();
 
+        template.setConnectionFactory(connectionFactory);
         // Key and hash key serializers
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
-        // Value and hash value serializers using Jackson JSON
-        Jackson2JsonRedisSerializer<Object> jsonSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        jsonSerializer.setObjectMapper(objectMapper);
-        template.setValueSerializer(jsonSerializer);
-        template.setHashValueSerializer(jsonSerializer);
+        // Value and hash value serializers
+        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(Integer.class));
+        template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Integer.class)); //Hash to Integer
 
         template.afterPropertiesSet();
+
         return template;
     }
+
+
 
     @Bean
     public ObjectMapper objectMapper() {

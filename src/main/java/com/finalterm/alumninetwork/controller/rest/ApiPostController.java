@@ -45,7 +45,7 @@ public class ApiPostController {
             String username = auth.getName();
             User u = userService.getUserByUsername(username);
 
-            int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.page_size", Integer.class, 5);
+            int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.post_size", Integer.class, 5);
             Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
             if (u == null)
@@ -97,7 +97,6 @@ public class ApiPostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
-
     }
 
     @DeleteMapping("/{id}")

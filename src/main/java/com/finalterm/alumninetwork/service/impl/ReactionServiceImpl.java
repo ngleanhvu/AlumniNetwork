@@ -13,6 +13,7 @@ import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +37,7 @@ public class ReactionServiceImpl implements ReactionService {
     ReactionRepository reactionRepository;
 
     @Autowired
-    RedisTemplate redisTemplate;
+    RedisTemplate<String, Integer> redisTemplate;
 
     @Override
     @Transactional
@@ -93,25 +94,28 @@ public class ReactionServiceImpl implements ReactionService {
     @Override
     @Transactional
     public Map<String, Integer> statsReactionByPostId(int postId) {
-
         String key = "post:" + postId + ":reactionStats";
-        Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
 
-        if (map == null || map.isEmpty()) {
+        // Kiểm tra xem key có tồn tại trong Redis không
+        if (!redisTemplate.hasKey(key)) {
+            // Nếu không có trong cache, lấy từ DB
             Map<String, Integer> stats = this.reactionRepository.statsReactionByPostId(postId);
 
-            redisTemplate.opsForHash().putAll(key, stats);
+            // Sử dụng HashOperations với kiểu rõ ràng
+            HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
+            hashOps.putAll(key, stats);
+
+            // Đặt thời gian hết hạn
             redisTemplate.expire(key, 10, TimeUnit.MINUTES);
 
             return stats;
         }
 
-        // convert Object to Map<String, Integer>
-        return map.entrySet().stream()
-                .collect(Collectors.toMap(
-                        e -> (String) e.getKey(),
-                        e -> ((Number) e.getValue()).intValue()
-                ));
+        // Lấy dữ liệu từ Redis với kiểu rõ ràng
+        HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
+        Map<String, Integer> result = hashOps.entries(key);
+
+        return result;
     }
 
     @Override

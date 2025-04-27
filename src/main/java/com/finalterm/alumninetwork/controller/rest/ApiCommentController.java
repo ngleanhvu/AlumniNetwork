@@ -8,6 +8,7 @@ import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,20 +33,33 @@ public class ApiCommentController {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private Environment env;
     // "--------------------------API Comments---------------------------"
     @GetMapping("/{postId}/comments")
-    public ResponseEntity<List<CommentDto>> getRootComments(@PathVariable(value = "postId") int postId) {
-        return new ResponseEntity<>(this.commentService.getRootCommentsByPostId(postId), HttpStatus.OK );
+    public ResponseEntity<List<CommentDto>> getRootComments(@PathVariable(value = "postId") int postId,
+                                                            @RequestParam(required = false) Long createdAt) {
+
+        int limit = env.getProperty("pagination.comment_size", Integer.class, 5);
+        Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
+
+        return new ResponseEntity<>(this.commentService.getPaginateComments(postId, cursorDate, limit, null), HttpStatus.OK );
     }
 
     @GetMapping("{postId}/comments/{commentId}")
-    public ResponseEntity<List<CommentDto>> getMoreReplies(@PathVariable(value = "postId") int postId, @PathVariable(value = "commentId") int commentId) {
+    public ResponseEntity<List<CommentDto>> getMoreReplies(@PathVariable(value = "postId") int postId, @PathVariable(value = "commentId") int commentId,
+                                                           @RequestParam(required = false) Long createdAt) {
         Post p = this.postService.getPostById(postId);
+
         Comment parentComment = this.commentService.getCommentById(commentId);
+
         if (p == null || parentComment == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(this.commentService.getCommentsByParentCommentId(commentId), HttpStatus.OK);
+        int limit = env.getProperty("pagination.comment_size", Integer.class, 5);
+        Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
+
+        return new ResponseEntity<>(this.commentService.getPaginateComments(postId, cursorDate, limit, parentComment.getId()), HttpStatus.OK );
     }
 
     @PostMapping("/{postId}/comments")

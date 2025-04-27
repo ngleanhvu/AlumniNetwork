@@ -33,7 +33,7 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {
         // Cấu hình upload file
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
-                "/",   // Thư mục lưu file tạm
+                null,   // Thư mục lưu file tạm
                 5 * 1024 * 1024,  // Kích thước file tối đa (5MB)
                 20 * 1024 * 1024, // Tổng kích thước request tối đa (20MB)
                 0  // Ngưỡng lưu trên RAM trước khi ghi ra ổ cứng

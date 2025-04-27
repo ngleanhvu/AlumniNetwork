@@ -13,7 +13,11 @@ import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +39,7 @@ public class PostServiceImpl implements PostService {
     private Cloudinary cloudinary;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     private CommentService commentService;
@@ -117,10 +122,10 @@ public class PostServiceImpl implements PostService {
 
         // Nếu là tạo mới, xóa cache danh sách
         if (isNew) {
-            String userPostZSetKey = "user:postIds:" + user.getId();
-            redisTemplate.opsForZSet().add(userPostZSetKey, p.getId(), p.getCreatedAt().getTime());
-            redisTemplate.expire(userPostZSetKey, 30, TimeUnit.MINUTES);
+            String profileRedisKey = "profile" + user.getId() + ":user";
+            redisTemplate.opsForZSet().add(profileRedisKey, String.valueOf(p.getId()), p.getCreatedAt().getTime());
         }
+
         return PostMapper.toPostDTO(p, totalComments, statsReaction);
     }
 
@@ -146,77 +151,89 @@ public class PostServiceImpl implements PostService {
     }
 
     //------------------------------------------- REDIS CACHE -----------------------------------------------------
+
+
+    // SỬA LẠI NẾU SẼ PHÂN TRANG THEO CURSOR được lấy từ Repository
+
+
+    //................................... SAU ĐÓ ADD VÀO ZSET
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getMyPosts(int userId, Date createdDate, int limit) {
-        String userPostIdsKey = "user:postIds:" + userId;
+        String userPostIdsKey = "profile" + userId + ":user";
 
-        String type = String.valueOf(redisTemplate.type(userPostIdsKey));
-        
-        long cursorTime = createdDate.getTime();
+        Set<String> postIds = redisTemplate.opsForZSet().reverseRangeByScore(
+                userPostIdsKey,
+                0,
+                createdDate != null ? createdDate.getTime() - 1 : Double.POSITIVE_INFINITY,
+                0,
+                limit
+        );
 
-        Set<Object> cachePostIds = redisTemplate.opsForZSet()
-                .reverseRangeByScore(userPostIdsKey, 0, cursorTime - 1, 0, limit);
+        //Cache miss
+        if (postIds == null || postIds.isEmpty()) {
+            List<Post> myPosts = postRepository.getPostPaginate(userId, createdDate, limit);
 
-        System.out.println("Data type: " + cachePostIds.size());
+            if (myPosts.isEmpty())
+                return Collections.emptyList();
 
-        //When redis is expired -> cache miss
-        if (cachePostIds == null || cachePostIds.isEmpty()) {
+            // Nạp vào Redis
+            redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (Post post : myPosts) {
+                    connection.zAdd(
+                            userPostIdsKey.getBytes(),
+                            post.getCreatedAt().getTime(),
+                            String.valueOf(post.getId()).getBytes()
+                    );
+                }
+                connection.expire(userPostIdsKey.getBytes(), 3600);
+                return null;
+            });
 
-            List<Post> allPosts = this.postRepository.getPostsByUserId(userId);
-            for (Post post : allPosts)
-                redisTemplate.opsForZSet().add(userPostIdsKey, post.getId().toString(), post.getCreatedAt().getTime());
-            redisTemplate.expire(userPostIdsKey, 30, TimeUnit.MINUTES);
-
-            cachePostIds = redisTemplate.opsForZSet().reverseRangeByScore(userPostIdsKey, 0, cursorTime - 1, 0, limit);
+            postIds = myPosts.stream()
+                    .map(c -> String.valueOf(c.getId()))
+                    .collect(Collectors.toSet());
         }
-
-        List<Integer> postIds = cachePostIds.stream()
-                .map(Object::toString)
-                .map(Integer::parseInt)
-                .toList();
-
         List<PostDTO> result = new ArrayList<>();
-        for (Integer postId : postIds) {
-            // Load post
-            Post post = this.postRepository.getPostById(postId);
 
-            // Load comment count
-            Integer commentCount = (Integer) redisTemplate.opsForValue().get("post:" + postId + ":commentCount");
-            if (commentCount == null) {
-                commentCount = commentService.getTotalCommentByPostId(postId); // DB fallback
+        List<Integer> intPostIds = (postIds == null) ? Collections.emptyList() :
+                postIds.stream().map(Integer::valueOf).toList();
+
+        List<Post> posts = this.postRepository.getPostByPostIds(intPostIds);
+
+        Map<Integer, Post> postMap = posts.stream()
+                .collect(Collectors.toMap(Post::getId, Function.identity()));
+
+        for (Integer postId : intPostIds) {
+            Post p = postMap.get(postId);
+            if (p != null) {
+                String commentCountStr = redisTemplate.opsForValue().get("post:" + p.getId() + ":commentCount");
+                Integer commentCount;
+
+                if (commentCountStr == null) {
+                    commentCount = commentService.getTotalCommentByPostId(p.getId());
+                } else {
+                    commentCount = Integer.valueOf(commentCountStr);
+                }
+
+                // Load reaction stats
+                Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + p.getId() + ":reactionStats");
+                Map<String, Integer> reactionStats;
+                if (cacheMap.isEmpty()) {
+                    reactionStats = reactionService.statsReactionByPostId(p.getId()); // DB fallback
+                } else {
+                    reactionStats = cacheMap.entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    e -> String.valueOf(e.getKey()),
+                                    e -> Integer.valueOf(e.getValue().toString())
+                            ));
+                }
+
+                PostDTO dto = PostMapper.toPostDTO(p, commentCount, reactionStats);
+                result.add(dto);
             }
-
-            // Load reaction stats
-            Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + postId + ":reactionStats");
-            Map<String, Integer> reactionStats;
-            if (cacheMap.isEmpty()) {
-                reactionStats = reactionService.statsReactionByPostId(postId); // DB fallback
-            } else {
-                reactionStats = cacheMap.entrySet().stream()
-                        .collect(Collectors.toMap(
-                                e -> (String) e.getKey(),
-                                e -> ((Number) e.getValue()).intValue()
-                        ));
-            }
-
-            // Gom lại PostDTO
-            PostDTO dto = PostMapper.toPostDTO(post, commentCount, reactionStats);
-            result.add(dto);
         }
-
         return result;
-    }
-
-    //Save post to cache
-    private void cachePost(int userId) {
-        String userPostIdsKey = "user:postIds:" + userId;
-        // Lấy danh sách hiện tại từ cache (nếu có)
-        List<Post> posts = this.postRepository.getPostsByUserId(userId);
-
-        for (Post post : posts)
-            redisTemplate.opsForZSet().add(userPostIdsKey, post.getId().toString(), post.getCreatedAt().getTime());
-        redisTemplate.expire(userPostIdsKey, 30, TimeUnit.MINUTES);
     }
 
     //Xóa cache Id của bài Post cá nhân
