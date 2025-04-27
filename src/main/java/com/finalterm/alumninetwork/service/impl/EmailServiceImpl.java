@@ -10,6 +10,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -35,11 +36,13 @@ public class EmailServiceImpl implements EmailService {
 
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     @Override
-    public void receiveEmail(EmailRecord emailRecord) {
+    public void receiveEmails(List<EmailRecord> emailRecords) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setSubject(emailRecord.subject());
-        message.setText(emailRecord.body());
-        message.setTo(emailRecord.to());
-        mailSender.send(message);
+        emailRecords.forEach(emailRecord -> {
+            message.setSubject(emailRecord.subject());
+            message.setText(emailRecord.body());
+            message.setTo(emailRecord.to());
+            mailSender.send(message);
+        });
     }
 }

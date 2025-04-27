@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  *
@@ -22,6 +23,7 @@ import java.io.Serializable;
         @NamedQuery(name = "Reaction.findByType", query = "SELECT r FROM Reaction r WHERE r.type = :type"),
         @NamedQuery(name = "Reaction.countByPostIdAndType", query = "SELECT COUNT(r) FROM Reaction r WHERE r.post.id = :postId AND r.type = :type"),
         @NamedQuery(name = "Reaction.countTotalByPostId", query = "SELECT COUNT(r) FROM Reaction r WHERE r.post.id = :postId"),
+        @NamedQuery(name = "Reaction.findByPostId", query = "SELECT r FROM Reaction r WHERE r.post.id = :postId")
 })
 public class Reaction implements Serializable {
 
@@ -35,6 +37,9 @@ public class Reaction implements Serializable {
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private EnumReaction type;
+
+    @Column(name = "created_date")
+    private Date createdDate;
 
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
@@ -80,6 +85,14 @@ public class Reaction implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     @Override

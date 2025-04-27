@@ -7,9 +7,7 @@ import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +59,8 @@ public class ApiPostController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<List<PostDTO>> getPostsFromProfile(@RequestParam(required = false) Long createdAt,
-                                                            @RequestParam(required = false) Integer pageSize,
-                                                            @PathVariable int userId) {
+                                                             @RequestParam(required = false) Integer pageSize,
+                                                             @PathVariable int userId) {
         int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.page_size", Integer.class, 5);
         Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
@@ -78,8 +76,7 @@ public class ApiPostController {
     public ResponseEntity<?> uploadPostOrUpdate(@RequestParam(value = "content") String content,
                                                       @RequestParam(value = "postId", required = false) Integer postId, //For update
                                                       @RequestParam(value = "title") String title,
-                                                      @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-
+                                                      @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             User user = this.userService.getUserByUsername(auth.getName());
@@ -98,6 +95,7 @@ public class ApiPostController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable int id) {

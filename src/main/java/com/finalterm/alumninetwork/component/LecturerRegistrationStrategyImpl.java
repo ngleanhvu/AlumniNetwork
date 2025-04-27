@@ -1,19 +1,18 @@
 package com.finalterm.alumninetwork.component;
 
+import com.finalterm.alumninetwork.dto.EmailRecord;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.LecturerInfoRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.EmailService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component("lecturer")
 public class LecturerRegistrationStrategyImpl implements UserRegistrationStrategy {
@@ -22,9 +21,9 @@ public class LecturerRegistrationStrategyImpl implements UserRegistrationStrateg
     @Autowired
     private LecturerInfoRepository lecturerInfoRepository;
     @Autowired
-    private EmailService emailService;
+    private RabbitTemplate rabbitTemplate;
     @Autowired
-    private Environment environment;
+    private Environment env;
 
     @Override
     public void register(User user, Map<String, String> params) {
@@ -39,10 +38,16 @@ public class LecturerRegistrationStrategyImpl implements UserRegistrationStrateg
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.HOUR,
-                Integer.parseInt(Objects.requireNonNull(environment.getProperty("lecturer.info.time.reset.password"))));
+                Integer.parseInt(Objects.requireNonNull(env.getProperty("lecturer.info.time.reset.password"))));
         lecturerInfo.setExpiredResetPasswordTime(calendar.getTime());
 
         lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
-        emailService.sendEmail(user.getEmail(), "Account Info", user.getUsername());
+
+        List<EmailRecord> emailRecord = new ArrayList<>(1);
+        rabbitTemplate.convertAndSend(
+                Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
+                Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
+                emailRecord
+        );
     }
 }

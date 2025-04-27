@@ -161,4 +161,33 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 
         return statsSurveyDtos;
     }
+
+    @Override
+    public void addUserSurveyChoice(List<UserSurveyChoice> userSurveyChoices) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        userSurveyChoices.forEach(session::persist);
+    }
+
+    @Override
+    public List<Question> getQuestionByIds(List<Integer> questionIds) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Question> cq = cb.createQuery(Question.class);
+        Root<Question> root = cq.from(Question.class);
+        cq.where(root.get("id").in(questionIds));
+        Query q = session.createQuery(cq);
+        return q.getResultList();
+    }
+
+    @Override
+    public List<Choice> getChoiceByIds(List<Integer> choiceIds) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Choice> cq = cb.createQuery(Choice.class);
+        Root<Question> root = cq.from(Question.class);
+        cq.where(root.get("id").in(choiceIds));
+        Query q = session.createQuery(cq);
+        return q.getResultList();
+    }
+
 }
