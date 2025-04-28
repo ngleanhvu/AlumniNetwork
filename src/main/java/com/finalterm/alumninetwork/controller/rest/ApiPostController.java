@@ -1,6 +1,8 @@
 package com.finalterm.alumninetwork.controller.rest;
 
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTOV1;
+import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.service.CommentService;
@@ -95,7 +97,21 @@ public class ApiPostController {
         User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         if (user == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        Post post = this.postService.getPostById(postId);
+        PostDTOV1 post = this.postService.getPostByIdV1(postId);
         return ResponseEntity.ok(post);
+    }
+
+    @PostMapping("/{postId}/reactions/toggle")
+    public ResponseEntity<?> toggleReaction(@PathVariable(value = "postId") int postId, @RequestBody Map<String, String> params) {
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        if (user == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        String type = params.get("type") == null ? "" : params.get("type");
+
+        Post post = this.postService.getPostById(postId);
+        this.postService.toggleReaction(post, user, EnumReaction.valueOf(type));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

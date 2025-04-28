@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -43,17 +44,19 @@ public class Post implements Serializable {
     @Column(name = "content")
     private String content;
     @Column(name = "blocked_comment")
-    private Boolean blockedComment;
+    private boolean blockedComment;
     @Column(name = "active")
-    private Boolean active;
+    private boolean active;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private Date createdAt;
+    @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.EAGER) //References -> when create post, image will save in cloudinary
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
     List<PostImage> images;
 
@@ -94,19 +97,19 @@ public class Post implements Serializable {
         this.content = content;
     }
 
-    public Boolean getBlockedComment() {
+    public boolean getBlockedComment() {
         return blockedComment;
     }
 
-    public void setBlockedComment(Boolean blockedComment) {
+    public void setBlockedComment(boolean blockedComment) {
         this.blockedComment = blockedComment;
     }
 
-    public Boolean getActive() {
+    public boolean getActive() {
         return active;
     }
 
-    public void setActive(Boolean active) {
+    public void setActive(boolean active) {
         this.active = active;
     }
 

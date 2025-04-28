@@ -53,7 +53,7 @@ public class ReactionServiceImpl implements ReactionService {
         String temporaryReactionId = UUID.randomUUID().toString();
         long timestamp = System.currentTimeMillis();
 
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type.name());
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type.name(), 1);
         String hashReactionKey = ReactionUtil.generateReactionHashKey(temporaryReactionId);
         String postReactionStatsType = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
         String reactionTypeKey = type.name();
@@ -63,8 +63,6 @@ public class ReactionServiceImpl implements ReactionService {
             redisTemplate.opsForHash().increment(postReactionStatsType, "TOTAL", 1);
         }
 
-//        redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
-
         Map<String, String> fields = new HashMap<>();
         fields.put("id", temporaryReactionId);
         fields.put("type", type.name());
@@ -72,8 +70,6 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("userId", String.valueOf(user.getId()));
         fields.put("postId", String.valueOf(postId));
         fields.put("username", user.getUsername());
-
-//        redisTemplate.opsForHash().putAll(hashReactionKey, fields);
 
         ReactionDto reactionDto = new ReactionDto();
         reactionDto.setId(temporaryReactionId);
@@ -91,19 +87,11 @@ public class ReactionServiceImpl implements ReactionService {
 
     @Transactional
     @Override
-    public void removeReaction(int postId, int reactionId) {
-        String hashReactionKey = ReactionUtil.generateReactionHashKey(String.valueOf(reactionId));
-        Object typeObj = redisTemplate.opsForHash().get(hashReactionKey, "type");
-        String type = "";
+    public void removeReaction(int postId, int userId) {
 
-        if (typeObj == null) {
-            Reaction reaction = this.reactionRepository.getReactionById(reactionId);
-            type = reaction != null ? reaction.getType().name() : "";
-        } else {
-            type = typeObj.toString();
-        }
-
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
+        Reaction reaction = this.reactionRepository.getReactionByPostIdAndUserId(postId, userId);
+        String type = reaction.getType().name();
+        Integer reactionId = reaction.getId();
         String postReactionStatsKey = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
 
         if (redisTemplate.opsForHash().hasKey(postReactionStatsKey, type)) {
@@ -121,8 +109,6 @@ public class ReactionServiceImpl implements ReactionService {
             }
         }
 
-        redisTemplate.opsForZSet().remove(zSetPostKey, hashReactionKey);
-        redisTemplate.delete(hashReactionKey);
 
         rabbitTemplate.convertAndSend(Objects.requireNonNull(env.getProperty("rabbitmq.post.reaction.exchange.name")),
                 Objects.requireNonNull(env.getProperty("rabbitmq.post.reaction.delete")),
@@ -159,10 +145,27 @@ public class ReactionServiceImpl implements ReactionService {
     }
 
     @Override
-    public List<ReactionDto> getTypeReactionByPostId(int postId, String type, int page) {
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
+    public ReactionDto getReactionByPostIdAndUserId(int postId, int userId) {
+        String postReactionUserKey = ReactionUtil.generateReactionByPostIdAndUserIdKey(postId, userId);
+        ReactionDto reactionDto = new ReactionDto();
+        if (!redisTemplate.hasKey(postReactionUserKey)) {
+            Reaction reaction = this.reactionRepository.getReactionByPostIdAndUserId(postId, userId);
+            if (reaction == null) {
+                return null;
+            }
+            reactionDto = ReactionMapper.toReactionDto(reaction);
+            redisTemplate.opsForValue().set(postReactionUserKey, reactionDto, 1, TimeUnit.MINUTES);
+        } else {
+            reactionDto = (ReactionDto) redisTemplate.opsForValue().get(postReactionUserKey);
+        }
+        return reactionDto;
+    }
 
-        int pageSize = Optional.ofNullable(env.getProperty("PAGE_SIZE", Integer.class)).orElse(6);
+    @Override
+    public List<ReactionDto> getTypeReactionByPostId(int postId, String type, int page) {
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type, page);
+
+        int pageSize = Optional.ofNullable(env.getProperty("PAGE_SIZE_REACTION", Integer.class)).orElse(6);
         int start = (page - 1) * pageSize;
         int end = start + pageSize;
 
@@ -181,7 +184,7 @@ public class ReactionServiceImpl implements ReactionService {
             reactionDtos = loadReactionsFromDbAndCache(postId, type, page);
         }
 
-        redisTemplate.expire(zSetPostKey, 20, TimeUnit.SECONDS);
+        redisTemplate.expire(zSetPostKey, 5, TimeUnit.SECONDS);
         return reactionDtos;
     }
 
@@ -200,7 +203,7 @@ public class ReactionServiceImpl implements ReactionService {
 
     private void saveReactionToRedis(ReactionDto reactionDto) {
         String hashReactionKey = ReactionUtil.generateReactionHashKey(reactionDto.getId());
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(reactionDto.getPostId(), reactionDto.getType().name());
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(reactionDto.getPostId(), reactionDto.getType().name(), 1);
         long timestamp = reactionDto.getCreatedDate();
 
         Map<String, String> fields = new HashMap<>();
@@ -212,7 +215,9 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("username", reactionDto.getUsername());
 
         redisTemplate.opsForHash().putAll(hashReactionKey, fields);
-        redisTemplate.expire(hashReactionKey, 20, TimeUnit.SECONDS);
+        redisTemplate.expire(hashReactionKey, 5, TimeUnit.SECONDS);
         redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
     }
+
+
 }

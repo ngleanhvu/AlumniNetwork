@@ -90,6 +90,9 @@ public class ApiUserController {
             if (idToken != null) {
                 String email = idToken.getPayload().getEmail();
                 User user = this.userService.getUserByEmail(email);
+                if (user == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                }
                 String jwt = this.jwtService.generateTokenLogin(user.getUsername());
                 return ResponseEntity.ok(Map.of("token", jwt));
             } else {

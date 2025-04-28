@@ -18,7 +18,9 @@ import java.io.Serializable;
 @NamedQueries({
     @NamedQuery(name = "PostImage.findAll", query = "SELECT p FROM PostImage p"),
     @NamedQuery(name = "PostImage.findById", query = "SELECT p FROM PostImage p WHERE p.id = :id"),
-    @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url")})
+    @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url"),
+    @NamedQuery(name = "PostImage.findByPostId", query = "SELECT p FROM PostImage  p WHERE p.post.id = :postId")
+})
 public class PostImage implements Serializable {
 
     private static final long serialVersionUID = 1L;

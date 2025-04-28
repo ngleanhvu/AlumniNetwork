@@ -9,6 +9,7 @@ import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionConsumer;
 import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.service.UserService;
+import com.finalterm.alumninetwork.util.PostUtil;
 import com.finalterm.alumninetwork.util.ReactionUtil;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -76,9 +77,8 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         fields.put("userId", String.valueOf(user.getId()));
         fields.put("postId", String.valueOf(post.getId()));
         fields.put("username", user.getUsername());
-        redisTemplate.opsForHash().putAll(newHashReactionKey, fields);
 
-        redisTemplate.expire(newHashReactionKey, 2, TimeUnit.MINUTES);
+        redisTemplate.expire(newHashReactionKey, 1, TimeUnit.MINUTES);
 //
 //        // Xóa element cũ trong ZSet
 //        redisTemplate.opsForZSet().remove(zSetPostKey, oldHashReactionKey);

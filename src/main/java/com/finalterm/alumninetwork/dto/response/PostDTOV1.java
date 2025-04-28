@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class PostDTO {
+public class PostDTOV1 {
     private Integer id;
     private String title;
     private Boolean blockedComment = false;
@@ -14,9 +14,9 @@ public class PostDTO {
     Map<String, Integer> statsReaction;
     int totalComments;
 
-    public PostDTO() {}
+    public PostDTOV1() {}
 
-    public PostDTO(Integer id, String title, Boolean blockedComment, Boolean active, Date createdAt, List<String> imgUrls) {
+    public PostDTOV1(Integer id, String title, Boolean blockedComment, Boolean active, Date createdAt, List<String> imgUrls) {
         this.id = id;
         this.title = title;
         this.blockedComment = blockedComment;

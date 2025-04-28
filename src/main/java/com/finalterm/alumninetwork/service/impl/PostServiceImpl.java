@@ -3,11 +3,10 @@ package com.finalterm.alumninetwork.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTOV1;
+import com.finalterm.alumninetwork.dto.response.ReactionDto;
 import com.finalterm.alumninetwork.mapper.PostMapper;
-import com.finalterm.alumninetwork.pojo.EnumReaction;
-import com.finalterm.alumninetwork.pojo.Post;
-import com.finalterm.alumninetwork.pojo.PostImage;
-import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.pojo.*;
 import com.finalterm.alumninetwork.repository.CommentRepository;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
 import com.finalterm.alumninetwork.repository.PostRepository;
@@ -15,9 +14,11 @@ import com.finalterm.alumninetwork.repository.ReactionRepository;
 import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
+import com.finalterm.alumninetwork.util.PostUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +49,9 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private ReactionService reactionService;
 
+    @Autowired
+    private ReactionRepository reactionRepository;
+
 
     // Thời gian cache cho các post
     private final long POST_CACHE_TTL = 3600; // 1 giờ (tính bằng giây)
@@ -67,7 +72,67 @@ public class PostServiceImpl implements PostService {
         return this.postRepository.statisticPosts(timeType, year);
     }
 
-// --------------------------- CILENT SERVICE --------------------------------------
+    // --------------------------- CILENT SERVICE --------------------------------------
+    @Transactional
+    @Override
+    public PostDTOV1 getPostByIdV1(int id) {
+        String postKey = PostUtil.generatePostKey(String.valueOf(id));
+        String postCommentCountKey = PostUtil.generatePostCommentCountKey(String.valueOf(id));
+        String postReactionCountKey = PostUtil.generatePostReactionStatsKey(String.valueOf(id));
+        String postImagesKey = PostUtil.generatePostImagesKey(String.valueOf(id));
+        PostDTOV1 postDTO = new PostDTOV1();
+        if (!redisTemplate.hasKey(postKey)) {
+            Post post = this.postRepository.getPostById(id);
+            postDTO.setId(post.getId());
+            postDTO.setTitle(post.getTitle());
+            postDTO.setCreatedAt(post.getCreatedAt());
+            postDTO.setActive(post.getActive());
+            postDTO.setBlockedComment(post.getBlockedComment());
+
+            int commentCount = this.commentService.getTotalCommentByPostId(post.getId());
+            redisTemplate.opsForValue().set(postCommentCountKey, commentCount);
+            redisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+
+            Map<String, Integer> reactionStats = this.reactionService.statsReactionByPostId(post.getId());
+            redisTemplate.opsForHash().putAll(postReactionCountKey, reactionStats);
+            redisTemplate.expire(postReactionCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+
+            List<String> imageUrls = this.postImageRepository.getPostImagesByPostId(post.getId())
+                            .stream()
+                            .map(PostImage::getUrl)
+                            .collect(Collectors.toList());
+
+            for (String url : imageUrls) {
+                redisTemplate.opsForList().leftPush(postImagesKey, url);
+            }
+            redisTemplate.expire(postImagesKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+
+            redisTemplate.opsForValue().set(postKey, post);
+            redisTemplate.expire(postKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            postDTO = PostMapper.toPostDTOV1(post, commentCount, reactionStats, imageUrls);
+
+        } else {
+            Post post = (Post) redisTemplate.opsForValue().get(postKey);
+            int commentCount = (int) redisTemplate.opsForValue().get(postCommentCountKey);
+            Map<Object, Object> reactionStats = redisTemplate.opsForHash().entries(postReactionCountKey);
+            Map<String, Integer> reactionStatMap = reactionStats.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            entry -> (String) entry.getKey(),
+                            entry -> (Integer) entry.getValue()
+                    ));
+            List<Object> imageUrls = redisTemplate.opsForList().range(postImagesKey, 0, -1);
+            List<String> newImageUrls = imageUrls != null
+                    ? imageUrls.stream().map(Object::toString).toList()
+                    : Collections.emptyList();new ArrayList<>();
+            if (post != null) {
+                postDTO = PostMapper.toPostDTOV1(post, commentCount, reactionStatMap, newImageUrls);
+            }
+        }
+
+        return postDTO;
+    }
+
     @Override
     public Post getPostById(int id) {
         return this.postRepository.getPostById(id);
@@ -91,6 +156,9 @@ public class PostServiceImpl implements PostService {
         }
 
         p.setTitle(params.get("content"));
+        p.setContent(params.get("content"));
+        p.setActive(true);
+        p.setBlockedComment(false);
         this.postRepository.saveOrUpdate(p);
 
         // Upload ảnh nếu có
@@ -218,5 +286,15 @@ public class PostServiceImpl implements PostService {
     private void invalidatePostListCache(int userId) {
         String userPostIdsKey = "user:postIds:" + userId;
         redisTemplate.delete(userPostIdsKey);
+    }
+
+    @Override
+    public void toggleReaction(Post post, User user, EnumReaction type) {
+        ReactionDto reactionDto = this.reactionService.getReactionByPostIdAndUserId(post.getId(), user.getId());
+        if (reactionDto == null) {
+            this.reactionService.reactToPost(post.getId(), user,  type);
+            return;
+        }
+        this.reactionService.removeReaction(post.getId(), user.getId());
     }
 }

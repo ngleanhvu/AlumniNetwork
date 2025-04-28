@@ -1,8 +1,10 @@
 package com.finalterm.alumninetwork.mapper;
 
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.dto.response.PostDTOV1;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +15,6 @@ public class PostMapper {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
         postDTO.setTitle(post.getTitle());
-        postDTO.setUserId(post.getUser() != null ? post.getUser().getId() : null);
         postDTO.setCreatedAt(post.getCreatedAt());
 
         if (post.getImages() != null) {
@@ -28,6 +29,18 @@ public class PostMapper {
         return postDTO;
     }
 
+    public static PostDTOV1 toPostDTOV1(Post post, int totalComments, Map<String, Integer> statsReactions, List<String> imageUrls) {
+        PostDTOV1 postDTO = new PostDTOV1();
+        postDTO.setId(post.getId());
+        postDTO.setTitle(post.getTitle());
+        postDTO.setCreatedAt(post.getCreatedAt());
+        postDTO.setBlockedComment(post.getBlockedComment());
+        postDTO.setActive(post.getActive());
+        postDTO.setImgUrls(imageUrls);
+        postDTO.setTotalComments(totalComments);
+        postDTO.setStatsReaction(statsReactions);
+        return postDTO;
+    }
 
 }
 
