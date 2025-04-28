@@ -8,4 +8,5 @@ public class ReactionUtil {
     public static String generateReactionHashKey(String reactionId) {
         return "reaction:"+reactionId;
     }
+
 }

@@ -4,20 +4,21 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.mapper.PostMapper;
+import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.PostImage;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.repository.CommentRepository;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
 import com.finalterm.alumninetwork.repository.PostRepository;
+import com.finalterm.alumninetwork.repository.ReactionRepository;
 import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
     @Autowired
     private PostRepository postRepository;
+
     @Autowired
     private PostImageRepository postImageRepository;
 
@@ -173,23 +175,12 @@ public class PostServiceImpl implements PostService {
                 return Collections.emptyList();
 
             // Nạp vào Redis
-            redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-                for (Post post : myPosts) {
-                    connection.zAdd(
-                            userPostIdsKey.getBytes(),
-                            post.getCreatedAt().getTime(),
-                            String.valueOf(post.getId()).getBytes()
-                    );
-                }
-                connection.expire(userPostIdsKey.getBytes(), 3600);
-                return null;
-            });
+            cachePosts(userPostIdsKey, myPosts);
 
             postIds = myPosts.stream()
                     .map(c -> String.valueOf(c.getId()))
                     .collect(Collectors.toSet());
         }
-        List<PostDTO> result = new ArrayList<>();
 
         List<Integer> intPostIds = (postIds == null) ? Collections.emptyList() :
                 postIds.stream().map(Integer::valueOf).toList();
@@ -199,36 +190,47 @@ public class PostServiceImpl implements PostService {
         Map<Integer, Post> postMap = posts.stream()
                 .collect(Collectors.toMap(Post::getId, Function.identity()));
 
-        for (Integer postId : intPostIds) {
-            Post p = postMap.get(postId);
-            if (p != null) {
-                String commentCountStr = redisTemplate.opsForValue().get("post:" + p.getId() + ":commentCount");
-                Integer commentCount;
+        List<PostDTO> result = intPostIds.stream()
+                .map(postMap::get)
+                .filter(Objects::nonNull)
+                .map(p -> {
+                    String commentCountStr = redisTemplate.opsForValue().get("post:" + p.getId() + ":commentCount");
+                    int commentCount = (commentCountStr == null)
+                            ? commentService.getTotalCommentByPostId(p.getId())
+                            : Integer.parseInt(commentCountStr);
 
-                if (commentCountStr == null) {
-                    commentCount = commentService.getTotalCommentByPostId(p.getId());
-                } else {
-                    commentCount = Integer.valueOf(commentCountStr);
-                }
-
-                // Load reaction stats
-                Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + p.getId() + ":reactionStats");
-                Map<String, Integer> reactionStats;
-                if (cacheMap.isEmpty()) {
-                    reactionStats = reactionService.statsReactionByPostId(p.getId()); // DB fallback
-                } else {
-                    reactionStats = cacheMap.entrySet().stream()
+                    Map<Object, Object> cacheMap = redisTemplate.opsForHash().entries("post:" + p.getId() + ":reaction:");
+                    Map<String, Integer> reactionStats = cacheMap.isEmpty()
+                            ? reactionService.statsReactionByPostId(p.getId())
+                            : cacheMap.entrySet().stream()
                             .collect(Collectors.toMap(
                                     e -> String.valueOf(e.getKey()),
                                     e -> Integer.valueOf(e.getValue().toString())
                             ));
-                }
 
-                PostDTO dto = PostMapper.toPostDTO(p, commentCount, reactionStats);
-                result.add(dto);
-            }
-        }
+                    return PostMapper.toPostDTO(p, commentCount, reactionStats);
+                })
+                .collect(Collectors.toList());
+
         return result;
+    }
+
+    private void cachePosts(String userPostIdsKey, List<Post> posts) {
+        if (posts.isEmpty()) {
+            return;
+        }
+
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for (Post post : posts) {
+                connection.zAdd(
+                        userPostIdsKey.getBytes(),
+                        post.getCreatedAt().getTime(),
+                        String.valueOf(post.getId()).getBytes()
+                );
+            }
+            connection.expire(userPostIdsKey.getBytes(), 3600);
+            return null;
+        });
     }
 
     //Xóa cache Id của bài Post cá nhân

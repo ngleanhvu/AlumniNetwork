@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,55 +81,61 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public List<CommentDto> getPaginateComments(int postId, Date createdAt, int limit, Integer parentCommentId) {
-        String commentRedisKey = "post:" + postId + ":rootComments";
+        String commentRedisKey = "post:" + postId + (parentCommentId != null ?
+                ":comments:" + parentCommentId + ":parentComments" :
+                ":rootComments");
 
-        if (parentCommentId != null) {
-            commentRedisKey = "post:" + postId + ":comments:" + parentCommentId + ":parentComments";
-        }
-
+        double maxScore = createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY;
         Set<String> commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
                 commentRedisKey,
                 0,
-                createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY,
+                maxScore,
                 0,
                 limit
         );
 
-        if (commentIds == null || commentIds.isEmpty()) {
-            List<Comment> commentList = this.commentRepository.getPaginateComment(postId, createdAt, limit, parentCommentId);
+        List<Comment> comments;
+        boolean ordered = true;
 
-            if (commentList.isEmpty())
+        //Cache miss
+        if (commentIds == null || commentIds.isEmpty()) {
+            comments = commentRepository.getPaginateComment(postId, createdAt, limit, parentCommentId);
+
+            if (!comments.isEmpty())
+                cacheComments(commentRedisKey, comments);
+            else
                 return Collections.emptyList();
 
-            cacheComments(commentRedisKey, commentList);
+        //Cache thanh cong!
+        } else {
+            //Chuyen tu set<integer> sang list<Integer>
+            List<Integer> ids = commentIds.stream()
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toList());
 
-            commentIds = commentList.stream()
-                    .map(c -> String.valueOf(c.getId()))
-                    .collect(Collectors.toSet());
-
-//            //Cache lại
-//            commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
-//                    commentRedisKey,
-//                    0,
-//                    createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY,
-//                    0,
-//                    limit
-//            );
-
+            comments = commentRepository.getCommentsByList(ids);
+            ordered = false; //Can phai sap xep lai
         }
 
-        List<Integer> commentIdList = commentIds.stream()
-                .map(Integer::valueOf)
-                .toList();
+        // Chuyển đổi kết quả sang DTO
+        if (ordered) {
+            return comments.stream()
+                    .map(CommentMapper::toCommentDTO)
+                    .collect(Collectors.toList());
+        } else {
+            //Phai dua vao map de sap xep lai
+            Map<Integer, Comment> commentMap = comments.stream()
+                    .collect(Collectors.toMap(Comment::getId, Function.identity()));
 
-
-        List<Comment> comments = commentRepository.getCommentsByList(commentIdList);
-
-        // Chuyển đổi sang DTO
-        return comments.stream()
-                .map(CommentMapper::toCommentDTO)
-                .toList();
+            return commentIds.stream()
+                    .map(Integer::valueOf)
+                    .map(commentMap::get)
+                    .filter(Objects::nonNull)
+                    .map(CommentMapper::toCommentDTO)
+                    .collect(Collectors.toList());
+        }
     }
+
 
     private void cacheComments(String commentIdsKey, List<Comment> comments) {
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {

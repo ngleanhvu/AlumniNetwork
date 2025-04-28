@@ -11,13 +11,13 @@ import com.finalterm.alumninetwork.repository.ReactionRepository;
 import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.service.UserService;
+import com.finalterm.alumninetwork.util.PostUtil;
 import com.finalterm.alumninetwork.util.ReactionUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -42,7 +42,7 @@ public class ReactionServiceImpl implements ReactionService {
     private RedisTemplate redisTemplate;
 
     @Autowired
-    RedisTemplate<String, Integer> redisTemplate;
+    RedisTemplate<String, Integer> integerRedisTemplate;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -60,9 +60,15 @@ public class ReactionServiceImpl implements ReactionService {
         // ZSet post key and Hash reaction key
         String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type.name());
         String hashReactionKey = ReactionUtil.generateReactionHashKey(temporaryReactionId);
+        String postReactionStatsType = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
+        String reactionTypeKey = type.name();
 
-        // Add hasReactionKey in zSetPostKey (sort by created date)
-        redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
+        if (redisTemplate.opsForHash().hasKey(postReactionStatsType, reactionTypeKey)) {
+            redisTemplate.opsForHash().increment(postReactionStatsType, reactionTypeKey, 1);
+            redisTemplate.opsForHash().increment(postReactionStatsType, "TOTAL", 1);
+        }
+
+//        redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
 
         Map<String, String> fields = new HashMap<>();
         fields.put("id", temporaryReactionId);
@@ -72,7 +78,7 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("postId", String.valueOf(postId));
         fields.put("username", user.getUsername());
 
-        redisTemplate.opsForHash().putAll(hashReactionKey, fields);
+//        redisTemplate.opsForHash().putAll(hashReactionKey, fields);
 
         ReactionDto reactionDto = new ReactionDto();
         reactionDto.setId(temporaryReactionId);
@@ -82,7 +88,6 @@ public class ReactionServiceImpl implements ReactionService {
         reactionDto.setCreatedDate(timestamp);
         reactionDto.setType(type);
 
-        // Send message into queue in RabbitMQ
         rabbitTemplate.convertAndSend(Objects.requireNonNull(env.getProperty("rabbitmq.post.reaction.exchange.name")),
                                       Objects.requireNonNull(env.getProperty("rabbitmq.post.reaction.save")),
                                       reactionDto);
@@ -92,21 +97,35 @@ public class ReactionServiceImpl implements ReactionService {
     @Transactional
     @Override
     public void removeReaction(int postId, int reactionId) {
-        // 1. Tạo key cho hash
         String hashReactionKey = ReactionUtil.generateReactionHashKey(String.valueOf(reactionId));
-
-        // 2. Lấy type của reaction từ hash để build key của ZSet
         Object typeObj = redisTemplate.opsForHash().get(hashReactionKey, "type");
+        String type = "";
+
         if (typeObj == null) {
-            // Không tìm thấy reaction trong Redis => khỏi cần xoá
-            return;
+            Reaction reaction = this.reactionRepository.getReactionById(reactionId);
+            type = reaction != null ? reaction.getType().name() : "";
+        } else {
+            type = typeObj.toString();
         }
-        String type = typeObj.toString();
 
-        // 3. Build ZSet key
         String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
+        String postReactionStatsKey = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
 
-        // 4. Xoá hash và xoá zset
+        if (redisTemplate.opsForHash().hasKey(postReactionStatsKey, type)) {
+            Object currentTypeCountObj = redisTemplate.opsForHash().get(postReactionStatsKey, type);
+            Object currentTotalCountObj = redisTemplate.opsForHash().get(postReactionStatsKey, "TOTAL");
+
+            long currentTypeCount = currentTypeCountObj != null ? Integer.parseInt(currentTypeCountObj.toString()) : 0L;
+            long currentTotalCount = currentTotalCountObj != null ? Integer.parseInt(currentTotalCountObj.toString()) : 0L;
+
+            if (currentTypeCount > 0) {
+                redisTemplate.opsForHash().increment(postReactionStatsKey, type, -1);
+            }
+            if (currentTotalCount > 0) {
+                redisTemplate.opsForHash().increment(postReactionStatsKey, "TOTAL", -1);
+            }
+        }
+
         redisTemplate.opsForZSet().remove(zSetPostKey, hashReactionKey);
         redisTemplate.delete(hashReactionKey);
 
@@ -115,51 +134,44 @@ public class ReactionServiceImpl implements ReactionService {
                 reactionId);
     }
 
-
-
     @Override
     @Transactional
     public Map<String, Integer> statsReactionByPostId(int postId) {
-        String key = "post:" + postId + ":reactionStats";
+        String key = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
+        Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
 
-        // Kiểm tra xem key có tồn tại trong Redis không
-        if (!redisTemplate.hasKey(key)) {
-            // Nếu không có trong cache, lấy từ DB
+        if (map == null || map.isEmpty()) {
             Map<String, Integer> stats = this.reactionRepository.statsReactionByPostId(postId);
-
-            // Sử dụng HashOperations với kiểu rõ ràng
-            HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
-            hashOps.putAll(key, stats);
-
-            // Đặt thời gian hết hạn
-            redisTemplate.expire(key, 10, TimeUnit.MINUTES);
-
+            redisTemplate.opsForHash().putAll(key, stats);
             return stats;
         }
 
-        // Lấy dữ liệu từ Redis với kiểu rõ ràng
-        HashOperations<String, String, Integer> hashOps = redisTemplate.opsForHash();
-        Map<String, Integer> result = hashOps.entries(key);
-
-        return result;
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> (String) e.getKey(),
+                        e -> ((Number) e.getValue()).intValue()
+                ));
     }
 
     @Override
     public Map<String, Integer> initStatsReaction() {
         Map<String, Integer> stats = new HashMap<>();
-        stats.put("Like", 0);
-        stats.put("Love", 0);
-        stats.put("Haha", 0);
-        stats.put("Total", 0);
+        stats.put("LIKE", 0);
+        stats.put("LOVE", 0);
+        stats.put("HAHA", 0);
+        stats.put("TOTAL", 0);
         return stats;
     }
 
-
     @Override
-    public List<ReactionDto> getTypeReactionByPostId(int postId, String type) {
+    public List<ReactionDto> getTypeReactionByPostId(int postId, String type, int page) {
         String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
 
-        Set<String> reactionKeys = redisTemplate.opsForZSet().range(zSetPostKey, 0, -1);
+        int pageSize = Optional.ofNullable(env.getProperty("PAGE_SIZE", Integer.class)).orElse(6);
+        int start = (page - 1) * pageSize;
+        int end = start + pageSize;
+
+        Set<String> reactionKeys = redisTemplate.opsForZSet().reverseRange(zSetPostKey, start, end);
         List<ReactionDto> reactionDtos = new ArrayList<>();
 
         if (reactionKeys != null && !reactionKeys.isEmpty()) {
@@ -171,14 +183,15 @@ public class ReactionServiceImpl implements ReactionService {
                 }
             }
         } else {
-            reactionDtos = loadReactionsFromDbAndCache(postId, type);
+            reactionDtos = loadReactionsFromDbAndCache(postId, type, page);
         }
 
+        redisTemplate.expire(zSetPostKey, 20, TimeUnit.SECONDS);
         return reactionDtos;
     }
 
-    private List<ReactionDto> loadReactionsFromDbAndCache(int postId, String type) {
-        List<Reaction> reactions = reactionRepository.getTypeReactionsByPostId(postId, type);
+    private List<ReactionDto> loadReactionsFromDbAndCache(int postId, String type, int page) {
+        List<Reaction> reactions = reactionRepository.getTypeReactionsByPostId(postId, type, page);
         List<ReactionDto> reactionDtos = new ArrayList<>();
 
         for (Reaction reaction : reactions) {
@@ -208,8 +221,7 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("username", reactionDto.getUsername());
 
         redisTemplate.opsForHash().putAll(hashReactionKey, fields);
-
-        // Lưu reaction vào ZSet với timestamp
+        redisTemplate.expire(hashReactionKey, 20, TimeUnit.SECONDS);
         redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
     }
 }

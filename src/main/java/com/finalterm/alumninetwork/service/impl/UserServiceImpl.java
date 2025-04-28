@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private UserRegistrationService userRegistrationService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
     private static final String USER_PREFIX = "user";
 
     @Autowired
@@ -138,6 +139,7 @@ public class UserServiceImpl implements UserService {
         LecturerInfo existingLecturerInfo = this.lecturerInfoRepository.getLecturerInfoById(lecturerInfo.getId());
         if (existingLecturerInfo == null)
             throw new RuntimeException("LecturerInfo not found");
+
         existingLecturerInfo.setExpiredResetPasswordTime(lecturerInfo.getExpiredResetPasswordTime());
         User user = existingLecturerInfo.getUser();
         user.setActive(true);
@@ -148,14 +150,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUsername(String username) {
-        User user;
+//        User user;
         String key = String.format("%s:%s:%s", USER_PREFIX, "username", username);
-        user = (User) redisTemplate.opsForValue().get(key);
-        if (user != null) {
-            return user;
-        }
-        user = this.userRepository.getUserByUsername(username);
-        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
+//        user = (User) redisTemplate.opsForValue().get(key);
+//        if (user != null) {
+//            return user;
+//        }
+        User user = this.userRepository.getUserByUsername(username);
+//        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
         return user;
     }
 

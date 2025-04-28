@@ -48,11 +48,16 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
                 LocalDate date = LocalDate.parse(expiredResetPasswordTime);
                 predicates.add(criteriaBuilder.equal(root.get("expiredResetPasswordTime"), java.sql.Date.valueOf(date)));
             }
+            String username = params.get("username");
+            if (username != null && !username.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("user").get("username"), username));
+            }
+
             criteriaQuery.where(predicates.toArray(Predicate[]::new));
         }
-
         return session.createQuery(criteriaQuery).list();
     }
+
 
     @Override
     public LecturerInfo getLecturerInfoById(Integer id) {
