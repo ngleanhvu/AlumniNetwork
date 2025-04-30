@@ -58,7 +58,8 @@ public class ReactionServiceImpl implements ReactionService {
         // Add current timestamp
         long timestamp = System.currentTimeMillis();
         // ZSet post key and Hash reaction key
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type.name());
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(String.valueOf(postId), type.name());
+
         String hashReactionKey = ReactionUtil.generateReactionHashKey(temporaryReactionId);
         String postReactionStatsType = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
         String reactionTypeKey = type.name();
@@ -108,7 +109,7 @@ public class ReactionServiceImpl implements ReactionService {
             type = typeObj.toString();
         }
 
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(String.valueOf(postId), type);
         String postReactionStatsKey = PostUtil.generatePostReactionStatsKey(String.valueOf(postId));
 
         if (redisTemplate.opsForHash().hasKey(postReactionStatsKey, type)) {
@@ -165,7 +166,7 @@ public class ReactionServiceImpl implements ReactionService {
 
     @Override
     public List<ReactionDto> getTypeReactionByPostId(int postId, String type, int page) {
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(postId, type);
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(String.valueOf(postId), type);
 
         int pageSize = Optional.ofNullable(env.getProperty("PAGE_SIZE", Integer.class)).orElse(6);
         int start = (page - 1) * pageSize;
@@ -208,7 +209,7 @@ public class ReactionServiceImpl implements ReactionService {
     // Lưu reaction vào Redis
     private void saveReactionToRedis(ReactionDto reactionDto) {
         String hashReactionKey = ReactionUtil.generateReactionHashKey(reactionDto.getId());
-        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(reactionDto.getPostId(), reactionDto.getType().name());
+        String zSetPostKey = ReactionUtil.generatePostReactionZSetKey(String.valueOf(reactionDto.getPostId()), reactionDto.getType().name());
         long timestamp = reactionDto.getCreatedDate();
 
         // Lưu reaction vào Hash trong Redis

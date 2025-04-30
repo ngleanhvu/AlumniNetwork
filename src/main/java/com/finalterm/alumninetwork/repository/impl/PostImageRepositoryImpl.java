@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.PostImage;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,4 +30,11 @@ public class PostImageRepositoryImpl implements PostImageRepository {
         return postImage;
     }
 
+    @Override
+    public List<PostImage> getPostImagesByPostId(int postId) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        Query query = session.createNamedQuery("PostImage.findByPostId", PostImage.class);
+        query.setParameter("postId", postId);
+        return query.getResultList();
+    }
 }

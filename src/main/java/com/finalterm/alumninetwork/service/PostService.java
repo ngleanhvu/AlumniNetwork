@@ -1,6 +1,8 @@
 package com.finalterm.alumninetwork.service;
 
+import com.finalterm.alumninetwork.dto.response.FeedResponseDto;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,10 @@ public interface PostService {
     void delete(int id);
     List<PostDTO> getMyPosts(int userId, Date createdDate, int limit);
     void lockComments(Post post);
-    Post getPostById(int id);
+//    PostDTO getPostByIdToCache(int postId);
+    Post getPostById(int postId);
     List<Object[]> statisticPosts(String timeType, int year);
+    //void toggleReaction(Post post, User user, EnumReaction type);
+    FeedResponseDto loadGlobalFeed(Date createdDate, int limit);
+
 }

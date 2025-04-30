@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -57,6 +58,7 @@ public class Post implements Serializable {
     private User user;
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
+    @JsonIgnore
     List<PostImage> images;
 
     public Post() {

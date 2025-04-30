@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.controller.rest;
 
+import com.finalterm.alumninetwork.dto.response.FeedResponseDto;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
@@ -91,6 +92,7 @@ public class ApiPostController {
 
             return ResponseEntity.ok(this.postService.saveOrUpdate(params, images, user));
         } catch (Exception e) {
+            e.printStackTrace(); // ➜ In lỗi đầy đủ
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -118,6 +120,15 @@ public class ApiPostController {
             this.postService.lockComments(post);
             return ResponseEntity.noContent().build();
         }
+    }
+
+    @GetMapping("/feeds")
+    public ResponseEntity<FeedResponseDto> getFeeds(@RequestParam(required = false) Long createdAt,
+                                                    @RequestParam(required = false) Integer limitFeed) {
+        int limit = (limitFeed != null) ? limitFeed : env.getProperty("pagination.post_size", Integer.class, 5);
+        Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
+
+        return ResponseEntity.ok(this.postService.loadGlobalFeed(cursorDate, limit));
     }
 
     @GetMapping("/{postId}")
