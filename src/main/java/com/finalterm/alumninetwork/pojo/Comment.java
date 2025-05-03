@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
@@ -50,6 +51,7 @@ public class Comment implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
     //Neu' replies.size() > 0 thi` truy van' th con
+    @JsonIgnore
     @OneToMany(mappedBy = "parentCommentId", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Comment> replies;
 

@@ -120,10 +120,10 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true); // Nếu dùng cookie/session
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration); // Áp dụng cho các URL bắt đầu bằng /api/
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 

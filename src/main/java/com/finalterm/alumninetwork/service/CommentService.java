@@ -12,7 +12,6 @@ import java.util.Map;
 public interface CommentService {
     CommentDto addComment(Map<String, String> params, Post post, User user);
     List<CommentDto> getPaginateComments(int postId, Date createdAt, int limit, Integer parentCommentId);
-
     void deleteComment(int commentId);
     Comment getCommentById(int commentId);
     CommentDto updateComment(Comment comment);

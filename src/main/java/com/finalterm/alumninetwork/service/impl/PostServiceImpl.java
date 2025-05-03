@@ -218,7 +218,7 @@ public class PostServiceImpl implements PostService {
         String userPostIdsKey = PostUtil.generatePostProfileKey(String.valueOf(userId));
         List<PostDTO> result = new ArrayList<>();
 
-        Set<String> postIds = redisTemplate.opsForZSet().reverseRangeByScore(
+            Set<String> postIds = redisTemplate.opsForZSet().reverseRangeByScore(
                 userPostIdsKey,
                 0,
                 createdDate != null ? createdDate.getTime() - 1 : Double.POSITIVE_INFINITY,
@@ -240,7 +240,7 @@ public class PostServiceImpl implements PostService {
             // Tạo danh sách ID từ kết quả database
             postIds = myPosts.stream()
                     .map(post -> String.valueOf(post.getId()))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         for (String postIdStr : postIds) {
@@ -324,7 +324,7 @@ public class PostServiceImpl implements PostService {
                         String.valueOf(post.getId()).getBytes()
                 );
             }
-            connection.expire(userPostIdsKey.getBytes(), 3600);
+            connection.expire(userPostIdsKey.getBytes(), 300);
             return null;
         });
     }
@@ -337,7 +337,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    //Cache Feed sẽ lấy số lượng bài mới hoặc bài cũ nhưng có số lượng comment, reactios nhiều nhất
+    //Cache Feed sẽ lấy số lượng bài mới hoặc bài cũ nhưng có số lượng comment, reactions nhiều nhất
     //Lưu vào ZSet Redis theo score: createdDate + totalComment + totalReactions
     public FeedResponseDto loadGlobalFeed(Date cursorTime, int limit) {
         String feedKey = PostUtil.globalFeedKey();

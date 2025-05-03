@@ -17,7 +17,7 @@ public class PostUtil {
     }
 
     public static String generatePostProfileKey(String userId) {
-        return "profile" + userId + ":user";
+        return "profile:" + userId + ":user";
     }
 
     public static String generatePostKey(String postId) {

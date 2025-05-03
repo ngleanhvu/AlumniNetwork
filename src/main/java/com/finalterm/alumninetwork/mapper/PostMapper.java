@@ -19,7 +19,6 @@ public class PostMapper {
         postDTO.setImgUrls(imgUrls);
         postDTO.setTotalComments(totalComments);
         postDTO.setStatsReaction(statsReactions);
-
         return postDTO;
     }
 }

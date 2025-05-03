@@ -40,7 +40,7 @@ public class ApiCommentController {
     public ResponseEntity<List<CommentDto>> getRootComments(@PathVariable(value = "postId") int postId,
                                                             @RequestParam(required = false) Long createdAt) {
 
-        int limit = env.getProperty("pagination.comment_size", Integer.class, 5);
+        int limit = env.getProperty("pagination.comment_size", Integer.class, 3);
         Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
         return new ResponseEntity<>(this.commentService.getPaginateComments(postId, cursorDate, limit, null), HttpStatus.OK );

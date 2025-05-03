@@ -1,5 +1,6 @@
 package com.finalterm.alumninetwork.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finalterm.alumninetwork.dto.response.CommentDto;
 import com.finalterm.alumninetwork.exception.PostBlockedComment;
 import com.finalterm.alumninetwork.mapper.CommentMapper;
@@ -31,6 +32,10 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private RedisTemplate<String, String> stringRedisTemplate;
 
+    @Autowired
+    private RedisTemplate<String, Object> objectRedisTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -98,6 +103,7 @@ public class CommentServiceImpl implements CommentService {
                 CommentUtil.generateChildrenComment(String.valueOf(postId), String.valueOf(parentCommentId)) :
                 CommentUtil.generateRootComment(String.valueOf(postId));
 
+
         double maxScore = createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY;
         Set<String> commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
                 commentRedisKey,
@@ -108,46 +114,82 @@ public class CommentServiceImpl implements CommentService {
         );
 
         List<Comment> comments;
-        boolean ordered = true;
+        List<CommentDto> results = new ArrayList<>();
 
         //Cache miss
         if (commentIds == null || commentIds.isEmpty()) {
             comments = commentRepository.getPaginateComment(postId, createdAt, limit, parentCommentId);
-
-            if (!comments.isEmpty())
-                cacheComments(commentRedisKey, comments);
-            else
+            if (comments.isEmpty())
                 return Collections.emptyList();
 
-        //Cache thanh cong!
-        } else {
-            //Chuyen tu set<integer> sang list<Integer>
-            List<Integer> ids = commentIds.stream()
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toList());
+            cacheComments(commentRedisKey, comments);
 
-            comments = commentRepository.getCommentsByList(ids);
-            ordered = false; //Can phai sap xep lai
+            commentIds = comments.stream()
+                    .map(comment -> String.valueOf(comment.getId()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
-        // Chuyển đổi kết quả sang DTO
-        if (ordered) {
-            return comments.stream()
-                    .map(CommentMapper::toCommentDTO)
-                    .collect(Collectors.toList());
-        } else {
-            //Phai dua vao map de sap xep lai
-            Map<Integer, Comment> commentMap = comments.stream()
-                    .collect(Collectors.toMap(Comment::getId, Function.identity()));
+        for (String commentIdStr : commentIds) {
+            int commentId = Integer.parseInt(commentIdStr);
 
-            return commentIds.stream()
-                    .map(Integer::valueOf)
-                    .map(commentMap::get)
-                    .filter(Objects::nonNull)
-                    .map(CommentMapper::toCommentDTO)
-                    .collect(Collectors.toList());
+            CommentDto commentDto = this.getCommentByIdToCache(commentId);
+            if (commentDto != null) {
+                results.add(commentDto);
+            }
         }
+        return results;
     }
+//        //Cache thanh cong!
+//        } else {
+//            //Chuyen tu set<integer> sang list<Integer>
+//            List<Integer> ids = commentIds.stream()
+//                    .map(Integer::valueOf)
+//                    .collect(Collectors.toList());
+//
+//            comments = commentRepository.getCommentsByList(ids);
+//            ordered = false; //Can phai sap xep lai
+//        }
+//
+//        // Chuyển đổi kết quả sang DTO
+//        if (ordered) {
+//            return comments.stream()
+//                    .map(CommentMapper::toCommentDTO)
+//                    .collect(Collectors.toList());
+//        } else {
+//            //Phai dua vao map de sap xep lai
+//            Map<Integer, Comment> commentMap = comments.stream()
+//                    .collect(Collectors.toMap(Comment::getId, Function.identity()));
+//
+//            return commentIds.stream()
+//                    .map(Integer::valueOf)
+//                    .map(commentMap::get)
+//                    .filter(Objects::nonNull)
+//                    .map(CommentMapper::toCommentDTO)
+//                    .collect(Collectors.toList());
+
+
+    private CommentDto getCommentByIdToCache(int commentId) {
+        String commentContentKey= CommentUtil.generateCommentContentKey(String.valueOf(commentId));
+
+        CommentDto commentDto = new CommentDto();
+        if (!redisTemplate.hasKey(commentContentKey)) { //Cache miss -> get from DB
+            Comment comment = this.commentRepository.getCommentById(commentId);
+
+            objectRedisTemplate.opsForValue().set(commentContentKey, comment);
+            objectRedisTemplate.expire(commentContentKey, 15, TimeUnit.MINUTES);
+
+            commentDto = CommentMapper.toCommentDTO(comment);
+        } else { //get content from cache
+            Object obj = objectRedisTemplate.opsForValue().get(commentContentKey);
+            Comment c = objectMapper.convertValue(obj, Comment.class);
+
+            if (c != null) {
+                commentDto = CommentMapper.toCommentDTO(c);
+            }
+        }
+        return commentDto;
+    }
+
 
     private void cacheNewComment(String commentIdsKey, Comment comment) {
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
@@ -187,16 +229,17 @@ public class CommentServiceImpl implements CommentService {
             this.commentRepository.deleteComment(commentId);
             String commentCountKey = CommentUtil.generateTotalCommentCount(String.valueOf(postId));
 
-            Integer count = redisTemplate.opsForValue().decrement(commentCountKey).intValue();
+            Integer totalChildComment = comment.getReplies().size();
+            Integer count;
 
-            if (count < 0) {
-                redisTemplate.opsForValue().set(commentCountKey, 0);
-            }
+            if (totalChildComment == 0)
+                count = redisTemplate.opsForValue().decrement(commentCountKey, 1).intValue();
 
             if (comment.getParentCommentId() != null) {
                 redisTemplate.delete(CommentUtil.generateChildrenComment(String.valueOf(commentId), String.valueOf(comment.getParentCommentId())));
             }
-            redisTemplate.delete( CommentUtil.generateRootComment(String.valueOf(commentId)));
+            redisTemplate.delete(CommentUtil.generateRootComment(String.valueOf(commentId)));
+            redisTemplate.delete(commentCountKey);
         }
     }
 
