@@ -1,7 +1,6 @@
 package com.finalterm.alumninetwork.service;
 
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
-import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import org.springframework.security.core.userdetails.UserDetailsService;

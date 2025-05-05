@@ -6,6 +6,7 @@ import com.finalterm.alumninetwork.pojo.Reaction;
 import com.finalterm.alumninetwork.repository.ReactionRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -53,7 +54,6 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         );
 
         query.where(predicates.toArray(Predicate[]::new)).orderBy(builder.desc(root.get("createdDate")));
-
 
         int start = (page - 1) * 6;
         int end = start + 6;
@@ -139,6 +139,8 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         stats.put("LIKE", countByPostIdAndType(postId, EnumReaction.LIKE.name()));
         stats.put("LOVE", countByPostIdAndType(postId, EnumReaction.LOVE.name()));
         stats.put("HAHA", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
+        stats.put("WOW", countByPostIdAndType(postId, EnumReaction.WOW.name()));
+        stats.put("SAD", countByPostIdAndType(postId, EnumReaction.SAD.name()));
         stats.put("TOTAL", countTotalByPostId(postId));
         return stats;
     }
@@ -165,4 +167,25 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         query.setParameter("id", reactionId);
         return (Reaction) query.getSingleResult();
     }
+
+    @Override
+    public Reaction getReactionByPostIdAndUserId(int postId, int userId) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Reaction> query = builder.createQuery(Reaction.class);
+        Root<Reaction> root = query.from(Reaction.class);
+
+        query.select(root).where(
+                builder.and(
+                        builder.equal(root.get("post").get("id"), postId),
+                        builder.equal(root.get("user").get("id"), userId)
+                )
+        );
+
+        TypedQuery<Reaction> typedQuery = session.createQuery(query);
+        List<Reaction> results = typedQuery.getResultList();
+
+        return results.isEmpty() ? null : results.get(0);
+    }
+
 }

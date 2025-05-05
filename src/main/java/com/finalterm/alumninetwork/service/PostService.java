@@ -17,11 +17,11 @@ public interface PostService {
     PostDTO saveOrUpdate(Map<String, String> params, List<MultipartFile> fileImages, User user);
     void delete(int id);
     List<PostDTO> getMyPosts(int userId, Date createdDate, int limit);
-    void lockComments(Post post);
+    void lockOrUnlockComments(Post post);
 //    PostDTO getPostByIdToCache(int postId);
     Post getPostById(int postId);
     List<Object[]> statisticPosts(String timeType, int year);
-    //void toggleReaction(Post post, User user, EnumReaction type);
+    void toggleReaction(Post post, User user, EnumReaction type);
     FeedResponseDto loadGlobalFeed(Date createdDate, int limit);
 
 }

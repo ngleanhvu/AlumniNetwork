@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.dto;
 
 public class ResponseUserDto {
+    private Integer id;
     private String username;
     private String fullName;
     private String email;
@@ -8,6 +9,14 @@ public class ResponseUserDto {
     private String role;
     private String avatar;
     private String coverAvatar;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getFullName() {
         return fullName;

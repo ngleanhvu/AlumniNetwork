@@ -56,11 +56,19 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         // Get Post
         Post post = this.postService.getPostById(reactionDto.getPostId());
 
-        Reaction reaction = new Reaction();
-        reaction.setCreatedDate(new Date(reactionDto.getCreatedDate()));
-        reaction.setPost(post);
-        reaction.setUser(user);
-        reaction.setType(reactionDto.getType());
+        Reaction existingReaction = reactionRepository.getReactionByPostIdAndUserId(reactionDto.getPostId(), user.getId());
+        Reaction reaction;
+
+        if (existingReaction != null) {
+            existingReaction.setType(reactionDto.getType());
+            reaction = existingReaction;
+        } else {
+            reaction = new Reaction();
+            reaction.setCreatedDate(new Date(reactionDto.getCreatedDate()));
+            reaction.setPost(post);
+            reaction.setUser(user);
+            reaction.setType(reactionDto.getType());
+        }
 
         // Save reaction into database
         reactionRepository.addOrUpdateReaction(reaction);
@@ -76,8 +84,8 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         fields.put("userId", String.valueOf(user.getId()));
         fields.put("postId", String.valueOf(post.getId()));
         fields.put("username", user.getUsername());
-        redisTemplate.opsForHash().putAll(newHashReactionKey, fields);
 
+        redisTemplate.opsForHash().putAll(newHashReactionKey, fields);
         redisTemplate.expire(newHashReactionKey, 2, TimeUnit.MINUTES);
 //
 //        // Xóa element cũ trong ZSet
@@ -86,7 +94,6 @@ public class ReactionConsumerImpl implements ReactionConsumer {
 //        // Add element mới vào ZSet
 //        redisTemplate.opsForZSet().add(zSetPostKey, newHashReactionKey, reaction.getCreatedDate().getTime());
     }
-
 
     @RabbitListener(queues = "post.reaction.delete.queue", containerFactory = "rabbitListenerContainerFactory")
     @Override

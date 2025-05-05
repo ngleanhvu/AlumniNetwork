@@ -17,4 +17,5 @@ public interface ReactionRepository {
     List<Reaction> getReactionsByPostId(int postId);
     void deleteReactionById(int reactionId);
     Reaction getReactionById(int reactionId);
+    Reaction getReactionByPostIdAndUserId(int postId, int userId);
 }

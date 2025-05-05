@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finalterm.alumninetwork.dto.response.FeedResponseDto;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.dto.response.ReactionDto;
 import com.finalterm.alumninetwork.mapper.PostMapper;
 import com.finalterm.alumninetwork.pojo.*;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
@@ -195,21 +196,24 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public void lockComments(Post post) {
-        post.setBlockedComment(true);
-        invalidatePostListCache(post.getUser().getId());
+    public void lockOrUnlockComments(Post post) {
+        String postContentKey = PostUtil.generatePostKey(String.valueOf(post.getId()));
+        post.setBlockedComment(!post.getBlockedComment());
+        redisTemplate.delete(postContentKey);
         this.postRepository.saveOrUpdate(post);
     }
 
-//    @Override
-//    public void toggleReaction(Post post, User user, EnumReaction type) {
-//        ReactionDto reactionDto = this.reactionService.getReactionByPostIdAndUserId(post.getId(), user.getId());
-//        if (reactionDto == null) {
-//            this.reactionService.reactToPost(post.getId(), user,  type);
-//            return;
-//        }
-//        this.reactionService.removeReaction(post.getId(), user.getId());
-//    }
+    @Override
+    public void toggleReaction(Post post, User user, EnumReaction type) {
+        ReactionDto reactionDto = this.reactionService.getReactionByPostIdAndUserId(post.getId(), user.getId());
+
+        if (reactionDto == null || !type.equals(reactionDto.getType())) {
+            this.reactionService.reactToPost(post.getId(), user,  type);
+            return;
+        }
+
+        this.reactionService.removeReaction(post.getId(), user.getId());
+    }
 
     //------------------------------------------- REDIS CACHE -----------------------------------------------------
     @Override
@@ -405,16 +409,16 @@ public class PostServiceImpl implements PostService {
 
         if (reactionStats == null || reactionStats.isEmpty()) {
             reactionStatMap = this.reactionService.statsReactionByPostId(post.getId());
+        } else {
+            reactionStatMap = reactionStats.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            entry -> (String) entry.getKey(),
+                            entry -> (Integer) entry.getValue()
+                    ));
         }
 
-        reactionStatMap = reactionStats.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        entry -> (String) entry.getKey(),
-                        entry -> (Integer) entry.getValue()
-                ));
-
-        reactionCount = reactionStatMap.get("TOTAL");
+        reactionCount = reactionStatMap.getOrDefault("TOTAL", 0);
 
         long createdAtScore = post.getCreatedAt().getTime() / 100_000; // 1 điểm ~ 10 giây
         int interactionScore = commentCount * 2 + reactionCount; // giảm trọng số

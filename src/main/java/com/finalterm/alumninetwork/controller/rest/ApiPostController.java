@@ -2,6 +2,7 @@ package com.finalterm.alumninetwork.controller.rest;
 
 import com.finalterm.alumninetwork.dto.response.FeedResponseDto;
 import com.finalterm.alumninetwork.dto.response.PostDTO;
+import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.service.CommentService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.ws.rs.Path;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +38,7 @@ public class ApiPostController {
     @Autowired
     private Environment env;
 
-    @GetMapping //Go to profile ->
+    @GetMapping("/profile") //Go to profile ->
     public ResponseEntity<List<PostDTO>> getAllPost(@RequestParam(required = false) Long createdAt,
                                                     @RequestParam(required = false) Integer pageSize) {
         try {
@@ -47,21 +49,19 @@ public class ApiPostController {
             int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.post_size", Integer.class, 5);
             Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
-            if (u == null)
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
             return ResponseEntity.ok(this.postService.getMyPosts(u.getId(), cursorDate, limit));
+
         } catch (Exception e) {
-            e.printStackTrace(); // THÊM DÒNG NÀY ĐỂ LOG RA STACKTRACE
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body((List<PostDTO>) Map.of("error", e.getMessage()));
         }
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/profile/{userId}") // -> Go to user's profile
     public ResponseEntity<List<PostDTO>> getPostsFromProfile(@RequestParam(required = false) Long createdAt,
                                                              @RequestParam(required = false) Integer pageSize,
-                                                             @PathVariable int userId) {
+                                                             @PathVariable (value = "userId") int userId) {
         int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.page_size", Integer.class, 5);
         Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
@@ -105,8 +105,8 @@ public class ApiPostController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{postId}/block_comment")
-    public ResponseEntity<PostDTO> blockComment(@RequestParam(value = "postId") int postId) {
+    @PostMapping("/{postId}/blockComment")
+    public ResponseEntity<PostDTO> blockComment(@PathVariable(value = "postId") int postId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(auth.getName());
         Post post = this.postService.getPostById(postId);
@@ -117,7 +117,7 @@ public class ApiPostController {
         if (!post.getUser().getId().equals(user.getId()))
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         else {
-            this.postService.lockComments(post);
+            this.postService.lockOrUnlockComments(post);
             return ResponseEntity.noContent().build();
         }
     }
@@ -131,12 +131,27 @@ public class ApiPostController {
         return ResponseEntity.ok(this.postService.loadGlobalFeed(cursorDate, limit));
     }
 
-    @GetMapping("/{postId}")
-    public ResponseEntity<?> getPostById(@PathVariable int postId) {
-        User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+//    @GetMapping("/{postId}")
+//    public ResponseEntity<?> getPostById(@PathVariable int postId) {
+//        User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+//        if (user == null)
+//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        Post post = this.postService.getPostById(postId);
+//        return ResponseEntity.ok(post);
+//    }
+
+    @PostMapping("/{postId}/reactions/toggle")
+    public ResponseEntity<?> toggleReaction(@PathVariable(value = "postId") int postId, @RequestBody Map<String, String> params) {
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+
         if (user == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        String type = params.get("type") == null ? "" : params.get("type");
+
         Post post = this.postService.getPostById(postId);
-        return ResponseEntity.ok(post);
+
+        this.postService.toggleReaction(post, user, EnumReaction.valueOf(type));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
