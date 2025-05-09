@@ -10,4 +10,5 @@ public interface EventRepository {
     Event saveEvent(Event e);
     boolean deleteEventById(Integer eventId);
     Event getEventById(Integer eventId);
+    long countEvents();
 }

@@ -44,7 +44,7 @@ public class LecturerRegistrationStrategyImpl implements UserRegistrationStrateg
         lecturerInfoRepository.saveLecturerInfo(lecturerInfo);
 
         List<EmailRecord> emailRecord = new ArrayList<>(1);
-        emailRecord.add(new EmailRecord(user.getEmail(), "Email verify registered new account", "Password: ou@123"));
+        emailRecord.add(new EmailRecord(user.getEmail(), "Email verify registered account", "Password: "+env.getProperty("lecturer.info.password")));
         rabbitTemplate.convertAndSend(
                 Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
                 Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),

@@ -14,5 +14,6 @@ public interface SurveyService {
     Survey getSurveyById(Integer surveyId);
     void deleteSurveyById(Integer surveyId);
     List<StatsSurveyDto> statUserSurveyChoices(Integer surveyId);
-    void addUserSurveyChoice(User user, List<QuestionChoiceDto> questionChoiceDtos) ;
+    void addUserSurveyChoice(User user, List<QuestionChoiceDto> questionChoiceDtos);
+    long countSurveys();
 }

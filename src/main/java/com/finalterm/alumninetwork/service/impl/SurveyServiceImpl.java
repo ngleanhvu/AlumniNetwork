@@ -77,4 +77,9 @@ public class SurveyServiceImpl implements SurveyService {
         this.surveyRepository.addUserSurveyChoice(userSurveyChoices);
     }
 
+    @Override
+    public long countSurveys() {
+        return this.surveyRepository.countSurveys();
+    }
+
 }

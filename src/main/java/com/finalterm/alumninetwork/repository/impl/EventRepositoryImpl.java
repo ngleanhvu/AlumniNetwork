@@ -115,4 +115,14 @@ public class EventRepositoryImpl implements EventRepository {
         query.setParameter("id", eventId);
         return (Event) query.getSingleResult();
     }
+
+    @Override
+    public long countEvents() {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<Event> root = cq.from(Event.class);
+        cq.select(cb.count(root));
+        return session.createQuery(cq).getSingleResult();
+    }
 }

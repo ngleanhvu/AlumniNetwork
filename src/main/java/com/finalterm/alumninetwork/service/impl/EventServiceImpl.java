@@ -86,4 +86,9 @@ public class EventServiceImpl implements EventService {
     public Event getEventById(Integer eventId) {
         return this.eventRepository.getEventById(eventId);
     }
+
+    @Override
+    public long countEvents() {
+        return this.eventRepository.countEvents();
+    }
 }

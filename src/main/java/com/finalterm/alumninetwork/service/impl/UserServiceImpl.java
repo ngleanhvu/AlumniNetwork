@@ -203,4 +203,8 @@ public class UserServiceImpl implements UserService {
                 u.getUsername(), u.getPassword(), authorities);
     }
 
+    @Override
+    public long countUsers() {
+        return this.userRepository.countUsers();
+    }
 }

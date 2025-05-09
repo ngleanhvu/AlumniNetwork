@@ -13,4 +13,5 @@ public interface EventService {
     void deleteEvent(Integer id);
     void sendEvent(Event event, List<Integer> userIds, List<Integer> groupNetworkIds);
     Event getEventById(Integer eventId);
+    long countEvents();
 }

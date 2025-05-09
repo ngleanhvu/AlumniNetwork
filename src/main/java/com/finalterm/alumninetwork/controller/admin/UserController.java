@@ -2,7 +2,6 @@ package com.finalterm.alumninetwork.controller.admin;
 
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
-import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.LecturerInfoService;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.validation.Valid;
@@ -25,10 +24,9 @@ public class UserController {
     private UserService userService;
     @Autowired
     private LecturerInfoService lecturerInfoService;
+
     @Autowired
-    private Environment environment;
-    @Autowired
-    private UserRepository userRepository;
+    private Environment env;
 
     @GetMapping("/users/admin")
     public String manageUser(Model model,
@@ -36,11 +34,15 @@ public class UserController {
                              @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
         Map<String, String> params = new HashMap<>();
         params.put("kw", keyword);
-        int pageSize = Integer.parseInt(Objects.requireNonNull(environment.getProperty("PAGE_SIZE")));
-        long countUsers = this.userRepository.countUsers();
-        model.addAttribute("totalPages", Math.ceil((double) countUsers / pageSize));
+        params.put("page", String.valueOf(page));
+        long totalUsers = this.userService.countUsers();
+        int totalPages = (int) Math.ceil((double) totalUsers / Integer.parseInt(
+                Objects.requireNonNull(env.getProperty("PAGE_SIZE"))));
+
+        model.addAttribute("totalPages", totalPages != 0 ? totalPages : 1);
         model.addAttribute("page", page);
         params.put("page", String.valueOf(page));
+
         model.addAttribute("users", this.userService.getUsers(params));
         return "users";
     }
