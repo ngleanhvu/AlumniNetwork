@@ -20,4 +20,5 @@ public interface SurveyRepository {
     void addUserSurveyChoice(List<UserSurveyChoice> userSurveyChoices);
     List<Question> getQuestionByIds(List<Integer> questionIds);
     List<Choice> getChoiceByIds(List<Integer> choiceIds);
+    long countSurveys();
 }

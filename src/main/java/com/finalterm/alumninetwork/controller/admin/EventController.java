@@ -6,14 +6,14 @@ import com.finalterm.alumninetwork.service.EventService;
 import com.finalterm.alumninetwork.service.GroupService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Controller
 @RequestMapping("/events")
@@ -24,17 +24,27 @@ public class EventController {
     private UserService userService;
     @Autowired
     private GroupService groupService;
+    @Autowired
+    private Environment env;
 
     @GetMapping("/admin")
     public String manageEvent(Model model,
                               @ModelAttribute("kw") String kw,
                               @ModelAttribute("startTime") String startTime,
-                              @ModelAttribute("endTime") String endTime) {
+                              @ModelAttribute("endTime") String endTime,
+                              @RequestParam(name = "page", defaultValue = "1", required = false) int page) {
         Map<String, String> params = new HashMap<>();
         params.put("kw", kw);
         params.put("startTime", startTime);
         params.put("endTime", endTime);
         model.addAttribute("events", this.eventService.getEvents(params));
+        long totalEvents = this.eventService.countEvents();
+        int totalPages = (int) Math.ceil((double) totalEvents / (double) Integer.parseInt(
+                Objects.requireNonNull(env.getProperty("PAGE_SIZE"))));
+        model.addAttribute("startTime", startTime);
+        model.addAttribute("endTime", endTime);
+        model.addAttribute("page", page);
+        model.addAttribute("totalPages", totalPages != 0 ? totalPages : 1);
         return "events";
     }
 
@@ -46,7 +56,15 @@ public class EventController {
 
     @PostMapping("/admin/add")
     public String createOrSave(@ModelAttribute("event") Event e,
+                               @ModelAttribute("startTime") String startTime,
+                               @ModelAttribute("endTime") String endTime,
                                @ModelAttribute("offline") Boolean offline) throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date start = sdf.parse(startTime);
+        Date end = sdf.parse(endTime);
+
+        e.setStartTime(start);
+        e.setEndTime(end);;
         this.eventService.saveEvent(e, offline);
         return "redirect:/events/admin";
     }

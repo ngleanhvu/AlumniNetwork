@@ -190,4 +190,14 @@ public class SurveyRepositoryImpl implements SurveyRepository {
         return q.getResultList();
     }
 
+    @Override
+    public long countSurveys() {
+        Session session = this.sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<Survey> root = cq.from(Survey.class);
+        cq.select(cb.count(root));
+        return session.createQuery(cq).getSingleResult();
+    }
+
 }

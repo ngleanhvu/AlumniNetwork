@@ -48,7 +48,7 @@ public class User implements Serializable {
     @Column(name = "username")
     private String username;
     @Basic(optional = false)
-    @NotNull
+//    @NotNull
     @Size(min = 1, max = 100)
     @Column(name = "password")
     private String password;
@@ -73,7 +73,7 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @Basic(optional = false)
-    @Size(min = 1, max = 255)
+//    @Size(min = 1, max = 255)
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)

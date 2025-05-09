@@ -19,7 +19,7 @@
   <form th:action="@{/users/admin}">
     <div class="row d-flex">
       <div class="col-md-3">
-        <input type="text" class="form-control" name="kw" placeholder="Từ khóa" />
+        <input type="text" class="form-control" name="kw" placeholder="Từ khóa" th:value="${kw}"/>
       </div>
       <div class="col-md-3">
         <button class="btn btn-info" type="submit">Tìm kiếm</button>
@@ -27,6 +27,21 @@
     </div>
   </form>
   <div class="d-flex justify-content-end">
+    <nav>
+      <ul class="pagination">
+        <li class="page-item" th:classappend="${page - 1 < 1} ? 'disabled'">
+          <a class="page-link" th:href="@{'?page=' + (${page} - 1)+'&kw='+${kw}}">Previous</a>
+        </li>
+
+        <li class="page-item" th:each="p : ${#numbers.sequence(1, totalPages)}" th:classappend="${p == page} ? 'active'">
+          <a class="page-link" th:href="@{'?page=' + ${p}+'&kw='+${kw}}" th:text="${p}"></a>
+        </li>
+
+        <li class="page-item" th:classappend="${page + 1 > totalPages} ? 'disabled'">
+          <a class="page-link" th:href="@{'?page=' + (${page} + 1)+'&kw='+${kw}}">Next</a>
+        </li>
+      </ul>
+    </nav>
     <a  th:href="@{/users/admin/add}" class="btn btn-success">Thêm người dùng</a>
   </div>
   <hr />
