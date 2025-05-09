@@ -40,7 +40,7 @@ public class ApiCommentController {
     public ResponseEntity<List<CommentDto>> getRootComments(@PathVariable(value = "postId") int postId,
                                                             @RequestParam(required = false) Long createdAt) {
 
-        int limit = env.getProperty("pagination.comment_size", Integer.class, 3);
+        int limit = env.getProperty("pagination.comment_size", Integer.class, 5);
         Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
 
         return new ResponseEntity<>(this.commentService.getPaginateComments(postId, cursorDate, limit, null), HttpStatus.OK );
@@ -78,6 +78,7 @@ public class ApiCommentController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(auth.getName());
         Post p = this.postService.getPostById(postId);
+
         Comment comment = this.commentService.getCommentById(commentId);
 
         if (user.getId().equals(comment.getUser().getId()) || user.getId().equals(p.getUser().getId())) {

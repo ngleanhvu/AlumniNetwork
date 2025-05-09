@@ -4,7 +4,9 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.OnDelete;
@@ -46,6 +48,7 @@ public class Comment implements Serializable {
     private Date createdAt;
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     private Comment parentCommentId;
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -55,8 +58,9 @@ public class Comment implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
+
     //Neu' replies.size() > 0 thi` truy van' th con
-    @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "parentCommentId", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Comment> replies;
 

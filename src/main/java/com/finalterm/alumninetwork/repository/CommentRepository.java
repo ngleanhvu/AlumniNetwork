@@ -14,4 +14,5 @@ public interface CommentRepository {
     //List<Comment> getCommentsByParentCommentId(int id);
     void deleteComment(int id);
     int countTotalCommentsByPostId(int id);
+    List<Comment> getCommentsByParentCommentId(Comment parentComment);
 }

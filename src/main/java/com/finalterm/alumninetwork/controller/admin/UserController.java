@@ -2,21 +2,21 @@ package com.finalterm.alumninetwork.controller.admin;
 
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.LecturerInfoService;
 import com.finalterm.alumninetwork.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 public class UserController {
@@ -25,16 +25,23 @@ public class UserController {
     private UserService userService;
     @Autowired
     private LecturerInfoService lecturerInfoService;
+    @Autowired
+    private Environment environment;
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/users/admin")
     public String manageUser(Model model,
-                             @ModelAttribute("kw") String keyword) {
+                             @ModelAttribute("kw") String keyword,
+                             @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
         Map<String, String> params = new HashMap<>();
         params.put("kw", keyword);
-        User user = new User();
-        model.addAttribute("user", user);
+        int pageSize = Integer.parseInt(Objects.requireNonNull(environment.getProperty("PAGE_SIZE")));
+        long countUsers = this.userRepository.countUsers();
+        model.addAttribute("totalPages", Math.ceil((double) countUsers / pageSize));
+        model.addAttribute("page", page);
+        params.put("page", String.valueOf(page));
         model.addAttribute("users", this.userService.getUsers(params));
-        System.out.println(user);
         return "users";
     }
 

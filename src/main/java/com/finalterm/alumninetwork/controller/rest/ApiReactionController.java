@@ -59,4 +59,13 @@ public class ApiReactionController {
 
         return new ResponseEntity<>(reactionService.getReactionByPostIdAndUserId(postId, user.getId()), HttpStatus.OK);
     }
+
+    @GetMapping("/{postId}/reactions/typeReaction")
+    public ResponseEntity<List<ReactionDto>> getReactionTypeByPostId(@RequestParam Map<String, String> params, @PathVariable(value = "postId") int postId) {
+        String type = params.get("type");
+        int page = Integer.valueOf(params.get("page"));
+
+        return new ResponseEntity<>(reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
+
+    }
 }

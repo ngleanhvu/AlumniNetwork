@@ -11,7 +11,16 @@ public class CommentDto {
         private UserWithPostDto user;
         private int parentCommentId; // Chỉ lưu ID, không lưu đối tượng
         private int countReplies;
+        private int postOwnerId;
         // getters and setters
+
+    public int getPostOwnerId() {
+        return postOwnerId;
+    }
+
+    public void setPostOwnerId(int postOwnerId) {
+        this.postOwnerId = postOwnerId;
+    }
 
     public CommentDto() {
 

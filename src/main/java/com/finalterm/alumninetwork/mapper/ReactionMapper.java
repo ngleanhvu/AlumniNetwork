@@ -12,8 +12,7 @@ public class ReactionMapper {
         dto.setId(reaction.getId().toString());
         dto.setType(reaction.getType());
         dto.setPostId(reaction.getPost().getId());
-        dto.setUserId(reaction.getUser().getId());
-        dto.setUsername(reaction.getUser().getUsername());
+        //dto.setUser(UserWithPostMapper.toUserWithPostDto(reaction.getUser()));
         dto.setCreatedDate(reaction.getCreatedDate().getTime());
         return dto;
     }

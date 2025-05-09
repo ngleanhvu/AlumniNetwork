@@ -150,4 +150,12 @@ public class UserRepositoryImpl implements UserRepository {
         return session.createQuery(query).getResultList();
     }
 
+    @Override
+    public int countUsers() {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        Query query = session.createNamedQuery("User.count");
+        Long count = (Long) query.getSingleResult();
+        return count.intValue();
+    }
+
 }

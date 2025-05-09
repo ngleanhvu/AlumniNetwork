@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Manage User</title>
-  <th:block th:replace="base :: styles"></th:block>
+  <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
 <section class="container">
 
@@ -27,6 +27,30 @@
     </div>
   </form>
   <div class="d-flex justify-content-end">
+    <nav>
+      <ul class="pagination">
+        <li class="page-item">
+          <a class="page-link"
+             th:href="@{'?page=' + ${page > 0 ? page : 1}}"
+             th:classappend="${page == 0} ? ' disabled'">Previous</a>
+        </li>
+
+        <li class="page-item"
+            th:each="p : ${#numbers.sequence(1, totalPages)}"
+            th:classappend="${p == page} ? ' active'">
+          <a class="page-link"
+             th:href="@{'?page=' + ${p}}"
+             th:text="${p}"></a>
+        </li>
+
+        <li class="page-item">
+          <a class="page-link"
+             th:href="@{'?page=' + (${page + 2})}"
+             th:classappend="${page >= totalPages} ? ' disabled'">Next</a>
+        </li>
+      </ul>
+    </nav>
+
     <a  th:href="@{/users/admin/add}" class="btn btn-success">Thêm người dùng</a>
   </div>
   <hr />
@@ -83,7 +107,7 @@
   </table>
 </section>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 
 <script th:src="@{/js/user.js}"></script>
 </body>

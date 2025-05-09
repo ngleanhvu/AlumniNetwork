@@ -58,9 +58,9 @@ public class CommentServiceImpl implements CommentService {
 
         String parentCommentIdStr = params.get("parentCommentId");
         if (parentCommentIdStr != null) {
+
             return this.saveReplyComment(comment, Integer.parseInt(parentCommentIdStr));
         }
-
         return this.saveRootComment(comment);
     }
 
@@ -73,8 +73,14 @@ public class CommentServiceImpl implements CommentService {
         comment.setParentCommentId(parentComment);
         Comment savedComment = commentRepository.saveOrUpdate(comment);
 
-        parentComment.getReplies().add(savedComment);
-        commentRepository.saveOrUpdate(parentComment);
+        String parentCommentContentKey = CommentUtil.generateCommentContentKey(String.valueOf(comment.getParentCommentId().getId()));
+        redisTemplate.delete(parentCommentContentKey);
+
+
+        List<Comment> replies = parentComment.getReplies();
+
+        replies.add(savedComment);
+        this.commentRepository.saveOrUpdate(parentComment);
 
         String childrenKey = CommentUtil.generateChildrenComment(
                 String.valueOf(comment.getPost().getId()),
@@ -103,7 +109,6 @@ public class CommentServiceImpl implements CommentService {
                 CommentUtil.generateChildrenComment(String.valueOf(postId), String.valueOf(parentCommentId)) :
                 CommentUtil.generateRootComment(String.valueOf(postId));
 
-
         double maxScore = createdAt != null ? createdAt.getTime() - 1 : Double.POSITIVE_INFINITY;
         Set<String> commentIds = stringRedisTemplate.opsForZSet().reverseRangeByScore(
                 commentRedisKey,
@@ -119,6 +124,7 @@ public class CommentServiceImpl implements CommentService {
         //Cache miss
         if (commentIds == null || commentIds.isEmpty()) {
             comments = commentRepository.getPaginateComment(postId, createdAt, limit, parentCommentId);
+
             if (comments.isEmpty())
                 return Collections.emptyList();
 
@@ -139,33 +145,6 @@ public class CommentServiceImpl implements CommentService {
         }
         return results;
     }
-//        //Cache thanh cong!
-//        } else {
-//            //Chuyen tu set<integer> sang list<Integer>
-//            List<Integer> ids = commentIds.stream()
-//                    .map(Integer::valueOf)
-//                    .collect(Collectors.toList());
-//
-//            comments = commentRepository.getCommentsByList(ids);
-//            ordered = false; //Can phai sap xep lai
-//        }
-//
-//        // Chuyển đổi kết quả sang DTO
-//        if (ordered) {
-//            return comments.stream()
-//                    .map(CommentMapper::toCommentDTO)
-//                    .collect(Collectors.toList());
-//        } else {
-//            //Phai dua vao map de sap xep lai
-//            Map<Integer, Comment> commentMap = comments.stream()
-//                    .collect(Collectors.toMap(Comment::getId, Function.identity()));
-//
-//            return commentIds.stream()
-//                    .map(Integer::valueOf)
-//                    .map(commentMap::get)
-//                    .filter(Objects::nonNull)
-//                    .map(CommentMapper::toCommentDTO)
-//                    .collect(Collectors.toList());
 
 
     private CommentDto getCommentByIdToCache(int commentId) {

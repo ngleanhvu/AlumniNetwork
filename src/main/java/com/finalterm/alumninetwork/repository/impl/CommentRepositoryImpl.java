@@ -50,6 +50,16 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
+    public List<Comment> getCommentsByParentCommentId(Comment parentComment) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Comment> query = builder.createQuery(Comment.class);
+        Root<Comment> root = query.from(Comment.class);
+        query.where(builder.equal(root.get("parentComment").get("id"), parentComment.getId()));
+        return session.createQuery(query).getResultList();
+    }
+
+    @Override
     public Comment getCommentById(int id) {
         Session s = this.sessionFactory.getObject().getCurrentSession();
         return s.get(Comment.class, id);

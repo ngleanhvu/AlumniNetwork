@@ -32,7 +32,8 @@ import java.util.Set;
     @NamedQuery(name = "User.findByCoverAvatar", query = "SELECT u FROM User u WHERE u.coverAvatar = :coverAvatar"),
     @NamedQuery(name = "User.findByCreatedAt", query = "SELECT u FROM User u WHERE u.createdAt = :createdAt"),
     @NamedQuery(name = "User.findByUpdatedAt", query = "SELECT u FROM User u WHERE u.updatedAt = :updatedAt"),
-    @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active")})
+    @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active"),
+    @NamedQuery(name = "User.count", query = "SELECT COUNT(u) FROM User u")})
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -47,8 +48,7 @@ public class User implements Serializable {
     @Column(name = "username")
     private String username;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 100)
+    @Size(min = 1, max = 255)
     @Column(name = "password")
     private String password;
     // @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")//if the field contains email address consider using this annotation to enforce field validation
@@ -58,7 +58,6 @@ public class User implements Serializable {
     @Column(name = "email")
     private String email;
     @Basic(optional = false)
-    @NotNull
     @Size(min = 1, max = 50)
     @Column(name = "full_name")
     private String fullName;
@@ -72,7 +71,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @Basic(optional = false)
-    @Size(min = 1, max = 255)
     @Column(name = "avatar")
     private String avatar;
     @Size(max = 255)

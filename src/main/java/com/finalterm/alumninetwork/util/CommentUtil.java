@@ -13,7 +13,6 @@ public class CommentUtil {
         return "post:" + postId + ":comments:" + parentCommentId + ":parentComments" ;
     }
 
-
     public static String generateCommentContentKey(String commentId) {
         return "comment:" + commentId + ":key";
     }

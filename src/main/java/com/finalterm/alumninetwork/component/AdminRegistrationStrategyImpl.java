@@ -21,4 +21,6 @@ public class AdminRegistrationStrategyImpl implements UserRegistrationStrategy {
         user.setActive(true);
         userRepository.saveUser(user);
     }
+
+
 }

@@ -9,6 +9,7 @@ public class ReactionDto {
     private EnumReaction type;
     private int userId; //
     private String username;
+//    private UserWithPostDto user;
     private long createdDate;
 
     public String getId() {
@@ -34,6 +35,15 @@ public class ReactionDto {
     public void setType(EnumReaction type) {
         this.type = type;
     }
+//
+//    public UserWithPostDto getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(UserWithPostDto user) {
+//        this.user = user;
+//    }
+
 
     public int getUserId() {
         return userId;
