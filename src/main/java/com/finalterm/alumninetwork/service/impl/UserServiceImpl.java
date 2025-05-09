@@ -100,6 +100,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public long countUsers() {
+        return this.userRepository.countUsers();
+    }
+
+    @Override
     public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)

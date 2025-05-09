@@ -24,4 +24,5 @@ public interface UserService extends UserDetailsService {
     List<User> getUserByIds(List<Integer> userIds);
     User getUserByEmail(String email);
     User findUserById(int id);
+    long countUsers();
 }

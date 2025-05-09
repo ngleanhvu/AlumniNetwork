@@ -32,7 +32,8 @@ import java.util.Set;
     @NamedQuery(name = "User.findByCoverAvatar", query = "SELECT u FROM User u WHERE u.coverAvatar = :coverAvatar"),
     @NamedQuery(name = "User.findByCreatedAt", query = "SELECT u FROM User u WHERE u.createdAt = :createdAt"),
     @NamedQuery(name = "User.findByUpdatedAt", query = "SELECT u FROM User u WHERE u.updatedAt = :updatedAt"),
-    @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active")})
+    @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active"),
+    @NamedQuery(name = "User.count", query = "SELECT COUNT(u) FROM User u")})
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
