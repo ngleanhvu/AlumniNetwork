@@ -58,10 +58,10 @@ public class ApiUserController {
     }
 
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{username}")
     @CrossOrigin
-    public ResponseEntity<ResponseUserDto> getUserById(@PathVariable Integer userId) {
-        User user = this.userService.findUserById(userId);
+    public ResponseEntity<ResponseUserDto> getUserByUsername(@PathVariable String username) {
+        User user = this.userService.getUserByUsername(username);
         ResponseUserDto responseUserDto = new ResponseUserDto();
 
         responseUserDto.setId(user.getId());

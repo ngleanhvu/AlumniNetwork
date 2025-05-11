@@ -62,6 +62,7 @@ public class ApiReactionController {
 
     @GetMapping("/{postId}/reactions/typeReaction")
     public ResponseEntity<List<ReactionDto>> getReactionTypeByPostId(@RequestParam Map<String, String> params, @PathVariable(value = "postId") int postId) {
+
         String type = params.get("type");
         int page = Integer.valueOf(params.get("page"));
 

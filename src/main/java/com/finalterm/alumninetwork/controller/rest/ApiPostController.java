@@ -58,14 +58,17 @@ public class ApiPostController {
         }
     }
 
-    @GetMapping("/profile/{userId}") // -> Go to user's profile
+    @GetMapping("/profile/{username}") // -> Go to user's profile
     public ResponseEntity<List<PostDTO>> getPostsFromProfile(@RequestParam(required = false) Long createdAt,
                                                              @RequestParam(required = false) Integer pageSize,
-                                                             @PathVariable (value = "userId") int userId) {
+                                                             @PathVariable (value = "username") String username) {
         int limit = (pageSize != null) ? pageSize : env.getProperty("pagination.page_size", Integer.class, 5);
         Date cursorDate = (createdAt != null) ? new Date(createdAt) : new Date();
-
-        return ResponseEntity.ok(this.postService.getMyPosts(userId, cursorDate, limit));
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(this.postService.getMyPosts(user.getId(), cursorDate, limit));
     }
 
     //Tạo một bài Post -> có thể gửi Images hoặc không

@@ -89,7 +89,7 @@ public class ReactionServiceImpl implements ReactionService {
 
         ReactionDto reactionDto = new ReactionDto();
         reactionDto.setPostId(postId);
-        reactionDto.setUsername(user.getUsername());
+        reactionDto.setFullName(user.getFullName());
         reactionDto.setUserId(user.getId());
         reactionDto.setType(type);
 
@@ -239,7 +239,7 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("createdDate", String.valueOf(timestamp));
         fields.put("userId", String.valueOf(reactionDto.getUserId()));
         fields.put("postId", String.valueOf(reactionDto.getPostId()));
-        fields.put("username", reactionDto.getUsername());
+        fields.put("fullName", reactionDto.getFullName());
 
         redisTemplate.opsForHash().putAll(hashReactionKey, fields);
         redisTemplate.expire(hashReactionKey, 5, TimeUnit.SECONDS);
