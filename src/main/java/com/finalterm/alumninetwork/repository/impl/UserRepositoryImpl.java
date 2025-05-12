@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.geo.Circle;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,7 +156,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public int countUsers() {
+    public long countUsers() {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createNamedQuery("User.count");
         Long count = (Long) query.getSingleResult();

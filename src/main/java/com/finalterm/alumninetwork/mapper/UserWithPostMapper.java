@@ -12,6 +12,6 @@ public class UserWithPostMapper {
             userWithPostDto.setUserId(user.getId());
             userWithPostDto.setUsername(user.getUsername());
 
-            return userWithPostDto;
-        }
+        return userWithPostDto;
+    }
 }

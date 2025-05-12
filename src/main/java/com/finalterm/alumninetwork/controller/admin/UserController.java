@@ -24,7 +24,6 @@ public class UserController {
     private UserService userService;
     @Autowired
     private LecturerInfoService lecturerInfoService;
-
     @Autowired
     private Environment env;
 
@@ -41,8 +40,6 @@ public class UserController {
 
         model.addAttribute("totalPages", totalPages != 0 ? totalPages : 1);
         model.addAttribute("page", page);
-        params.put("page", String.valueOf(page));
-
         model.addAttribute("users", this.userService.getUsers(params));
         return "users";
     }

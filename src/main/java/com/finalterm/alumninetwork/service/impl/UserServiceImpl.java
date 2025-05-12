@@ -3,6 +3,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
+import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
@@ -46,7 +47,6 @@ public class UserServiceImpl implements UserService {
     private UserRegistrationService userRegistrationService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
     private static final String USER_PREFIX = "user";
 
     @Autowired
@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User not active, wait for acceptance by admin");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
             throw new RuntimeException("Incorrect password");
-
         return jwtService.generateTokenLogin(username);
     }
 
@@ -135,7 +134,6 @@ public class UserServiceImpl implements UserService {
         LecturerInfo existingLecturerInfo = this.lecturerInfoRepository.getLecturerInfoById(lecturerInfo.getId());
         if (existingLecturerInfo == null)
             throw new RuntimeException("LecturerInfo not found");
-
         existingLecturerInfo.setExpiredResetPasswordTime(lecturerInfo.getExpiredResetPasswordTime());
         User user = existingLecturerInfo.getUser();
         user.setActive(true);
@@ -146,7 +144,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUsername(String username) {
-//        User user;
         String key = String.format("%s:%s:%s", USER_PREFIX, "username", username);
 //        user = (User) redisTemplate.opsForValue().get(key);
 //        if (user != null) {

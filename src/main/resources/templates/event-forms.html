@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Trang chủ</title>
-    <th:block th:replace="base :: styles"></th:block>
+    <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
 <main class="container">
 
@@ -13,6 +13,8 @@
 
     <form th:action="@{/events/admin/add}" th:object="${event}" method="post">
         <input type="hidden" th:field="*{id}" />
+        <input type="hidden" th:field="*{startTime}">
+        <input type="hidden" th:field="*{startTime}">
         <!-- Title -->
         <div class="mb-3 mt-3">
             <label class="form-label">Title</label>
@@ -42,13 +44,13 @@
         <!-- Start Time -->
         <div class="mb-3 mt-3">
             <label class="form-label">Start time</label>
-            <input type="date" class="form-control" name = "startTime" required />
+            <input type="datetime-local" class="form-control" th:field="*{startTime}" required />
         </div>
 
         <!-- End Time -->
         <div class="mb-3 mt-3">
             <label class="form-label">End time</label>
-            <input type="date" class="form-control" name="endTime" required />
+            <input type="datetime-local" class="form-control" th:field="*{endTime}" required />
         </div>
 
         <div class="mb-3 mt-3" th:if="${event.id != null}">
@@ -61,6 +63,6 @@
 
 </main>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>
