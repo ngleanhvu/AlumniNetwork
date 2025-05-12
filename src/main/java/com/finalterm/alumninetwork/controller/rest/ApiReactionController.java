@@ -50,4 +50,38 @@ public class ApiReactionController {
         return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
     }
 
+    @PostMapping("/{postId}/reactions")
+    public ResponseEntity<?> reactToPost(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(auth.getName());
+        Post post = this.postService.getPostById(postId);
+
+        if (post == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        if (user == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        String type = params.get("type");
+        if (type == null || (!type.equals("LIKE") && !type.equals("LOVE") && !type.equals("HAHA"))) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        EnumReaction typeReaction = EnumReaction.valueOf(type.toUpperCase());
+        this.reactionService.reactToPost(postId, user, typeReaction);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+    @DeleteMapping("/{postId}/reactions/{reactionId}")
+    public ResponseEntity<Void> removeReaction(@PathVariable("postId") int postId,
+                                               @PathVariable("reactionId") int reactionId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(auth.getName());
+
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        reactionService.removeReaction(postId, reactionId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

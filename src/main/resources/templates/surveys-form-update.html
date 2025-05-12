@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Manage Survey</title>
-  <th:block th:replace="base :: styles"></th:block>
+  <th:block th:replace="~{base :: styles}"></th:block>
   <script>
     function addQuestion() {
       let container = document.getElementById("questions");
@@ -44,7 +44,7 @@
   </script>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 <section class="container">
   <h3 class="d-flex justify-content-center fw-bold font-monospace p-3">
     <span th:text="${survey.id != null ? 'Chỉnh sửa khảo sát' : 'Tạo khảo sát'}"></span>
@@ -101,6 +101,6 @@
             th:text="${survey.id != null ? 'Cập nhật khảo sát' : 'Tạo khảo sát'}"></button>
   </form>
 </section>
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>

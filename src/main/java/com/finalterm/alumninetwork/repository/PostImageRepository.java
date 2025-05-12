@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface PostImageRepository {
     PostImage saveOrUpdate(PostImage postImages);
+
     List<PostImage> getPostImagesByPostId(int postId);
 }
+

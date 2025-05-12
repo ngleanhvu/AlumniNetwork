@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Quản lý người dùng</title>
-    <th:block th:replace="base :: styles"></th:block>
+    <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
     <section class="container">
         <h1 class="text-center text-info mt-1">Đăng ký người dùng</h1>
@@ -32,22 +32,17 @@
                 <label for="phone">Số diện thoại</label>
                 <small class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
             </div>
-            <div class="form-floating mb-3 mt-3" th:if="${user.username == null}">
-                <input type="password" class="form-control" id="password" placeholder="Password" th:field="*{password}" value="######">
-                <label for="password">Password</label>
-                <small class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
-            </div>
             <div class="form-floating mb-3 mt-3">
                 <input type="file" class="form-control" name="file" id="file">
                 <label for="file">Avatar</label>
             </div>
             <div class="form-floating mt-1">
                 <button class="btn btn-success" th:if="${user.username == null}">Thêm tài khoản</button>
-                <button class="btn btn-success" th:if="${user.username != null}">Cập nhật sản phẩm</button>
+                <button class="btn btn-success" th:if="${user.username != null}">Cập nhật tai khoan</button>
             </div>
         </form>
     </section>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>

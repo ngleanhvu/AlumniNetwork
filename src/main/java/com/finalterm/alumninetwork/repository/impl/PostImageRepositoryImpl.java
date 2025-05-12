@@ -1,11 +1,10 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.pojo.PostImage;
-import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.repository.PostImageRepository;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
@@ -38,5 +37,4 @@ public class PostImageRepositoryImpl implements PostImageRepository {
         query.setParameter("postId", postId);
         return query.getResultList();
     }
-
 }

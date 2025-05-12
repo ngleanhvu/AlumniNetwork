@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.finalterm.alumninetwork.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,7 +22,9 @@ import java.util.List;
         @NamedQuery(name = "Post.findById", query = "SELECT p FROM Post p WHERE p.id = :id"),
         @NamedQuery(name = "Post.findByBlockedComment", query = "SELECT p FROM Post p WHERE p.blockedComment = :blockedComment"),
         @NamedQuery(name = "Post.findByActive", query = "SELECT p FROM Post p WHERE p.active = :active"),
-        @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt")})
+        @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt"),
+        @NamedQuery(name = "Post.findAllByUserId", query = "SELECT p from Post p WHERE p.user = :userId")})
+
 public class Post implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,20 +42,19 @@ public class Post implements Serializable {
     @Column(name = "content")
     private String content;
     @Column(name = "blocked_comment")
-    private boolean blockedComment;
+    private Boolean blockedComment;
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private Date createdAt;
-    @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
-    @JsonIgnore
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,  fetch = FetchType.LAZY) //References -> when create post, image will save in cloudinary
     @Column(nullable = true)
+    @JsonIgnore
     List<PostImage> images;
 
     public Post() {
@@ -97,19 +94,19 @@ public class Post implements Serializable {
         this.content = content;
     }
 
-    public boolean getBlockedComment() {
+    public Boolean getBlockedComment() {
         return blockedComment;
     }
 
-    public void setBlockedComment(boolean blockedComment) {
+    public void setBlockedComment(Boolean blockedComment) {
         this.blockedComment = blockedComment;
     }
 
-    public boolean getActive() {
+    public Boolean getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 

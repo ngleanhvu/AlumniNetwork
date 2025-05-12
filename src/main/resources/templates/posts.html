@@ -2,24 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Post</title>
-    <th:block th:replace="base :: styles"></th:block>
+    <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
 <section class="container">
     <h3 class="d-flex justify-content-center fw-bold font-monospace p-3" >Manage Post</h3>
     <a th:href="@{/posts/admin/statistics}" class="btn btn-success m-2">Move to Statistics Post</a>
     <table class="table">
         <tr>
-            <th>User</th>
-            <th>Content</th>
-            <th>Images</th>
+            <th>Người đăng</th>
+            <th>Nội dung</th>
+            <th>Ảnh</th>
+            <th>Số lượng Comments</th>
+            <th>Số lượng Reactions</th>
             <th>Action</th>
         </tr>
         <tr th:each="p: ${posts}">
-            <td th:if="${p.userId != null}" th:text="${p.userId}"></td>
-            <td th:text="${p.title}"></td>
+            <td th:if="${p.user.userId != null}" th:text="${p.user.userId} + ':' + ${p.user.fullName}"></td>
+            <td th:text="${p.content}"></td>
             <td>
                 <table th:if="${not #lists.isEmpty(p.imgUrls)}">
                     <tr th:each="image : ${p.imgUrls}">
@@ -30,6 +32,8 @@
                 </table>
                 <span th:if="${#lists.isEmpty(p.imgUrls)}">Không có ảnh</span>
             </td>
+            <td th:text="${p.totalComments}"></td>
+            <td th:text="${p.statsReaction['TOTAL']}"></td>
             <td>
                 <a th:href="@{/posts/admin/delete/{id}(id=${p.id})}" class="btn btn-danger"
                    onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này?')">Xóa</a>
@@ -38,6 +42,6 @@
     </table>
 </section>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>

@@ -56,14 +56,25 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")
-                .cors()
-                .and()
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
 
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password", "/api/chat").permitAll()
                             .requestMatchers("/api/users/google/login").permitAll()
+                            .requestMatchers("/api/surveys/stats/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/users/current-user").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+//                            .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
+                            .requestMatchers("/api/posts/**").authenticated()
+                            .requestMatchers("/api/posts/*/reactions/**").authenticated()
                             .anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception
@@ -105,13 +116,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // KHÔNG có dấu /
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // BẮT BUỘC nếu bạn dùng cookie hoặc cần giữ phiên
+        configuration.addAllowedOrigin("http://localhost:3000/");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Đừng chỉ /api/**, nên dùng /** cho chắc
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 

@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Manage Lecturer Info</title>
-  <th:block th:replace="base :: styles"></th:block>
+  <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
 <section class="container">
 
@@ -25,7 +25,7 @@
     </div>
   </form>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </section>
 </body>
 </html>

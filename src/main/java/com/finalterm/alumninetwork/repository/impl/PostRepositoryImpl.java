@@ -3,6 +3,7 @@ package com.finalterm.alumninetwork.repository.impl;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.PostRepository;
+import com.google.api.client.util.DateTime;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
@@ -11,7 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
+
+import java.util.*;
 
 @Repository
 @Transactional
@@ -50,27 +52,45 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public List<Post> getAll() {
         Session session = this.factoryBean.getObject().getCurrentSession();
-//        CriteriaBuilder builder = session.getCriteriaBuilder();
-//        CriteriaQuery<Post> query = builder.createQuery(Post.class);
-//        Root root = query.from(Post.class);
-//        query.select(root);
         Query query = session.createQuery("FROM Post", Post.class);
         return query.getResultList();
     }
 
     @Override
-    public List<Integer> getMyPostIds(int userId) {
+    public List<Post> getPostByPostIds(List<Integer> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Session session = this.factoryBean.getObject().getCurrentSession();
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-        CriteriaQuery<Integer> criteriaQuery = criteriaBuilder.createQuery(Integer.class);
-        Root root = criteriaQuery.from(Post.class);
+        CriteriaQuery<Post> criteriaQuery = criteriaBuilder.createQuery(Post.class);
+        Root<Post> root = criteriaQuery.from(Post.class);
 
-        Predicate userPredicate = criteriaBuilder.equal(root.get("user").get("id"), userId);
-        criteriaQuery.select(root.get("id")); // Lấy ID thôi
-        criteriaQuery.where(userPredicate);
-        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("createdAt")));
+        root.fetch("images", JoinType.LEFT); // fetch images
+        criteriaQuery.select(root).where(root.get("id").in(postIds)).distinct(true);
+
+        return session.createQuery(criteriaQuery).getResultList();
+    }
+
+    @Override
+    public List<Post> getPostPaginate(int userId, Date cursorTime, int limit) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<Post> criteriaQuery = criteriaBuilder.createQuery(Post.class);
+        Root<Post> root = criteriaQuery.from(Post.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+        predicates.add(criteriaBuilder.lessThan(root.get("createdAt"), cursorTime));
+
+        criteriaQuery.select(root)
+                .where(predicates.toArray(Predicate[]::new))
+                .orderBy(criteriaBuilder.desc(root.get("createdAt")));
 
         Query query = session.createQuery(criteriaQuery);
+        query.setMaxResults(limit);
+
         return query.getResultList();
     }
 

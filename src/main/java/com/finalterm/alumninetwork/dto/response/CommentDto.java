@@ -1,23 +1,34 @@
 package com.finalterm.alumninetwork.dto.response;
 
+import com.finalterm.alumninetwork.mapper.UserWithPostMapper;
+
 import java.util.Date;
 
 public class CommentDto {
         private int id;
         private String content;
         private Date createdAt;
-        private String username;
+        private UserWithPostDto user;
         private int parentCommentId; // Chỉ lưu ID, không lưu đối tượng
         private int countReplies;
+        private int postOwnerId;
         // getters and setters
+
+    public int getPostOwnerId() {
+        return postOwnerId;
+    }
+
+    public void setPostOwnerId(int postOwnerId) {
+        this.postOwnerId = postOwnerId;
+    }
 
     public CommentDto() {
 
     }
-    public CommentDto(String content, Date createdAt, String username, int parentCommentId, int countReplies, int id) {
+    public CommentDto(String content, Date createdAt, UserWithPostDto user, int parentCommentId, int countReplies, int id) {
         this.content = content;
         this.createdAt = createdAt;
-        this.username = username;
+        this.user = user;
         this.parentCommentId = parentCommentId;
         this.countReplies = countReplies;
         this.id = id;
@@ -27,32 +38,33 @@ public class CommentDto {
             return id;
         }
 
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-        public Date getCreatedAt() {
-            return createdAt;
-        }
-
-        public void setCreatedAt(Date createdAt) {
-            this.createdAt = createdAt;
-        }
-
-    public String getUsername() {
-        return username;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+
+    public UserWithPostDto getUser() {
+        return user;
+    }
+
+    public void setUser(UserWithPostDto user) {
+        this.user = user;
     }
 
     public int getParentCommentId() {

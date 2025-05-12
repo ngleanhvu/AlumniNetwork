@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Post Statistics</title>
-    <th:block th:replace="base :: styles"></th:block>
+    <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
+<div th:replace="~{base :: header}"></div>
 
 <section class="container">
     <form th:action="@{/posts/admin/statistics}" method="post" class="row g-3 align-items-end mt-3 mb-4">
@@ -116,6 +116,6 @@
         }
     </script>
 </section>
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>

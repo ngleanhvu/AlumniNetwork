@@ -1,6 +1,5 @@
 package com.finalterm.alumninetwork.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.finalterm.alumninetwork.pojo.EnumReaction;
 
 public class ReactionDto {
@@ -8,7 +7,8 @@ public class ReactionDto {
     private int postId;
     private EnumReaction type;
     private int userId; //
-    private String username;
+    private String fullName;
+//    private UserWithPostDto user;
     private long createdDate;
 
     public String getId() {
@@ -35,6 +35,15 @@ public class ReactionDto {
         this.type = type;
     }
 
+//    public UserWithPostDto getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(UserWithPostDto user) {
+//        this.user = user;
+//    }
+
+
     public int getUserId() {
         return userId;
     }
@@ -43,13 +52,23 @@ public class ReactionDto {
         this.userId = userId;
     }
 
-    public String getUsername() {
-        return username;
+//    public String getUsername() {
+//        return username;
+//    }
+//
+//    public void setUsername(String username) {
+//        this.username = username;
+//    }
+
+
+    public String getFullName() {
+        return this.fullName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
+
 
     public long getCreatedDate() {
         return createdDate;

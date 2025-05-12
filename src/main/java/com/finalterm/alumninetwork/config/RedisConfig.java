@@ -24,9 +24,26 @@ public class RedisConfig {
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new
-                RedisStandaloneConfiguration(redisHost, redisPort);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
         return new LettuceConnectionFactory(config);
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisTemplateString(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+
+        template.setConnectionFactory(connectionFactory);
+        // Key and hash key serializers
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+
+        // Value and hash value serializers
+        template.setValueSerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new StringRedisSerializer());
+
+        template.afterPropertiesSet();
+
+        return template;
     }
 
     @Bean
@@ -48,9 +65,29 @@ public class RedisConfig {
     }
 
     @Bean
+    public RedisTemplate<String, Integer> redisTemplateInteger(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, Integer> template = new RedisTemplate<>();
+
+        template.setConnectionFactory(connectionFactory);
+        // Key and hash key serializers
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+
+        // Value and hash value serializers
+        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(Integer.class));
+        template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Integer.class)); //Hash to Integer
+
+        template.afterPropertiesSet();
+
+        return template;
+    }
+
+
+
+    @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        // Sử dụng JavaTimeModule thay vì SimpleModule
+
         mapper.registerModule(new JavaTimeModule());
 
         // Định dạng date-time dưới dạng ISO
@@ -60,9 +97,6 @@ public class RedisConfig {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-        //Giữ nguyên datatype khi serialize/deserialize
-        mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(),
-                ObjectMapper.DefaultTyping.NON_FINAL);
         return mapper;
     }
 }

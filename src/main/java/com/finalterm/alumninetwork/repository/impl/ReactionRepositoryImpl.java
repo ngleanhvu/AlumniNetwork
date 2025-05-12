@@ -14,7 +14,6 @@ import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +26,6 @@ public class ReactionRepositoryImpl implements ReactionRepository {
 
     @Autowired
     private LocalSessionFactoryBean sessionFactory;
-
-    @Autowired
-    private Environment environment;
 
     @Override
     public Reaction addOrUpdateReaction(Reaction reaction) {
@@ -59,9 +55,8 @@ public class ReactionRepositoryImpl implements ReactionRepository {
 
         query.where(predicates.toArray(Predicate[]::new)).orderBy(builder.desc(root.get("createdDate")));
 
-        int PAGE_SIZE_REACTION = Integer.parseInt(Objects.requireNonNull(environment.getProperty("PAGE_SIZE_REACTION")));
-        int start = (page - 1) * PAGE_SIZE_REACTION;
-        int end = start + PAGE_SIZE_REACTION;
+        int start = (page - 1) * 6;
+        int end = start + 6;
 
         Query query2 = session.createQuery(query);
         query2.setFirstResult(start);
@@ -122,22 +117,20 @@ public class ReactionRepositoryImpl implements ReactionRepository {
     }
 
     @Override
-    public boolean existsReaction(int postId, int userId) {
+    public Optional<Reaction> existsReaction(int postId, int userId) {
         Session session = sessionFactory.getObject().getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        CriteriaQuery<Reaction> query = builder.createQuery(Reaction.class);
         Root<Reaction> root = query.from(Reaction.class);
 
-        query.select(builder.count(root))
-                .where(
-                        builder.and(
-                                builder.equal(root.get("post").get("id"), postId),
-                                builder.equal(root.get("user").get("id"), userId)
-                        )
-                );
-
-        Long count = session.createQuery(query).getSingleResult();
-        return count != null && count > 0;
+        query.where(
+                builder.and(
+                        builder.equal(root.get("post").get("id"), postId),
+                        builder.equal(root.get("user").get("id"), userId)
+                )
+        );
+        List<Reaction> result = session.createQuery(query).getResultList();
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }
 
     @Override
@@ -146,6 +139,8 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         stats.put("LIKE", countByPostIdAndType(postId, EnumReaction.LIKE.name()));
         stats.put("LOVE", countByPostIdAndType(postId, EnumReaction.LOVE.name()));
         stats.put("HAHA", countByPostIdAndType(postId, EnumReaction.HAHA.name()));
+        stats.put("WOW", countByPostIdAndType(postId, EnumReaction.WOW.name()));
+        stats.put("SAD", countByPostIdAndType(postId, EnumReaction.SAD.name()));
         stats.put("TOTAL", countTotalByPostId(postId));
         return stats;
     }
@@ -190,8 +185,8 @@ public class ReactionRepositoryImpl implements ReactionRepository {
         TypedQuery<Reaction> typedQuery = session.createQuery(query);
         List<Reaction> results = typedQuery.getResultList();
 
-        // Nếu có thì trả về phần tử đầu tiên, còn không thì return null hoặc throw exception tùy yêu cầu
         return results.isEmpty() ? null : results.get(0);
     }
 
 }
+

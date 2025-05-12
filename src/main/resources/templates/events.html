@@ -2,48 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Post</title>
-    <th:block th:replace="base :: styles"></th:block>
+    <th:block th:replace="~{base :: styles}"></th:block>
 </head>
 <body>
-<div th:replace="base :: header"></div>
-
+<div th:replace="~{base :: header}"></div>
 
 <section class="container">
 
     <h2 class="d-flex justify-content-center fw-bold font-monospace p-3" >Manage Event</h2>
     <hr />
-    <form th:action="@{/events/admin}">
-        <div class="row d-flex">
-            <div class="col-md-3">
-                <input type="text" class="form-control" name="kw" placeholder="Từ khóa" th:value="${kw}"/>
-            </div>
-            <div class="col-md-3">
-                <input type="date" class="form-control" name="startTime"  th:value="${startTime}"/>
-            </div>
-            <div class="col-md-3">
-                <input type="date" class="form-control" name="endTime"  th:value="${endTime}"/>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-info" type="submit">Tìm kiếm</button>
-            </div>
-        </div>
-    </form>
-    <div class="d-flex justify-content-end mt-1">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item" th:classappend="${page - 1 < 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{'?page=' + (${page} - 1)+'&kw='+${kw}}">Previous</a>
-                </li>
-
-                <li class="page-item" th:each="p : ${#numbers.sequence(1, totalPages)}" th:classappend="${p == page} ? 'active'">
-                    <a class="page-link" th:href="@{'?page=' + ${p}+'&kw='+${kw}}" th:text="${p}"></a>
-                </li>
-
-                <li class="page-item" th:classappend="${page + 1 > totalPages} ? 'disabled'">
-                    <a class="page-link" th:href="@{'?page=' + (${page} + 1)+'&kw='+${kw}}">Next</a>
-                </li>
-            </ul>
-        </nav>
+    <div class="d-flex justify-content-end">
         <a  th:href="@{/events/admin/add}" class="btn btn-success">Add more event</a>
     </div>
     <hr />
@@ -77,6 +45,6 @@
     </table>
 </section>
 
-<div th:replace="base :: footer"></div>
+<div th:replace="~{base :: footer}"></div>
 </body>
 </html>

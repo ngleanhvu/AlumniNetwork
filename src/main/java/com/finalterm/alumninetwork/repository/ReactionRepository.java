@@ -12,7 +12,7 @@ public interface ReactionRepository {
     void deleteReaction(int postId, int userId);
     Integer countTotalByPostId(int postId);
     Integer countByPostIdAndType(int postId, String type);
-    boolean existsReaction(int postId, int userId);
+    Optional<Reaction> existsReaction(int postId, int userId);
     Map<String, Integer> statsReactionByPostId(int postId);
     List<Reaction> getReactionsByPostId(int postId);
     void deleteReactionById(int reactionId);

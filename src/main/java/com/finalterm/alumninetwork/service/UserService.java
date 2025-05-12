@@ -1,7 +1,6 @@
 package com.finalterm.alumninetwork.service;
 
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
-import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,5 +23,4 @@ public interface UserService extends UserDetailsService {
     List<User> getUserByIds(List<Integer> userIds);
     User getUserByEmail(String email);
     User findUserById(int id);
-    long countUsers();
 }

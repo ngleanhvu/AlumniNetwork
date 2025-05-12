@@ -3,7 +3,6 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
-import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.LecturerInfo;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
@@ -13,7 +12,6 @@ import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.EmailService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,13 +21,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -51,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private UserRegistrationService userRegistrationService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
     private static final String USER_PREFIX = "user";
 
     @Autowired
@@ -100,11 +96,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long countUsers() {
-        return this.userRepository.countUsers();
-    }
-
-    @Override
     public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
@@ -143,6 +134,7 @@ public class UserServiceImpl implements UserService {
         LecturerInfo existingLecturerInfo = this.lecturerInfoRepository.getLecturerInfoById(lecturerInfo.getId());
         if (existingLecturerInfo == null)
             throw new RuntimeException("LecturerInfo not found");
+
         existingLecturerInfo.setExpiredResetPasswordTime(lecturerInfo.getExpiredResetPasswordTime());
         User user = existingLecturerInfo.getUser();
         user.setActive(true);
@@ -153,14 +145,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUsername(String username) {
-        User user;
+//        User user;
         String key = String.format("%s:%s:%s", USER_PREFIX, "username", username);
-        user = (User) redisTemplate.opsForValue().get(key);
-        if (user != null) {
-            return user;
-        }
-        user = this.userRepository.getUserByUsername(username);
-        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
+//        user = (User) redisTemplate.opsForValue().get(key);
+//        if (user != null) {
+//            return user;
+//        }
+        User user = this.userRepository.getUserByUsername(username);
+//        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
         return user;
     }
 
@@ -202,7 +194,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User u = this.getUserByUsername(username);
+        User u = this.userRepository.getUserByUsername(username);
         if (u == null) {
             throw new UsernameNotFoundException(username);
         }
@@ -213,3 +205,4 @@ public class UserServiceImpl implements UserService {
     }
 
 }
+

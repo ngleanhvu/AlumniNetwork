@@ -2,13 +2,11 @@ package com.finalterm.alumninetwork.service;
 
 import com.finalterm.alumninetwork.dto.response.ReactionDto;
 import com.finalterm.alumninetwork.pojo.EnumReaction;
-import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.pojo.Reaction;
 import com.finalterm.alumninetwork.pojo.User;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public interface ReactionService {
     void reactToPost(int postId, User user, EnumReaction type);
@@ -18,3 +16,4 @@ public interface ReactionService {
     Map<String, Integer> initStatsReaction();
     ReactionDto getReactionByPostIdAndUserId(int postId, int userId);
 }
+

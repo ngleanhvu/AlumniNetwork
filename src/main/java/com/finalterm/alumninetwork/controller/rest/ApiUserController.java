@@ -1,9 +1,7 @@
 package com.finalterm.alumninetwork.controller.rest;
 
-import com.cloudinary.provisioning.Account;
 import com.finalterm.alumninetwork.component.JwtService;
 import com.finalterm.alumninetwork.dto.ChangePasswordDto;
-import com.finalterm.alumninetwork.dto.ConfirmUserDto;
 import com.finalterm.alumninetwork.dto.LoginDto;
 import com.finalterm.alumninetwork.dto.ResponseUserDto;
 import com.finalterm.alumninetwork.pojo.User;
@@ -11,7 +9,6 @@ import com.finalterm.alumninetwork.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import static org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames.CLIENT_ID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -62,11 +57,32 @@ public class ApiUserController {
         return ResponseEntity.ok().build();
     }
 
+
+    @GetMapping("/{username}")
+    @CrossOrigin
+    public ResponseEntity<ResponseUserDto> getUserByUsername(@PathVariable String username) {
+        User user = this.userService.getUserByUsername(username);
+        ResponseUserDto responseUserDto = new ResponseUserDto();
+
+        responseUserDto.setId(user.getId());
+        responseUserDto.setFullName(user.getFullName());
+        responseUserDto.setUsername(user.getUsername());
+        responseUserDto.setEmail(user.getEmail());
+        responseUserDto.setPhone(user.getPhone());
+        responseUserDto.setAvatar(user.getAvatar());
+        responseUserDto.setCoverAvatar(user.getCoverAvatar());
+        responseUserDto.setRole(user.getRole().name());
+
+        return ResponseEntity.ok(responseUserDto);
+    }
+
     @GetMapping("/current-user")
     @CrossOrigin
     public ResponseEntity<?> getCurrentUser() {
         User user = this.userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         ResponseUserDto responseUserDto = new ResponseUserDto();
+        responseUserDto.setId(user.getId());
+        responseUserDto.setFullName(user.getFullName());
         responseUserDto.setUsername(user.getUsername());
         responseUserDto.setEmail(user.getEmail());
         responseUserDto.setPhone(user.getPhone());
@@ -90,9 +106,6 @@ public class ApiUserController {
             if (idToken != null) {
                 String email = idToken.getPayload().getEmail();
                 User user = this.userService.getUserByEmail(email);
-                if (user == null) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-                }
                 String jwt = this.jwtService.generateTokenLogin(user.getUsername());
                 return ResponseEntity.ok(Map.of("token", jwt));
             } else {
@@ -102,4 +115,10 @@ public class ApiUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying token");
         }
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUser(@Valid @RequestParam Map<String, String> payload) {
+        return new ResponseEntity<>(this.userService.getUsers(payload), HttpStatus.OK);
+    }
 }
+
