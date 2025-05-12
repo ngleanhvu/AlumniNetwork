@@ -76,7 +76,6 @@ public class CommentServiceImpl implements CommentService {
         String parentCommentContentKey = CommentUtil.generateCommentContentKey(String.valueOf(comment.getParentCommentId().getId()));
         redisTemplate.delete(parentCommentContentKey);
 
-
         List<Comment> replies = parentComment.getReplies();
 
         replies.add(savedComment);
@@ -150,23 +149,19 @@ public class CommentServiceImpl implements CommentService {
     private CommentDto getCommentByIdToCache(int commentId) {
         String commentContentKey= CommentUtil.generateCommentContentKey(String.valueOf(commentId));
 
-        CommentDto commentDto = new CommentDto();
         if (!redisTemplate.hasKey(commentContentKey)) { //Cache miss -> get from DB
             Comment comment = this.commentRepository.getCommentById(commentId);
+            CommentDto cDto = CommentMapper.toCommentDTO(comment);
+            objectRedisTemplate.opsForValue().set(commentContentKey, cDto);
+            objectRedisTemplate.expire(commentContentKey, 2, TimeUnit.MINUTES);
 
-            objectRedisTemplate.opsForValue().set(commentContentKey, comment);
-            objectRedisTemplate.expire(commentContentKey, 15, TimeUnit.MINUTES);
-
-            commentDto = CommentMapper.toCommentDTO(comment);
+            return cDto;
         } else { //get content from cache
             Object obj = objectRedisTemplate.opsForValue().get(commentContentKey);
-            Comment c = objectMapper.convertValue(obj, Comment.class);
+            CommentDto c = objectMapper.convertValue(obj, CommentDto.class);
 
-            if (c != null) {
-                commentDto = CommentMapper.toCommentDTO(c);
-            }
+                return c;
         }
-        return commentDto;
     }
 
 
@@ -191,7 +186,6 @@ public class CommentServiceImpl implements CommentService {
                         String.valueOf(comment.getId()).getBytes()
                 );
             }
-
             // Đặt TTL cho ZSet
             connection.expire(commentIdsKey.getBytes(), 1800);
             return null;
@@ -207,18 +201,23 @@ public class CommentServiceImpl implements CommentService {
             int postId = comment.getPost().getId();
             this.commentRepository.deleteComment(commentId);
             String commentCountKey = CommentUtil.generateTotalCommentCount(String.valueOf(postId));
-
             Integer totalChildComment = comment.getReplies().size();
-            Integer count;
 
             if (totalChildComment == 0)
-                count = redisTemplate.opsForValue().decrement(commentCountKey, 1).intValue();
+                redisTemplate.opsForValue().decrement(commentCountKey, 1).intValue();
+            else{
+                redisTemplate.delete(CommentUtil.generateChildrenComment(
+                        String.valueOf(postId),
+                        String.valueOf(commentId)));
+                redisTemplate.delete(commentCountKey);
+            }
 
             if (comment.getParentCommentId() != null) {
-                redisTemplate.delete(CommentUtil.generateChildrenComment(String.valueOf(commentId), String.valueOf(comment.getParentCommentId())));
+                redisTemplate.delete(CommentUtil.generateCommentContentKey(String.valueOf(comment.getParentCommentId())));
+            } else {
+                redisTemplate.delete(CommentUtil.generateRootComment(String.valueOf(postId)));
             }
-            redisTemplate.delete(CommentUtil.generateRootComment(String.valueOf(commentId)));
-            redisTemplate.delete(commentCountKey);
+            redisTemplate.delete(CommentUtil.generateCommentContentKey(String.valueOf(commentId)));
         }
     }
 
@@ -242,7 +241,7 @@ public class CommentServiceImpl implements CommentService {
 
         if (count == null) {
             count = commentRepository.countTotalCommentsByPostId(postId);
-            redisTemplate.opsForValue().set(key, count, 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(key, count, 5, TimeUnit.MINUTES);
         }
         return count;
     }

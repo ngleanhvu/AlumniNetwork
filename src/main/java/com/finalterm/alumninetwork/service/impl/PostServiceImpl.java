@@ -295,7 +295,14 @@ public class PostServiceImpl implements PostService {
             Object object = objectRedisTemplate.opsForValue().get(postKey);
             Post post = objectMapper.convertValue(object, Post.class);
 
-            int commentCount = (int) objectRedisTemplate.opsForValue().get(postCommentCountKey);
+            Integer commentCount;
+            commentCount = (Integer) objectRedisTemplate.opsForValue().get(postCommentCountKey);
+
+            if (commentCount == null) {
+                commentCount = this.commentService.getTotalCommentByPostId(post.getId());
+                objectRedisTemplate.opsForValue().set(postCommentCountKey, commentCount);
+                objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            }
 
             Map<Object, Object> reactionStats = objectRedisTemplate.opsForHash().entries(postReactionCountKey);
             Map<String, Integer> reactionStatMap = reactionStats.entrySet()

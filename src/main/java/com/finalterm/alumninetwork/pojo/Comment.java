@@ -46,10 +46,12 @@ public class Comment implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     private Comment parentCommentId;
+
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -58,6 +60,7 @@ public class Comment implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
+
 
     //Neu' replies.size() > 0 thi` truy van' th con
     @JsonManagedReference

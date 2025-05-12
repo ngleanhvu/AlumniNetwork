@@ -5,11 +5,11 @@ import com.finalterm.alumninetwork.mapper.UserWithPostMapper;
 import java.util.Date;
 
 public class CommentDto {
-        private int id;
+        private Integer id;
         private String content;
         private Date createdAt;
         private UserWithPostDto user;
-        private int parentCommentId; // Chỉ lưu ID, không lưu đối tượng
+        private Integer parentCommentId; // Chỉ lưu ID, không lưu đối tượng
         private int countReplies;
         private int postOwnerId;
         // getters and setters
@@ -67,13 +67,14 @@ public class CommentDto {
         this.user = user;
     }
 
-    public int getParentCommentId() {
-            return parentCommentId;
-        }
 
-        public void setParentCommentId(int parentCommentId) {
-            this.parentCommentId = parentCommentId;
-        }
+    public Integer getParentCommentId() {
+        return parentCommentId;
+    }
+
+    public void setParentCommentId(Integer parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
 
     public int getCountReplies() {
         return countReplies;

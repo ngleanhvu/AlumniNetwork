@@ -10,6 +10,7 @@ public class ReactionDto {
     private String fullName;
 //    private UserWithPostDto user;
     private long createdDate;
+    private String avatar;
 
     public String getId() {
         return id;
@@ -35,13 +36,6 @@ public class ReactionDto {
         this.type = type;
     }
 
-//    public UserWithPostDto getUser() {
-//        return user;
-//    }
-//
-//    public void setUser(UserWithPostDto user) {
-//        this.user = user;
-//    }
 
 
     public int getUserId() {
@@ -52,14 +46,13 @@ public class ReactionDto {
         this.userId = userId;
     }
 
-//    public String getUsername() {
-//        return username;
-//    }
-//
-//    public void setUsername(String username) {
-//        this.username = username;
-//    }
+    public String getAvatar() {
+        return avatar;
+    }
 
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public String getFullName() {
         return this.fullName;

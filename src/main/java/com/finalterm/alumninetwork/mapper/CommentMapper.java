@@ -21,8 +21,7 @@ public class CommentMapper {
         commentDto.setId(comment.getId());
         commentDto.setContent(comment.getContent());
         commentDto.setCreatedAt(comment.getCreatedAt());
-        if (comment.getParentCommentId() != null)
-            commentDto.setParentCommentId(comment.getParentCommentId().getId());
+        commentDto.setParentCommentId(comment.getParentCommentId() != null ? comment.getParentCommentId().getId() : 0);
         commentDto.setUser(UserWithPostMapper.toUserWithPostDto(comment.getUser()));
         commentDto.setPostOwnerId(comment.getPost().getUser().getId());
 

@@ -15,6 +15,7 @@ public class ReactionMapper {
         dto.setFullName(reaction.getUser().getFullName());
         dto.setUserId(reaction.getUser().getId());
         dto.setCreatedDate(reaction.getCreatedDate().getTime());
+        dto.setAvatar(reaction.getUser().getAvatar());
         return dto;
     }
 
@@ -26,6 +27,7 @@ public class ReactionMapper {
         reactionDto.setUserId(Integer.parseInt((String) reactionData.get("userId")));
         reactionDto.setPostId(Integer.parseInt((String) reactionData.get("postId")));
         reactionDto.setFullName((String) reactionData.get("fullName"));
+        reactionDto.setAvatar((String) reactionData.get("avatar"));
         return reactionDto;
     }
 

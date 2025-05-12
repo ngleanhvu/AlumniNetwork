@@ -66,11 +66,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/surveys/stats/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/users/current-user").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                           .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
                             .requestMatchers("/api/posts/**").authenticated()
@@ -116,9 +112,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000/");
+        configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedMethod("*");
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
