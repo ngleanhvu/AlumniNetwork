@@ -1,10 +1,7 @@
 package com.finalterm.alumninetwork.repository.impl;
 
 import com.finalterm.alumninetwork.dto.StatsSurveyDto;
-import com.finalterm.alumninetwork.pojo.Choice;
-import com.finalterm.alumninetwork.pojo.Question;
-import com.finalterm.alumninetwork.pojo.Survey;
-import com.finalterm.alumninetwork.pojo.UserSurveyChoice;
+import com.finalterm.alumninetwork.pojo.*;
 import com.finalterm.alumninetwork.repository.SurveyRepository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
@@ -184,7 +181,7 @@ public class SurveyRepositoryImpl implements SurveyRepository {
         Session session = sessionFactory.getObject().getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery<Choice> cq = cb.createQuery(Choice.class);
-        Root<Question> root = cq.from(Question.class);
+        Root<Choice> root = cq.from(Choice.class);
         cq.where(root.get("id").in(choiceIds));
         Query q = session.createQuery(cq);
         return q.getResultList();
@@ -199,5 +196,50 @@ public class SurveyRepositoryImpl implements SurveyRepository {
         cq.select(cb.count(root));
         return session.createQuery(cq).getSingleResult();
     }
+
+    @Override
+    public List<Question> getQuestionsBySurveyId(Integer surveyId, Map<String, String> params) {
+        Session session = this.sessionFactory.getObject().getCurrentSession();
+        Survey survey = getSurveyById(surveyId);
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Question> cq = cb.createQuery(Question.class);
+        Root<Question> root = cq.from(Question.class);
+        cq.where(cb.equal(root.get("survey"), survey));
+        Query q = session.createQuery(cq);
+
+
+        if (params != null) {
+            try {
+                int PAGE_SIZE = Integer.parseInt(Objects.requireNonNull(env.getProperty("PAGE_SIZE")));
+                String pageStr = params.getOrDefault("page", "1");
+                if (pageStr != null && !pageStr.trim().isEmpty()) {
+                    int p = Integer.parseInt(pageStr);
+                    int start = (p - 1) * PAGE_SIZE;
+                    q.setFirstResult(start);
+                    q.setMaxResults(PAGE_SIZE);
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return q.getResultList();
+    }
+
+    @Override
+    public List<UserSurveyChoice> getUserSurveyChoicesBySurveyIdAndUserId(Integer surveyId, User user) {
+        Session session = this.sessionFactory.getObject().getCurrentSession();
+        Survey survey = getSurveyById(surveyId);
+        List<Question> questions = survey.getQuestions();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<UserSurveyChoice> cq = cb.createQuery(UserSurveyChoice.class);
+        Root<UserSurveyChoice> root = cq.from(UserSurveyChoice.class);
+        Predicate byUser = cb.equal(root.get("user"), user);
+        Predicate byQuestion = root.get("question").in(questions);
+        cq.where(cb.and(byUser, byQuestion));
+        Query q = session.createQuery(cq);
+        return q.getResultList();
+    }
+
 
 }

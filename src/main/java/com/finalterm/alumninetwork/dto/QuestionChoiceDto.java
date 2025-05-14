@@ -4,12 +4,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 public class QuestionChoiceDto {
-    @NotEmpty
-    @NotNull
     private Integer questionId;
 
-    @NotNull
-    @NotEmpty
     private Integer choiceId;
 
     public QuestionChoiceDto() {}

@@ -2,8 +2,13 @@ package com.finalterm.alumninetwork.controller.rest;
 
 import com.finalterm.alumninetwork.dto.QuestionChoiceDto;
 import com.finalterm.alumninetwork.dto.StatsSurveyDto;
+import com.finalterm.alumninetwork.dto.response.ChoiceDto;
+import com.finalterm.alumninetwork.dto.response.QuestionDto;
+import com.finalterm.alumninetwork.dto.response.SurveyDto;
+import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.pojo.Survey;
 import com.finalterm.alumninetwork.pojo.User;
+import com.finalterm.alumninetwork.pojo.UserSurveyChoice;
 import com.finalterm.alumninetwork.service.SurveyService;
 import com.finalterm.alumninetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,18 +37,50 @@ public class ApiSurveyController {
 
     @GetMapping("/stats/{surveyId}")
     public ResponseEntity<List<StatsSurveyDto>> statUserSurveyChoices(@PathVariable Integer surveyId) {
-        return ResponseEntity
-                .ok(this.surveyService.statUserSurveyChoices(surveyId));
+        return ResponseEntity.ok(surveyService.statUserSurveyChoices(surveyId));
     }
 
     @GetMapping
-    public ResponseEntity<List<Survey>> getSurveys(@RequestParam Map<String, String> params) {
-        return ResponseEntity.ok(this.surveyService.getSurveys(params));
+    public ResponseEntity<List<SurveyDto>> getSurveys(@RequestParam Map<String, String> params) {
+        List<Survey> surveys = surveyService.getSurveys(params);
+        List<SurveyDto> surveyDtos = surveys.stream()
+                .map(survey -> {
+                    SurveyDto surveyDto = new SurveyDto();
+                    surveyDto.setId(survey.getId());
+                    surveyDto.setTitle(survey.getTitle());
+                    surveyDto.setDescription(survey.getDescription());
+                    surveyDto.setStatus(survey.getStatus());
+                    surveyDto.setEndTime(survey.getEndTime());
+                    surveyDto.setStartTime(survey.getStartTime());
+                    return surveyDto;
+                })
+                .toList();
+        return ResponseEntity.ok(surveyDtos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Survey> getSurvey(@PathVariable Integer id) {
-        return ResponseEntity.ok(this.surveyService.getSurveyById(id));
+    public ResponseEntity<List<QuestionDto>> getSurvey(@PathVariable Integer id,
+                                                       @RequestParam Map<String, String> params) {
+        List<Question> questions = this.surveyService.getSurveyQuestions(id, null);
+        List<QuestionDto> questionDtos = questions.stream()
+                .map(question -> {
+                    QuestionDto questionDto = new QuestionDto();
+                    questionDto.setId(question.getId());
+                    questionDto.setContent(question.getContent());
+                    List<ChoiceDto> choiceDtos = question.getChoices()
+                            .stream()
+                            .map(choice -> {
+                                ChoiceDto choiceDto = new ChoiceDto();
+                                choiceDto.setId(choice.getId());
+                                choiceDto.setContent(choice.getContent());
+                                return choiceDto;
+                            })
+                            .toList();
+                    questionDto.setChoiceDtos(choiceDtos);
+                    return questionDto;
+                })
+                .toList();
+        return ResponseEntity.ok(questionDtos);
     }
 
     @PostMapping("/answer-survey")
@@ -51,5 +88,20 @@ public class ApiSurveyController {
     public void answerSurvey(@RequestBody List<QuestionChoiceDto> questionChoiceDtos) {
         User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         this.surveyService.addUserSurveyChoice(user, questionChoiceDtos);
+    }
+
+    @GetMapping("/answer-survey/{id}")
+    public ResponseEntity<List<QuestionChoiceDto>> getAnswerSurvey(@PathVariable Integer id) {
+        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UserSurveyChoice> userSurveyChoices = this.surveyService.getUserSurveyChoices(id, user);
+        List<QuestionChoiceDto> questionChoiceDtos = userSurveyChoices.stream()
+                .map(q -> {
+                    QuestionChoiceDto questionChoiceDto = new QuestionChoiceDto();
+                    questionChoiceDto.setChoiceId(q.getChoice().getId());
+                    questionChoiceDto.setQuestionId(q.getQuestion().getId());
+                    return questionChoiceDto;
+                })
+                .toList();
+        return ResponseEntity.ok(questionChoiceDtos);
     }
 }

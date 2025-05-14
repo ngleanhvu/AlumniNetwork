@@ -1,8 +1,11 @@
 package com.finalterm.alumninetwork.controller.admin;
 
+import com.finalterm.alumninetwork.dto.QuestionChoiceDto;
+import com.finalterm.alumninetwork.dto.StatsSurveyDto;
 import com.finalterm.alumninetwork.pojo.Choice;
 import com.finalterm.alumninetwork.pojo.Question;
 import com.finalterm.alumninetwork.pojo.Survey;
+import com.finalterm.alumninetwork.pojo.UserSurveyChoice;
 import com.finalterm.alumninetwork.service.SurveyService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,5 +102,13 @@ public class SurveyController {
         this.surveyService.deleteSurveyById(surveyId);
         redirectAttrs.addAttribute("msg", "Xóa thành công");
         return "redirect:/surveys/admin";
+    }
+
+    @GetMapping("/surveys-stats/{id}")
+    public String statsSurveys(Model model,
+                               @PathVariable Integer id) {
+        List<StatsSurveyDto> statsSurveyDtos = this.surveyService.statUserSurveyChoices(id);
+        model.addAttribute("stats", statsSurveyDtos);
+        return "surveys-stats";
     }
 }
