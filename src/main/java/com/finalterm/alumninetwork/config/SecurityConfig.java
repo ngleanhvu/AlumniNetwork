@@ -61,20 +61,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
 
-                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password", "/api/chat").permitAll()
+                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register",
+                                    "/api/users/change-password", "/api/chat").permitAll()
                             .requestMatchers("/api/users/google/login").permitAll()
-                            .requestMatchers("/api/surveys/stats/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/users/current-user").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-//                            .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                            .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
-                            .requestMatchers("/api/posts/**").authenticated()
-                            .requestMatchers("/api/posts/*/reactions/**").authenticated()
                             .anyRequest().authenticated();
                 })
                 .exceptionHandling(exception -> exception

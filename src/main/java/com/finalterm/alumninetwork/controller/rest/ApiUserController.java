@@ -45,9 +45,9 @@ public class ApiUserController {
 
     @PostMapping("/login")
     @CrossOrigin
-    public ResponseEntity<String> loginUser(@Valid @RequestBody LoginDto loginDto) {
-        return ResponseEntity
-                .ok(this.userService.login(loginDto.getUsername(), loginDto.getPassword()));
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto loginDto) {
+            return ResponseEntity
+                    .ok(this.userService.login(loginDto.getUsername(), loginDto.getPassword()));
     }
 
     @PostMapping("/change-password")

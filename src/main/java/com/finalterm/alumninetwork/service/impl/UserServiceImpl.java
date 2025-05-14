@@ -104,6 +104,13 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User not active");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
             throw new RuntimeException("Incorrect password");
+        UserRole role = user.getRole();
+        if (role == UserRole.ROLE_LECTURER) {
+            LecturerInfo lecturerInfo = user.getLecturerInfo();
+            if (!lecturerInfo.getChangedPassword() && lecturerInfo.getExpiredResetPasswordTime().before(new Date())) {
+                throw new RuntimeException("Password expired");
+            }
+        }
         return jwtService.generateTokenLogin(username);
     }
 
