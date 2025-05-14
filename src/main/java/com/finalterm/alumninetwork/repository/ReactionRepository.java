@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface ReactionRepository {
-    Reaction addOrUpdateReaction(Reaction reaction);
+    void addOrUpdateReaction(Reaction reaction);
     List<Reaction> getTypeReactionsByPostId(int postId, String type, int page);
     void deleteReaction(int postId, int userId);
     Integer countTotalByPostId(int postId);

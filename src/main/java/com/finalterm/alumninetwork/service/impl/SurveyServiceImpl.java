@@ -35,6 +35,7 @@ public class SurveyServiceImpl implements SurveyService {
         Principal principal = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(principal.getName());
         survey.setUser(user);
+        survey.setStatus("PUBLISHED");
         return this.surveyRepository.saveSurvey(survey);
     }
 
@@ -80,6 +81,16 @@ public class SurveyServiceImpl implements SurveyService {
     @Override
     public long countSurveys() {
         return this.surveyRepository.countSurveys();
+    }
+
+    @Override
+    public List<Question> getSurveyQuestions(Integer surveyId, Map<String, String> params) {
+        return this.surveyRepository.getQuestionsBySurveyId(surveyId, params);
+    }
+
+    @Override
+    public List<UserSurveyChoice> getUserSurveyChoices(Integer surveyId, User user) {
+        return this.surveyRepository.getUserSurveyChoicesBySurveyIdAndUserId(surveyId, user);
     }
 
 }

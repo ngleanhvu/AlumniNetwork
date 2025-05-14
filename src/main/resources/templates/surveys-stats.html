@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê khảo sát</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 24px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .chart-box {
+            flex: 0 0 350px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        .chart-box h4 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Thống kê khảo sát</h2>
+
+<div class="chart-container">
+    <div class="chart-box" th:each="q, iterStat : ${stats}">
+        <h4 th:text="${q.content}"></h4>
+        <canvas th:attr="id='chart-' + ${iterStat.index}"></canvas>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const stats = /*[[${stats}]]*/ [];
+
+    stats.forEach((q, index) => {
+        const ctx = document.getElementById('chart-' + index).getContext('2d');
+        const labels = Object.keys(q.chocies);
+        const data = Object.values(q.chocies);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: q.content,
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

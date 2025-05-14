@@ -4,6 +4,8 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -35,8 +37,8 @@ public class Question implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "content")
     private String content;
-    @JoinColumn(name = "survey_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JoinColumn(name = "survey_id", referencedColumnName = "id")
     private Survey survey;
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Choice> choices = new ArrayList<>();

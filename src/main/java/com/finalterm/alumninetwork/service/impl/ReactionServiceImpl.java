@@ -240,10 +240,10 @@ public class ReactionServiceImpl implements ReactionService {
         fields.put("userId", String.valueOf(reactionDto.getUserId()));
         fields.put("postId", String.valueOf(reactionDto.getPostId()));
         fields.put("fullName", reactionDto.getFullName());
+        fields.put("avatar", reactionDto.getAvatar());
 
         redisTemplate.opsForHash().putAll(hashReactionKey, fields);
         redisTemplate.expire(hashReactionKey, 5, TimeUnit.SECONDS);
         redisTemplate.opsForZSet().add(zSetPostKey, hashReactionKey, timestamp);
     }
 }
-

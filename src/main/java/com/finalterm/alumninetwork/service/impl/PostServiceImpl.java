@@ -208,8 +208,13 @@ public class PostServiceImpl implements PostService {
     public void toggleReaction(Post post, User user, EnumReaction type) {
         ReactionDto reactionDto = this.reactionService.getReactionByPostIdAndUserId(post.getId(), user.getId());
 
-        if (reactionDto == null || !type.equals(reactionDto.getType())) {
+        if (reactionDto == null) {
             this.reactionService.reactToPost(post.getId(), user,  type);
+            return;
+        }
+
+        if (!type.equals(reactionDto.getType())) {
+            this.reactionService.reactToPost(post.getId(), user, type);
             return;
         }
 

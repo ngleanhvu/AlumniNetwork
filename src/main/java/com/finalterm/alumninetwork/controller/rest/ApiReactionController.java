@@ -50,38 +50,14 @@ public class ApiReactionController {
         return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
     }
 
-    @PostMapping("/{postId}/reactions")
-    public ResponseEntity<?> reactToPost(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByUsername(auth.getName());
-        Post post = this.postService.getPostById(postId);
-
-        if (post == null)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        if (user == null)
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    @GetMapping("/{postId}/reactions/typeReaction")
+    public ResponseEntity<List<ReactionDto>> getReactionTypeByPostId(@RequestParam Map<String, String> params, @PathVariable(value = "postId") int postId) {
 
         String type = params.get("type");
-        if (type == null || (!type.equals("LIKE") && !type.equals("LOVE") && !type.equals("HAHA"))) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        EnumReaction typeReaction = EnumReaction.valueOf(type.toUpperCase());
-        this.reactionService.reactToPost(postId, user, typeReaction);
+        int page = Integer.valueOf(params.get("page"));
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
+
     }
-    @DeleteMapping("/{postId}/reactions/{reactionId}")
-    public ResponseEntity<Void> removeReaction(@PathVariable("postId") int postId,
-                                               @PathVariable("reactionId") int reactionId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByUsername(auth.getName());
 
-        if (user == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        reactionService.removeReaction(postId, reactionId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 }

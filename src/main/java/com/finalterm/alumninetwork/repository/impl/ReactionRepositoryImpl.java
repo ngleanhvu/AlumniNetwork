@@ -1,6 +1,5 @@
 package com.finalterm.alumninetwork.repository.impl;
 
-import com.finalterm.alumninetwork.pojo.Comment;
 import com.finalterm.alumninetwork.pojo.EnumReaction;
 import com.finalterm.alumninetwork.pojo.Reaction;
 import com.finalterm.alumninetwork.repository.ReactionRepository;
@@ -13,7 +12,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,15 +26,12 @@ public class ReactionRepositoryImpl implements ReactionRepository {
     private LocalSessionFactoryBean sessionFactory;
 
     @Override
-    public Reaction addOrUpdateReaction(Reaction reaction) {
+    public void addOrUpdateReaction(Reaction reaction) {
         Session session = sessionFactory.getObject().getCurrentSession();
         if (reaction.getId() == null) {
             session.persist(reaction);
         } else
             session.merge(reaction);
-
-        session.refresh(reaction);
-        return reaction;
     }
 
     @Override

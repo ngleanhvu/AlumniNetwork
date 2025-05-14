@@ -4,6 +4,9 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -50,9 +53,10 @@ public class Survey implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
-    @Size(max = 6)
+    @Size(max = 20)
     @Column(name = "status")
     private String status;
+    @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User user;

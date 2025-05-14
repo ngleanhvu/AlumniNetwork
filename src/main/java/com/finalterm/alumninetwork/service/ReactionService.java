@@ -16,4 +16,3 @@ public interface ReactionService {
     Map<String, Integer> initStatsReaction();
     ReactionDto getReactionByPostIdAndUserId(int postId, int userId);
 }
-
