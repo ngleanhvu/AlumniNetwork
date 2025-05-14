@@ -56,15 +56,7 @@ public class EventController {
 
     @PostMapping("/admin/add")
     public String createOrSave(@ModelAttribute("event") Event e,
-                               @ModelAttribute("startTime") String startTime,
-                               @ModelAttribute("endTime") String endTime,
                                @ModelAttribute("offline") Boolean offline) throws Exception {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date start = sdf.parse(startTime);
-        Date end = sdf.parse(endTime);
-
-        e.setStartTime(start);
-        e.setEndTime(end);;
         this.eventService.saveEvent(e, offline);
         return "redirect:/events/admin";
     }
@@ -87,8 +79,8 @@ public class EventController {
 
     @PostMapping("/admin/send-email")
     public String sendEvent(@ModelAttribute("event") Event e,
-                            @RequestParam("userIds") List<Integer> userIds,
-                            @RequestParam("groupIds") List<Integer> groupIds) {
+                            @RequestParam(value = "userIds", required = false) List<Integer> userIds,
+                            @RequestParam(value = "groupIds", required = false) List<Integer> groupIds) {
         Event event = this.eventService.getEventById(e.getId());
         this.eventService.sendEvent(event, userIds, groupIds);
         return "redirect:/events/admin";

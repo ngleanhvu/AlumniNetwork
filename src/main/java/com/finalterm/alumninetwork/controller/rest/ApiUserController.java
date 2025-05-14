@@ -36,6 +36,7 @@ public class ApiUserController {
     @PostMapping(path = "/register",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseStatus(HttpStatus.CREATED)
     @CrossOrigin
     public ResponseEntity addUser(@RequestParam Map<String, String> params,
                                   @RequestPart("avatar") MultipartFile avatar) {
@@ -63,6 +64,7 @@ public class ApiUserController {
         this.userService.changePassword(changePasswordDto);
         return ResponseEntity.ok().build();
     }
+
 
     @GetMapping("/{username}")
     @CrossOrigin
@@ -127,3 +129,4 @@ public class ApiUserController {
         return new ResponseEntity<>(this.userService.getUsers(payload), HttpStatus.OK);
     }
 }
+

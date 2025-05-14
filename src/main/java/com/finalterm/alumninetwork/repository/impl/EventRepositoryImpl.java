@@ -37,7 +37,7 @@ public class EventRepositoryImpl implements EventRepository {
         if (params != null) {
             List<Predicate> predicates = new ArrayList<Predicate>();
             String kw = params.get("kw");
-            if (!kw.isEmpty()) {
+            if (kw != null && !kw.isEmpty()) {
                 predicates.add(
                         cb.or(
                                 cb.like(root.get("title"), String.format("%%%s%%", kw)),
@@ -48,7 +48,7 @@ public class EventRepositoryImpl implements EventRepository {
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String startTime = params.get("startTime");
-            if (!startTime.isEmpty()) {
+            if (startTime != null && !startTime.isEmpty()) {
                 try {
                     Date startDate = sdf.parse(startTime);
                     predicates.add(cb.greaterThanOrEqualTo(root.get("startTime"), startDate));
@@ -57,7 +57,7 @@ public class EventRepositoryImpl implements EventRepository {
                 }
             }
             String endTime = params.get("endTime");
-            if (!endTime.isEmpty()) {
+            if (endTime != null && !endTime.isEmpty()) {
                 try {
                     Date endDate = sdf.parse(endTime);
                     predicates.add(cb.lessThanOrEqualTo(root.get("endTime"), endDate));

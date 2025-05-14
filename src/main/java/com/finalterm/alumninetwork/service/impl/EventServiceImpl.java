@@ -1,6 +1,7 @@
 package com.finalterm.alumninetwork.service.impl;
 
 import com.finalterm.alumninetwork.dto.EmailRecord;
+import com.finalterm.alumninetwork.dto.response.EventDTO;
 import com.finalterm.alumninetwork.pojo.Event;
 import com.finalterm.alumninetwork.pojo.GroupNetwork;
 import com.finalterm.alumninetwork.pojo.User;
@@ -10,6 +11,7 @@ import com.finalterm.alumninetwork.service.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,8 +59,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void sendEvent(Event event, List<Integer> userIds, List<Integer> groupNetworkIds) {
-        List<User> users = this.userService.getUserByIds(userIds);
-        List<User> groupUsers = this.groupService.getUserGroupNetworksByIds(groupNetworkIds);
+        List<User> users = new ArrayList<>();
+        if (userIds != null)
+            users = this.userService.getUserByIds(userIds);
+
+        List<User> groupUsers = new ArrayList<>();
+        if (groupNetworkIds != null)
+            groupUsers = this.groupService.getUserGroupNetworksByIds(groupNetworkIds);
 
         Set<User> allReceiptUsers = new HashSet<>();
 
@@ -69,6 +76,16 @@ public class EventServiceImpl implements EventService {
         if (!groupUsers.isEmpty()) {
             allReceiptUsers.addAll(groupUsers);
         }
+
+        if (allReceiptUsers.isEmpty()) {
+            return;
+        }
+
+        EventDTO eventDTO = new EventDTO();
+        eventDTO.setId(event.getId());
+        eventDTO.setTitle(event.getTitle());
+        eventDTO.setStartTime(event.getStartTime());
+        eventDTO.setEndTime(event.getEndTime());
 
         List<EmailRecord> emailRecords = allReceiptUsers.stream()
                 .map(user -> new EmailRecord(user.getEmail(), event.getTitle(), event.getContent()))
