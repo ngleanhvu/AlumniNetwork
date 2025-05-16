@@ -10,6 +10,7 @@ public class UserWithPostMapper {
         userWithPostDto.setAvatar(user.getAvatar());
         userWithPostDto.setFullName(user.getFullName());
         userWithPostDto.setUserId(user.getId());
+        userWithPostDto.setUsername(user.getUsername());
 
         return userWithPostDto;
     }

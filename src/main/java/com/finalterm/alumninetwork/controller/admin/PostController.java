@@ -3,12 +3,16 @@ package com.finalterm.alumninetwork.controller.admin;
 import com.finalterm.alumninetwork.pojo.Post;
 import com.finalterm.alumninetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Year;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 
 @Controller
@@ -18,10 +22,25 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private Environment env;
     //---------------------------------ROLE ADMIN-------------------------------------
     @GetMapping()
-    public String managePost(Model model) {
-        model.addAttribute("posts", this.postService.getPosts());
+    public String managePost(Model model,
+                             @ModelAttribute("kw") String keyword,
+                             @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
+
+        Map<String, String> params = new HashMap<>();
+        params.put("kw", keyword);
+        int pageSize = Integer.parseInt(Objects.requireNonNull(env.getProperty("PAGE_SIZE")));
+
+        long totalPosts = this.postService.countTotalPosts();
+
+        model.addAttribute("totalPages", Math.ceil((double) totalPosts / pageSize));
+        model.addAttribute("page", page);
+        params.put("page", String.valueOf(page));
+
+        model.addAttribute("posts", this.postService.getPosts(params));
         return "posts"; // -> Trang thêm post
     }
 

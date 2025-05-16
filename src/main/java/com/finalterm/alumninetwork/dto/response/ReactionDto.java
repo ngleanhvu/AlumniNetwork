@@ -8,8 +8,8 @@ public class ReactionDto {
     private EnumReaction type;
     private int userId; //
     private String fullName;
-//    private UserWithPostDto user;
     private long createdDate;
+    private String username;
     private String avatar;
 
     public String getId() {
@@ -35,8 +35,6 @@ public class ReactionDto {
     public void setType(EnumReaction type) {
         this.type = type;
     }
-
-
 
     public int getUserId() {
         return userId;
@@ -69,5 +67,13 @@ public class ReactionDto {
 
     public void setCreatedDate(long createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

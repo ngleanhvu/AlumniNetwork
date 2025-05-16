@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
         if (user == null)
             throw new RuntimeException("User not found");
         if (!user.getActive())
-            throw new RuntimeException("User not active");
+            throw new RuntimeException("User not active, wait for acceptance by admin");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
             throw new RuntimeException("Incorrect password");
         return jwtService.generateTokenLogin(username);

@@ -10,7 +10,7 @@ public class PostDTO {
     private Integer id;
     private String title;
     private String content;
-    private Boolean blockedComment = false;
+    private Boolean blockedComment;
     private Boolean active = true;
     private Date createdAt;
     private UserWithPostDto user;

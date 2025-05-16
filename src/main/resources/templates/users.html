@@ -27,30 +27,6 @@
     </div>
   </form>
   <div class="d-flex justify-content-end">
-    <nav>
-      <ul class="pagination">
-        <li class="page-item">
-          <a class="page-link"
-             th:href="@{'?page=' + ${page > 0 ? page : 1}}"
-             th:classappend="${page == 0} ? ' disabled'">Previous</a>
-        </li>
-
-        <li class="page-item"
-            th:each="p : ${#numbers.sequence(1, totalPages)}"
-            th:classappend="${p == page} ? ' active'">
-          <a class="page-link"
-             th:href="@{'?page=' + ${p}}"
-             th:text="${p}"></a>
-        </li>
-
-        <li class="page-item">
-          <a class="page-link"
-             th:href="@{'?page=' + (${page + 2})}"
-             th:classappend="${page >= totalPages} ? ' disabled'">Next</a>
-        </li>
-      </ul>
-    </nav>
-
     <a  th:href="@{/users/admin/add}" class="btn btn-success">Thêm người dùng</a>
   </div>
   <hr />
@@ -79,7 +55,7 @@
                 th:object="${u}"
           >
             <input type="hidden" th:value="${u.id}" name="id">
-            <button class="btn btn-danger" type="submit">Xoá</button>
+            <button class="btn btn-danger" type="submit"  onclick="return confirm('Bạn có chắc muốn xoá không?');">Xoá</button>
           </form>
           <form method="post"
                 th:if="${u.active == false and u.role.name == 'ROLE_ALUMNI'}"
@@ -87,8 +63,9 @@
                 th:object="${u}"
           >
             <input type="hidden" th:value="${u.id}" name="id">
-            <button class="btn btn-primary" type="submit"  onclick="return confirm('Bạn có chắc muốn xoá không?');">Xác nhận</button>
+            <button class="btn btn-primary" type="submit" >Xác nhận</button>
           </form>
+
           <button class="btn btn-secondary" type="button"
                   th:if="${u.active == false and u.role.name == 'ROLE_LECTURER'}"
           >
@@ -105,6 +82,32 @@
       </td>
     </tr>
   </table>
+  <div class="d-flex justify-content-center">
+  <nav>
+    <ul class="pagination">
+      <li class="page-item">
+        <a class="page-link"
+           th:href="@{'?page=' + ${page > 0 ? page - 1 : 1}}"
+           th:classappend="${page == 0} ? ' disabled'">Previous</a>
+      </li>
+
+      <li class="page-item"
+          th:each="p : ${#numbers.sequence(1, totalPages)}"
+          th:classappend="${p == page} ? ' active'">
+        <a class="page-link"
+           th:href="@{'?page=' + ${p}}"
+           th:text="${p}"></a>
+      </li>
+
+      <li class="page-item">
+        <a class="page-link"
+           th:href="@{'?page=' + ${page + 1}}"
+           th:classappend="${page >= totalPages} ? ' disabled'">Next</a>
+      </li>
+    </ul>
+  </nav>
+  </div>
+
 </section>
 
 <div th:replace="~{base :: footer}"></div>

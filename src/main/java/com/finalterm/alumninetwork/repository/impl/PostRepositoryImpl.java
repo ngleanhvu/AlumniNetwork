@@ -9,6 +9,7 @@ import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +22,16 @@ public class PostRepositoryImpl implements PostRepository {
     @Autowired
     private LocalSessionFactoryBean factoryBean;
 
+    @Autowired
+    private Environment env;
+
     @Override
     public Post saveOrUpdate(Post p) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         if (p.getId() == null)
             session.persist(p);
         else
-            session.merge(p);
-        session.refresh(p);
+            p = (Post) session.merge(p);
         return p;
     }
 
@@ -50,10 +53,56 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> getAll() {
+    public Integer countPosts() {
         Session session = this.factoryBean.getObject().getCurrentSession();
-        Query query = session.createQuery("FROM Post", Post.class);
-        return query.getResultList();
+        Query query = session.createNamedQuery("Post.count");
+        Long count = (Long) query.getSingleResult();
+        return count.intValue();
+    }
+
+    @Override
+    public List<Post> getAll(Map<String, String> params) {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Post> query = builder.createQuery(Post.class);
+        Root<Post> root = query.from(Post.class);
+
+        Join<Post, User> userJoin = root.join("user", JoinType.INNER);
+
+        if (params != null && !params.isEmpty()) {
+            List<Predicate> predicates = new ArrayList<>();
+            String key = params.get("kw");
+            if (key != null && !key.isEmpty()) {
+                predicates.add(
+                        builder.or(
+                                builder.like(root.get("content"), String.format("%%%s%%", key)),
+                                builder.like(root.get("title"), String.format("%%%s%%", key)),
+                                builder.like(userJoin.get("fullName"), String.format("%%%s%%", key))
+                        )
+                );
+                query.where(predicates.toArray(Predicate[]::new));
+            }
+        }
+        query.orderBy(builder.desc(root.get("createdAt")));
+
+        Query q = session.createQuery(query);
+        if (params != null && !params.isEmpty()) {
+
+            int PAGE_SIZE = params.get("limit") == null ?
+                    Integer.parseInt(Objects.requireNonNull(env.getProperty("PAGE_SIZE"))) :
+                    Integer.parseInt(params.get("limit"));
+
+            String page = params.get("page") == null ? "1" : params.get("page");
+
+            int p = Integer.parseInt(page);
+            int start = (p -1) * PAGE_SIZE;
+
+            q.setFirstResult(start);
+            q.setMaxResults(PAGE_SIZE);
+
+        }
+
+        return q.getResultList();
     }
 
     @Override

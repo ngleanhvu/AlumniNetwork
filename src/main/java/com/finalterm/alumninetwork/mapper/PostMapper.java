@@ -13,6 +13,7 @@ public class PostMapper {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
         postDTO.setContent(post.getContent());
+        postDTO.setBlockedComment(post.getBlockedComment());
         postDTO.setTitle(post.getTitle());
         postDTO.setUser(UserWithPostMapper.toUserWithPostDto(post.getUser()));
         postDTO.setCreatedAt(post.getCreatedAt());

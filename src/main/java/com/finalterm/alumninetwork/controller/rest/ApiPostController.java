@@ -79,7 +79,7 @@ public class ApiPostController {
     @CrossOrigin
     public ResponseEntity<?> uploadPostOrUpdate(@RequestParam(value = "content") String content,
                                                       @RequestParam(value = "postId", required = false) Integer postId, //For update
-                                                      @RequestParam(value = "title") String title,
+                                                      @RequestParam(value = "title", required = false) String title,
                                                       @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -91,9 +91,10 @@ public class ApiPostController {
 
             if (postId != null) {
                 params.put("postId", String.valueOf(postId));
+                return ResponseEntity.ok(this.postService.updatePost(params));
             }
 
-            return ResponseEntity.ok(this.postService.saveOrUpdate(params, images, user));
+            return ResponseEntity.ok(this.postService.savePosts(params, images, user));
         } catch (Exception e) {
             e.printStackTrace(); // ➜ In lỗi đầy đủ
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

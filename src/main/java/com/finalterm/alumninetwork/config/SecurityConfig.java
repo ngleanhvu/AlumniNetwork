@@ -60,13 +60,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
-
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register", "/api/users/change-password", "/api/chat").permitAll()
                             .requestMatchers("/api/users/google/login").permitAll()
                             .requestMatchers("/api/surveys/stats/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/comments").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/users/current-user").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
-                           .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
+                            .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "LECTURER", "ALUMNI")
                             .requestMatchers("/api/users/login", "/api/swagger-ui.html", "/api/users/register").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/zoom/create").permitAll()
                             .requestMatchers("/api/posts/**").authenticated()
@@ -120,7 +119,7 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

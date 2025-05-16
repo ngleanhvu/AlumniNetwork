@@ -16,6 +16,7 @@ import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.util.PostUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -45,16 +46,17 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private RedisTemplate<String, Object> objectRedisTemplate;
 
-
     @Autowired
     private CommentService commentService;
 
     @Autowired
     private ReactionService reactionService;
 
+    @Autowired
+    private Environment env;
 
     // Thời gian cache cho các post
-    private final long POST_CACHE_TTL = 3600; // 1 giờ (tính bằng giây)
+    private final long POST_CACHE_TTL = 300; // 1 giờ (tính bằng giây)
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -62,8 +64,8 @@ public class PostServiceImpl implements PostService {
     // --------------------------- ADMIN SERVICE --------------------------------------
     @Override
     @Transactional
-    public List<PostDTO> getPosts() { //For admin -> get All Posts
-        return this.postRepository.getAll().stream().map(post -> {
+    public List<PostDTO> getPosts(Map<String, String> params) { //For admin -> get All Posts
+        return this.postRepository.getAll(params).stream().map(post -> {
                 int totalComments = this.commentService.getTotalCommentByPostId(post.getId());
                 Map<String, Integer> stats = this.reactionService.statsReactionByPostId(post.getId());
                 List<String> imageUrls = postImageService.getPostImagesByPostId(post.getId())
@@ -89,7 +91,59 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public PostDTO saveOrUpdate(Map<String, String> params, List<MultipartFile> fileImages, User user) {
+    public PostDTO updatePost(Map<String, String> params) {
+        String postId = params.get("postId");
+        Post p = this.postRepository.getPostById(Integer.parseInt(postId));
+        String postKey = PostUtil.generatePostKey(postId);
+        String postCommentCountKey = PostUtil.generateTotalCommentCount(String.valueOf(String.valueOf(p.getId())));
+        String postReactionCountKey = PostUtil.generatePostReactionStatsKey(String.valueOf(String.valueOf(p.getId())));
+
+        //-> update Post thi cap nhap lai noi dung....
+        objectRedisTemplate.delete(postKey);
+
+        if (p == null)
+            throw new RuntimeException("Post not found");
+
+        String newContent = params.get("content");
+        p.setContent(newContent);
+        p = this.postRepository.saveOrUpdate(p);
+
+        objectRedisTemplate.opsForValue().set(postKey, p);
+
+        Integer commentCount;
+        commentCount = (Integer) objectRedisTemplate.opsForValue().get(postCommentCountKey);
+
+        if (commentCount == null) {
+            commentCount = this.commentService.getTotalCommentByPostId(Integer.parseInt(postId));
+            objectRedisTemplate.opsForValue().set(postCommentCountKey, commentCount);
+            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
+        }
+
+        Map<Object, Object> reactionStats = objectRedisTemplate.opsForHash().entries(postReactionCountKey);
+        Map<String, Integer> reactionStatMap;
+
+        if (reactionStats == null || reactionStats.isEmpty()) {
+            reactionStatMap = this.reactionService.statsReactionByPostId(p.getId());
+        } else {
+            reactionStatMap = reactionStats.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            entry -> (String) entry.getKey(),
+                            entry -> (Integer) entry.getValue()
+                    ));
+        }
+            List<String> imageUrls = this.postImageService.getPostImagesByPostId(p.getId())
+                    .stream()
+                    .map(PostImage::getUrl)
+                    .collect(Collectors.toList());
+
+        return PostMapper.toPostDTO(p, commentCount, reactionStatMap, imageUrls);
+    }
+
+
+    @Transactional
+    @Override
+    public PostDTO savePosts(Map<String, String> params, List<MultipartFile> fileImages, User user) {
         Post p;
         boolean isNew = params.get("postId") == null;
 
@@ -154,17 +208,17 @@ public class PostServiceImpl implements PostService {
             objectRedisTemplate.opsForValue().set(postCommentCountKey, totalComments);
             objectRedisTemplate.opsForHash().putAll(postReactionCountKey, statsReaction);
 
-
             if (imgUrls != null && !imgUrls.isEmpty()) {
                 for (String url : imgUrls)
                     objectRedisTemplate.opsForList().leftPush(postImagesKey, url);
-                    objectRedisTemplate.expire(postImagesKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+                    objectRedisTemplate.expire(postImagesKey, 10, TimeUnit.MINUTES);
             }
+
             updateFeedScore(p);
 
-            objectRedisTemplate.expire(postReactionCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
-            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
-            objectRedisTemplate.expire(postKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postReactionCountKey, 300, TimeUnit.SECONDS);
+            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
+            objectRedisTemplate.expire(postKey, POST_CACHE_TTL, TimeUnit.SECONDS);
         }
         return PostMapper.toPostDTO(p, totalComments, statsReaction, imgUrls);
     }
@@ -271,24 +325,25 @@ public class PostServiceImpl implements PostService {
 
             int commentCount = this.commentService.getTotalCommentByPostId(post.getId());
             objectRedisTemplate.opsForValue().set(postCommentCountKey, commentCount);
-            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
 
             Map<String, Integer> reactionStats = this.reactionService.statsReactionByPostId(post.getId());
             objectRedisTemplate.opsForHash().putAll(postReactionCountKey, reactionStats);
-            objectRedisTemplate.expire(postReactionCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postReactionCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
 
             List<String> imageUrls = this.postImageService.getPostImagesByPostId(post.getId())
                     .stream()
                     .map(PostImage::getUrl)
                     .collect(Collectors.toList());
 
+            redisTemplate.delete(postImagesKey);
             for (String url : imageUrls) {
                 objectRedisTemplate.opsForList().leftPush(postImagesKey, url);
             }
-            objectRedisTemplate.expire(postImagesKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postImagesKey, 10, TimeUnit.MINUTES);
 
             objectRedisTemplate.opsForValue().set(postKey, post);
-            objectRedisTemplate.expire(postKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postKey, POST_CACHE_TTL, TimeUnit.SECONDS);
 
             postDTO = PostMapper.toPostDTO(post, commentCount, reactionStats, imageUrls);
         } else {
@@ -301,7 +356,7 @@ public class PostServiceImpl implements PostService {
             if (commentCount == null) {
                 commentCount = this.commentService.getTotalCommentByPostId(post.getId());
                 objectRedisTemplate.opsForValue().set(postCommentCountKey, commentCount);
-                objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+                objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
             }
 
             Map<Object, Object> reactionStats = objectRedisTemplate.opsForHash().entries(postReactionCountKey);
@@ -311,12 +366,27 @@ public class PostServiceImpl implements PostService {
                             entry -> (String) entry.getKey(),
                             entry -> (Integer) entry.getValue()
                     ));
-            List<Object> imageUrls = objectRedisTemplate.opsForList().range(postImagesKey, 0, -1);
-            List<String> newImageUrls = imageUrls != null
-                    ? imageUrls.stream().map(Object::toString).toList()
-                    : Collections.emptyList();new ArrayList<>();
+            List<Object> cachedImageUrls = objectRedisTemplate.opsForList().range(postImagesKey, 0, -1);
+            List<String> imageUrls;
+
+            if (cachedImageUrls != null && !cachedImageUrls.isEmpty()) {
+                imageUrls = cachedImageUrls.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+            } else {
+                imageUrls = this.postImageService.getPostImagesByPostId(post.getId())
+                        .stream()
+                        .map(PostImage::getUrl)
+                        .collect(Collectors.toList());
+
+                if (!imageUrls.isEmpty()) {
+                    objectRedisTemplate.delete(postImagesKey);
+                    objectRedisTemplate.opsForList().leftPushAll(postImagesKey, new ArrayList<>(imageUrls));
+                    objectRedisTemplate.expire(postImagesKey, 10, TimeUnit.MINUTES);
+                }
+            }
             if (post != null) {
-                postDTO = PostMapper.toPostDTO(post, commentCount, reactionStatMap, newImageUrls);
+                postDTO = PostMapper.toPostDTO(post, commentCount, reactionStatMap, imageUrls);
             }
         }
 
@@ -348,7 +418,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    //Cache Feed sẽ lấy số lượng bài mới hoặc bài cũ nhưng có số lượng comment, reactions nhiều nhất
+    //Cache Feed sẽ lấy bài mới hoặc bài cũ nhưng có số lượng comment, reactions nhiều nhất
     //Lưu vào ZSet Redis theo score: createdDate + totalComment + totalReactions
     public FeedResponseDto loadGlobalFeed(Date cursorTime, int limit) {
         String feedKey = PostUtil.globalFeedKey();
@@ -362,7 +432,11 @@ public class PostServiceImpl implements PostService {
 
         if (postIdTuples == null || postIdTuples.isEmpty()) {
             // Cache miss lấy post từ DB, nên đổi thành lấy một số lượng nhất định -> update sau
-            List<Post> posts = this.postRepository.getAll();
+            Map<String, String> params = new HashMap<>();
+            params.put("limit", env.getProperty("pagination.global.post_size"));
+            List<Post> posts = this.postRepository.getAll(params);
+
+            System.out.printf("Post size: ", posts.size());
 
             for (Post post : posts) {
                 updateFeedScore(post);
@@ -407,7 +481,7 @@ public class PostServiceImpl implements PostService {
         if (commentCount == null ) {
             commentCount = this.commentService.getTotalCommentByPostId(post.getId());
             objectRedisTemplate.opsForValue().set(postCommentCountKey, commentCount);
-            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.MINUTES);
+            objectRedisTemplate.expire(postCommentCountKey, POST_CACHE_TTL, TimeUnit.SECONDS);
         }
 
         int reactionCount;
@@ -442,5 +516,10 @@ public class PostServiceImpl implements PostService {
             return null;
         });
         redisTemplate.expire(feedKey, 5, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public Integer countTotalPosts() {
+        return this.postRepository.countPosts();
     }
 }

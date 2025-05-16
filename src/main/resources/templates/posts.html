@@ -8,8 +8,24 @@
 <div th:replace="~{base :: header}"></div>
 
 <section class="container">
+
     <h3 class="d-flex justify-content-center fw-bold font-monospace p-3" >Manage Post</h3>
-    <a th:href="@{/posts/admin/statistics}" class="btn btn-success m-2">Move to Statistics Post</a>
+
+    <form th:action="@{/posts/admin}">
+        <div class="row d-flex">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="kw" placeholder="Từ khóa" />
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-info" type="submit">Tìm kiếm</button>
+            </div>
+        </div>
+    </form>
+    <hr>
+
+    <div class="d-flex justify-content-end">
+        <a th:href="@{/posts/admin/statistics}" class="btn btn-success m-2">Statistics Post</a>
+    </div >
     <table class="table">
         <tr>
             <th>Người đăng</th>
@@ -17,6 +33,7 @@
             <th>Ảnh</th>
             <th>Số lượng Comments</th>
             <th>Số lượng Reactions</th>
+            <th>Ngày đăng</th>
             <th>Action</th>
         </tr>
         <tr th:each="p: ${posts}">
@@ -34,12 +51,62 @@
             </td>
             <td th:text="${p.totalComments}"></td>
             <td th:text="${p.statsReaction['TOTAL']}"></td>
+            <td th:text="${#dates.format(p.createdAt, 'dd/MM/yyyy')}"></td>
             <td>
                 <a th:href="@{/posts/admin/delete/{id}(id=${p.id})}" class="btn btn-danger"
                    onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết này?')">Xóa</a>
             </td>
         </tr>
     </table>
+    <div class="d-flex justify-content-center mt-3">
+        <nav>
+            <ul class="pagination">
+                <!-- Previous -->
+                <li class="page-item" th:classappend="${page <= 1} ? ' disabled'">
+                    <a class="page-link"
+                       th:if="${kw != null}"
+                       th:href="@{'?kw=' + ${kw} + '&page=' + ${page - 1}}"
+                    >
+                        Previous
+                    </a>
+                    <a class="page-link"
+                       th:unless="${kw != null}"
+                       th:href="@{'?page=' + ${page - 1}}">
+                        Previous
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                <li class="page-item"
+                    th:each="p : ${#numbers.sequence(1, totalPages)}"
+                    th:classappend="${p == page} ? ' active'">
+                    <a class="page-link"
+                       th:if="${kw != null}"
+                       th:href="@{'?kw=' + ${kw} + '&page=' + ${p}}"
+                       th:text="${p}"></a>
+                    <a class="page-link"
+                       th:unless="${kw != null}"
+                       th:href="@{'?page=' + ${p}}"
+                       th:text="${p}"></a>
+                </li>
+
+                <!-- Next -->
+                <li class="page-item" th:classappend="${page >= totalPages} ? ' disabled'">
+                    <a class="page-link"
+                       th:if="${kw != null}"
+                       th:href="@{'?kw=' + ${kw} + '&page=' + ${page + 1}}">
+                        Next
+                    </a>
+                    <a class="page-link"
+                       th:unless="${kw != null}"
+                       th:href="@{'?page=' + ${page + 1}}">
+                        Next
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
 </section>
 
 <div th:replace="~{base :: footer}"></div>

@@ -36,11 +36,18 @@ public class ApiUserController {
     @PostMapping(path = "/register",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ResponseStatus(HttpStatus.CREATED)
     @CrossOrigin
-    public void addUser(@RequestParam Map<String, String> params,
-                        @RequestPart("avatar") MultipartFile avatar) {
-        this.userService.addUser(params, avatar);
+    public ResponseEntity addUser(@RequestParam Map<String, String> params,
+                                  @RequestPart("avatar") MultipartFile avatar) {
+        try {
+            this.userService.addUser(params, avatar);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("Register error: ", e.getMessage()));
+        }
     }
 
     @PostMapping("/login")
@@ -56,7 +63,6 @@ public class ApiUserController {
         this.userService.changePassword(changePasswordDto);
         return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/{username}")
     @CrossOrigin

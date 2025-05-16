@@ -27,7 +27,9 @@ import java.util.List;
         @NamedQuery(name = "Post.findByBlockedComment", query = "SELECT p FROM Post p WHERE p.blockedComment = :blockedComment"),
         @NamedQuery(name = "Post.findByActive", query = "SELECT p FROM Post p WHERE p.active = :active"),
         @NamedQuery(name = "Post.findByCreatedAt", query = "SELECT p FROM Post p WHERE p.createdAt = :createdAt"),
-        @NamedQuery(name = "Post.findAllByUserId", query = "SELECT p from Post p WHERE p.user = :userId")})
+        @NamedQuery(name = "Post.findAllByUserId", query = "SELECT p from Post p WHERE p.user = :userId"),
+        @NamedQuery(name = "Post.count", query = "SELECT COUNT(p) FROM Post p")
+})
 
 public class Post implements Serializable {
 
@@ -60,6 +62,14 @@ public class Post implements Serializable {
     @Column(nullable = true)
     @JsonIgnore
     List<PostImage> images;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Comment> comments;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Reaction> reactions;
 
     public Post() {
 
@@ -143,6 +153,22 @@ public class Post implements Serializable {
 
     public void setImages(List<PostImage> images) {
         this.images = images;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
+    public List<Reaction> getReactions() {
+        return reactions;
+    }
+
+    public void setReactions(List<Reaction> reactions) {
+        this.reactions = reactions;
     }
 
     @Override
