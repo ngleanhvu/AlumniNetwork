@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class ApiCommentController {
 
         return new ResponseEntity<>(this.commentService.getPaginateComments(postId, cursorDate, limit, null), HttpStatus.OK );
     }
+
 
     @GetMapping("{postId}/comments/{commentId}")
     public ResponseEntity<List<CommentDto>> getMoreReplies(@PathVariable(value = "postId") int postId, @PathVariable(value = "commentId") int commentId,
@@ -88,10 +90,7 @@ public class ApiCommentController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    @PutMapping(path = "/{postId}/comments/{commentId}",
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE}
-    )
+    @PostMapping(path = "/{postId}/comments/{commentId}")
     public ResponseEntity<CommentDto> updateComment(@RequestBody Map<String, String> params, @PathVariable(value = "postId") int postId, @PathVariable(value = "commentId") int commentId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = this.userService.getUserByUsername(auth.getName());
@@ -100,16 +99,11 @@ public class ApiCommentController {
         if (comment == null || comment.getPost().getId() != postId)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        if (!user.equals(comment.getUser()))
+
+        if (!user.getId().equals(comment.getUser().getId())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        System.out.println("Get new conntent");
-        String newContent = params.get("content");
-        if (newContent != null && !newContent.trim().isEmpty()) {
-            comment.setContent(newContent);
-            System.out.printf("Update content: %s", newContent);
-            return new ResponseEntity<>(this.commentService.updateComment(comment), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
+        return new ResponseEntity<>(this.commentService.updateComment(params, comment, user), HttpStatus.OK);
     }
 }

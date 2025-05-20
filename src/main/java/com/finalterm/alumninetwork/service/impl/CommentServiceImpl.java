@@ -10,6 +10,7 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.CommentRepository;
 import com.finalterm.alumninetwork.service.CommentService;
 import com.finalterm.alumninetwork.util.CommentUtil;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,6 +37,24 @@ public class CommentServiceImpl implements CommentService {
     private RedisTemplate<String, Object> objectRedisTemplate;
     @Autowired
     private ObjectMapper objectMapper;
+
+
+    @Override
+    @Transactional
+    public CommentDto updateComment(Map<String, String> params, Comment comment, User user) {
+        String content = params.get("content");
+        comment.setContent(content);
+
+        //Cache lai noi dung comment
+        String commentContentKey= CommentUtil.generateCommentContentKey(String.valueOf(comment.getId()));
+        redisTemplate.delete(commentContentKey);
+
+        Comment newComment = this.commentRepository.saveOrUpdate(comment);
+
+        Comment updatedComment = this.commentRepository.getAllLazyRelationsById(newComment.getId());
+
+        return CommentMapper.toCommentDTO(updatedComment);
+    }
 
     @Override
     @Transactional
@@ -64,6 +83,7 @@ public class CommentServiceImpl implements CommentService {
         return this.saveRootComment(comment);
     }
 
+
     private CommentDto saveReplyComment(Comment comment, int parentCommentId) {
         Comment parentComment = commentRepository.getCommentById(parentCommentId);
         if (parentComment == null) {
@@ -73,6 +93,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setParentCommentId(parentComment);
         Comment savedComment = commentRepository.saveOrUpdate(comment);
 
+        //Cache lại số lượng replies của Comment cha
         String parentCommentContentKey = CommentUtil.generateCommentContentKey(String.valueOf(comment.getParentCommentId().getId()));
         redisTemplate.delete(parentCommentContentKey);
 
@@ -227,11 +248,6 @@ public class CommentServiceImpl implements CommentService {
         return this.commentRepository.getCommentById(commentId);
     }
 
-    @Override
-    @Transactional
-    public CommentDto updateComment(Comment comment) {
-        return CommentMapper.toCommentDTO(this.commentRepository.saveOrUpdate(comment));
-    }
 
     @Override
     public Integer getTotalCommentByPostId(int postId) {

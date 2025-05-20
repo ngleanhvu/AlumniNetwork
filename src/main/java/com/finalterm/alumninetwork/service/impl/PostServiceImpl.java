@@ -188,7 +188,11 @@ public class PostServiceImpl implements PostService {
 
                         this.postImageService.saveOrUpdate(postImage);
 
+                        if (p.getImages() == null)
+                            p.setImages(new ArrayList<>());
+
                         p.getImages().add(postImage);
+
                     } catch (IOException e) {
                         throw new RuntimeException("Error upload Cloudinary", e);
                     }

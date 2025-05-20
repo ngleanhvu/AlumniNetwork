@@ -90,6 +90,23 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
+    public Comment getAllLazyRelationsById(int id) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Comment> query = builder.createQuery(Comment.class);
+        Root<Comment> root = query.from(Comment.class);
+
+        root.fetch("replies", JoinType.LEFT);
+        root.fetch("post", JoinType.LEFT);
+        root.fetch("user", JoinType.LEFT);
+        root.fetch("parentCommentId", JoinType.LEFT);
+
+        query.where(builder.equal(root.get("id"), id));
+
+        return session.createQuery(query).getSingleResult();
+    }
+
+    @Override
     public List<Comment> getCommentsByList(List<Integer> commentIds) {
         if (commentIds == null || commentIds.isEmpty()) {
             return Collections.emptyList();
