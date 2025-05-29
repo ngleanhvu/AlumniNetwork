@@ -96,14 +96,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllUsers() {
+        return this.userRepository.getAllUsers();
+    }
+
+    @Override
     public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
             throw new RuntimeException("User not found");
-        if (!user.getActive())
-            throw new RuntimeException("User not active");
-        if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
-            throw new RuntimeException("Incorrect password");
         UserRole role = user.getRole();
         if (role == UserRole.ROLE_LECTURER) {
             LecturerInfo lecturerInfo = user.getLecturerInfo();
@@ -111,6 +112,10 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("Password expired");
             }
         }
+        if (!user.getActive())
+            throw new RuntimeException("User not active");
+        if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
+            throw new RuntimeException("Incorrect password");
         return jwtService.generateTokenLogin(username);
     }
 

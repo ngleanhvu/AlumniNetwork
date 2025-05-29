@@ -158,4 +158,14 @@ public class UserRepositoryImpl implements UserRepository {
         return count.intValue();
     }
 
+    @Override
+    public List<User> getAllUsers() {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+        query.where(root.get("role").in(UserRole.ROLE_ALUMNI, UserRole.ROLE_LECTURER));
+        Query q = session.createQuery(query);
+        return q.getResultList();
+    }
 }

@@ -14,6 +14,7 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
                 RabbitMQConfig.class,
                 SecurityConfig.class,
                 RedisConfig.class,
+                FirebaseConfig.class
         };
     }
 

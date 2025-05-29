@@ -15,5 +15,6 @@ public interface UserRepository {
     List<User> getAllUserExactAdmin();
     List<User> getUserByIds(List<Integer> userIds);
     int countUsers();
+    List<User> getAllUsers();
 }
 

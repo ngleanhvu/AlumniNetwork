@@ -1,10 +1,13 @@
 package com.finalterm.alumninetwork.controller.admin;
 
+import com.finalterm.alumninetwork.dto.EmailRecord;
+import com.finalterm.alumninetwork.dto.response.EventDTO;
 import com.finalterm.alumninetwork.pojo.Event;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.service.EventService;
 import com.finalterm.alumninetwork.service.GroupService;
 import com.finalterm.alumninetwork.service.UserService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +29,8 @@ public class EventController {
     private GroupService groupService;
     @Autowired
     private Environment env;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @GetMapping("/admin")
     public String manageEvent(Model model,
@@ -80,9 +85,31 @@ public class EventController {
     @PostMapping("/admin/send-email")
     public String sendEvent(@ModelAttribute("event") Event e,
                             @RequestParam(value = "userIds", required = false) List<Integer> userIds,
-                            @RequestParam(value = "groupIds", required = false) List<Integer> groupIds) {
+                            @RequestParam(value = "groupIds", required = false) List<Integer> groupIds,
+                            @RequestParam(value = "all", required = false) Boolean all) {
         Event event = this.eventService.getEventById(e.getId());
-        this.eventService.sendEvent(event, userIds, groupIds);
+        if (all != null) {
+            List<User> users = this.userService.getAllUsers();
+
+            EventDTO eventDTO = new EventDTO();
+            eventDTO.setId(event.getId());
+            eventDTO.setTitle(event.getTitle());
+            eventDTO.setStartTime(event.getStartTime());
+            eventDTO.setEndTime(event.getEndTime());
+
+            List<EmailRecord> emailRecords = users.stream()
+                    .map(user -> new EmailRecord(user.getEmail(), event.getTitle(), event.getContent()))
+                    .toList();
+
+            rabbitTemplate.convertAndSend(
+                    Objects.requireNonNull(env.getProperty("rabbitmq.exchange.name")),
+                    Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
+                    emailRecords
+            );
+        }
+        else {
+            this.eventService.sendEvent(event, userIds, groupIds);
+        }
         return "redirect:/events/admin";
     }
 

@@ -8,6 +8,8 @@ import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.repository.EventRepository;
 import com.finalterm.alumninetwork.repository.UserRepository;
 import com.finalterm.alumninetwork.service.*;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -80,7 +82,6 @@ public class EventServiceImpl implements EventService {
         if (allReceiptUsers.isEmpty()) {
             return;
         }
-
         EventDTO eventDTO = new EventDTO();
         eventDTO.setId(event.getId());
         eventDTO.setTitle(event.getTitle());
@@ -96,6 +97,30 @@ public class EventServiceImpl implements EventService {
                 Objects.requireNonNull(env.getProperty("rabbitmq.routing.key.name")),
                 emailRecords
         );
+
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+
+        for (User user : allReceiptUsers) {
+            String path = "notifications/" + user.getId();
+            DatabaseReference userNotifRef = dbRef.child(path).push(); // auto-ID
+
+            Map<String, Object> notifData = new HashMap<>();
+            notifData.put("type", "event");
+
+            // Tạo message tổng hợp (có thể tùy chỉnh tùy theo UI)
+            String message = "đã tạo sự kiện: " + event.getTitle();
+
+            notifData.put("message", message);
+            notifData.put("fromUser", Map.of(
+                    "name", "admin",   // hoặc lấy tên người tạo event
+                    "avatar", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgJMFsyQlqFwvHOYF0fEijnJjaNRsNDBfi1Q&s" // avatar người tạo event
+            ));
+            notifData.put("eventId", event.getId());
+            notifData.put("createdAt", System.currentTimeMillis());
+            notifData.put("read", false);
+
+            userNotifRef.setValueAsync(notifData);
+        }
 
     }
 
