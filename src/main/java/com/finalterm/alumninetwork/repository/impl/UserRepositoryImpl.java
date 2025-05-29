@@ -3,18 +3,19 @@ package com.finalterm.alumninetwork.repository.impl;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.UserRepository;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.geo.Circle;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Repository
 @Transactional
@@ -43,17 +44,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> getUserByUsername(String username) {
+    public User getUserByUsername(String username) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createNamedQuery("User.findByUsername", User.class);
         query.setParameter("username", username);
-
-        try {
-            User user = (User) query.getSingleResult();
-            return Optional.of(user);
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+        return (User) query.getSingleResult();
     }
 
     @Override
@@ -156,11 +151,21 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public long countUsers() {
+    public int countUsers() {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createNamedQuery("User.count");
         Long count = (Long) query.getSingleResult();
         return count.intValue();
     }
 
+    @Override
+    public List<User> getAllUsers() {
+        Session session = this.factoryBean.getObject().getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> query = builder.createQuery(User.class);
+        Root<User> root = query.from(User.class);
+        query.where(root.get("role").in(UserRole.ROLE_ALUMNI, UserRole.ROLE_LECTURER));
+        Query q = session.createQuery(query);
+        return q.getResultList();
+    }
 }
