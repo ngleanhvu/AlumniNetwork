@@ -27,7 +27,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void saveGroup(GroupNetwork groupNetwork) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = this.userRepository.getUserByUsername(auth.getName());
+        User user = this.userRepository.getUserByUsername(auth.getName()).orElseThrow(() -> new RuntimeException("User not found"));
         groupNetwork.setUser(user);
         this.groupRepository.saveGroup(groupNetwork);
     }

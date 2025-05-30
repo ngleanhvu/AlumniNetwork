@@ -97,13 +97,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String login(String username, String password) {
-        User user = this.userRepository.getUserByUsername(username);
-        if (user == null)
-            throw new RuntimeException("User not found");
+        User user = this.userRepository.getUserByUsername(username).orElseThrow(
+                () -> new RuntimeException("User not found"));
+
         if (!user.getActive())
             throw new RuntimeException("User not active, wait for acceptance by admin");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
             throw new RuntimeException("Incorrect password");
+
         return jwtService.generateTokenLogin(username);
     }
 
@@ -151,7 +152,7 @@ public class UserServiceImpl implements UserService {
 //        if (user != null) {
 //            return user;
 //        }
-        User user = this.userRepository.getUserByUsername(username);
+        User user = this.userRepository.getUserByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 //        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
         return user;
     }
@@ -194,10 +195,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User u = this.userRepository.getUserByUsername(username);
-        if (u == null) {
-            throw new UsernameNotFoundException(username);
-        }
+        User u = this.userRepository.getUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(u.getRole().name()));
         return new org.springframework.security.core.userdetails.User(

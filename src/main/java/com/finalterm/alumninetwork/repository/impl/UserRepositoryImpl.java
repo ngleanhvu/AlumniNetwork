@@ -3,6 +3,7 @@ package com.finalterm.alumninetwork.repository.impl;
 import com.finalterm.alumninetwork.pojo.User;
 import com.finalterm.alumninetwork.pojo.UserRole;
 import com.finalterm.alumninetwork.repository.UserRepository;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
@@ -12,10 +13,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Repository
 @Transactional
@@ -44,11 +42,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User getUserByUsername(String username) {
+    public Optional<User> getUserByUsername(String username) {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createNamedQuery("User.findByUsername", User.class);
         query.setParameter("username", username);
-        return (User) query.getSingleResult();
+
+        try {
+            User user = (User) query.getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
