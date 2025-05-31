@@ -12,6 +12,7 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     networks:
       - backend
+    restart: unless-stopped
 
   redis:
     image: redis:latest
@@ -20,6 +21,69 @@ services:
       - "6379:6379"
     networks:
       - backend
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0-oracle
+    container_name: mysql
+    ports:
+      - "3120:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234           # đồng bộ với config ứng dụng
+      MYSQL_DATABASE: alumni_network      # tạo database mặc định
+    volumes:
+      - mysql_data:/var/lib/mysql         # giữ dữ liệu mysql persistent
+    networks:
+      - backend
+    restart: unless-stopped
+
+  alumni_network_backend:
+    image: alumni-network
+    container_name: alumni_network_backend
+    ports:
+      - "8080:8080"
+    environment:
+      # MySQL config
+      HIBERNATE_CONNECTION_URL: jdbc:mysql://mysql:3306/alumni_network?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      HIBERNATE_CONNECTION_USERNAME: root
+      HIBERNATE_CONNECTION_PASSWORD: 1234
+
+      # Redis config
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_CACHE_TYPE: redis
+
+      # RabbitMQ config
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+      # Các biến môi trường khác nếu cần (Cloudinary, Mail, Zoom, Jwt...)
+      CLOUDINARY_CLOUD_NAME: dea1l3vvu
+      CLOUDINARY_API_KEY: 632729326888512
+      CLOUDINARY_API_SECRET: lOmmfYvysmFHA1lgmPZRg0hUuZM
+
+      SPRING_MAIL_USERNAME: vunguyen.0208200402@gmail.com
+      SPRING_MAIL_PASSWORD: jaimxeyikyewiufp
+
+      ZOOM_ACCOUNT_ID: r2x_XZ3STB2I2ZtHK9kWNA
+      ZOOM_CLIENT_ID: YjnZDm42RTuUlQc_Q7UP2Q
+      ZOOM_CLIENT_SECRET: vkA8wtGryKpl3QCu3oZwNO9aoN4U7XHg
+
+      LECTURER_INFO_PASSWORD: ou@123
+
+      JWT_SECRET_KEY: Vuhdk3F7pQ1zLs8B9mEnTg4cXr2sAyKd
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+    networks:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
 
 networks:
   backend:
