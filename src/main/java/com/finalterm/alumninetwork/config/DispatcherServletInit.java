@@ -1,10 +1,13 @@
 package com.finalterm.alumninetwork.config;
 
+
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletRegistration;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return new Class[]{
@@ -14,7 +17,8 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
                 RabbitMQConfig.class,
                 SecurityConfig.class,
                 RedisConfig.class,
-                FirebaseConfig.class
+                FirebaseConfig.class,
+                DotenvPropertyConfig.class
         };
     }
 

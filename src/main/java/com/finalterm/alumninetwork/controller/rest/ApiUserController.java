@@ -106,8 +106,7 @@ public class ApiUserController {
             if (idToken != null) {
                 String email = idToken.getPayload().getEmail();
                 User user = this.userService.getUserByEmail(email);
-                String jwt = this.jwtService.generateTokenLogin(user.getUsername());
-                return ResponseEntity.ok(Map.of("token", jwt));
+                return ResponseEntity.ok(this.jwtService.generateTokenLogin(user.getUsername()));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Token");
             }

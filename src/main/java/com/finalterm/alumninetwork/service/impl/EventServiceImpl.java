@@ -107,13 +107,12 @@ public class EventServiceImpl implements EventService {
             Map<String, Object> notifData = new HashMap<>();
             notifData.put("type", "event");
 
-            // Tạo message tổng hợp (có thể tùy chỉnh tùy theo UI)
-            String message = "đã tạo sự kiện: " + event.getTitle();
+            String message = "thông báo: " + event.getTitle();
 
             notifData.put("message", message);
             notifData.put("fromUser", Map.of(
-                    "name", "admin",   // hoặc lấy tên người tạo event
-                    "avatar", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgJMFsyQlqFwvHOYF0fEijnJjaNRsNDBfi1Q&s" // avatar người tạo event
+                    "name", "admin",
+                    "avatar", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgJMFsyQlqFwvHOYF0fEijnJjaNRsNDBfi1Q&s"
             ));
             notifData.put("eventId", event.getId());
             notifData.put("createdAt", System.currentTimeMillis());
