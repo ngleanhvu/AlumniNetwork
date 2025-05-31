@@ -31,24 +31,8 @@
             </div>
         </div>
     </form>
-    <div class="d-flex justify-content-end mt-1">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item" th:classappend="${page - 1 < 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{'?page=' + (${page} - 1)+'&kw='+${kw}}">Previous</a>
-                </li>
+    <a  th:href="@{/surveys/admin/add}" class="btn btn-success">Thêm bài khảo sát</a>
 
-                <li class="page-item" th:each="p : ${#numbers.sequence(1, totalPages)}" th:classappend="${p == page} ? 'active'">
-                    <a class="page-link" th:href="@{'?page=' + ${p}+'&kw='+${kw}}" th:text="${p}"></a>
-                </li>
-
-                <li class="page-item" th:classappend="${page + 1 > totalPages} ? 'disabled'">
-                    <a class="page-link" th:href="@{'?page=' + (${page} + 1)+'&kw='+${kw}}">Next</a>
-                </li>
-            </ul>
-        </nav>
-        <a  th:href="@{/surveys/admin/add}" class="btn btn-success">Thêm bài khảo sát</a>
-    </div>
     <hr>
     <table class="table">
         <tr>
@@ -79,6 +63,25 @@
             </td>
         </tr>
     </table>
+    <hr>
+    <div class="d-flex justify-content-center mt-1">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${page - 1 < 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{'?page=' + (${page} - 1)+'&kw='+${kw}}">Previous</a>
+                </li>
+
+                <li class="page-item" th:each="p : ${#numbers.sequence(1, totalPages)}" th:classappend="${p == page} ? 'active'">
+                    <a class="page-link" th:href="@{'?page=' + ${p}+'&kw='+${kw}}" th:text="${p}"></a>
+                </li>
+
+                <li class="page-item" th:classappend="${page + 1 > totalPages} ? 'disabled'">
+                    <a class="page-link" th:href="@{'?page=' + (${page} + 1)+'&kw='+${kw}}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
 </section>
 <div th:replace="base :: footer"></div>
 <script th:src="@{/js/survey.js}"></script>
