@@ -96,8 +96,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+<<<<<<< HEAD
     public List<User> getAllUsers() {
         return this.userRepository.getAllUsers();
+=======
+    public long countUsers() {
+        return this.userRepository.countUsers();
+>>>>>>> 059c2b5 (feat(service): add count users)
     }
 
     @Override

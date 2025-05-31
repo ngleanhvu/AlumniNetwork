@@ -14,7 +14,11 @@ public interface UserRepository {
     User getUserById(Integer userId);
     List<User> getAllUserExactAdmin();
     List<User> getUserByIds(List<Integer> userIds);
+<<<<<<< HEAD
     int countUsers();
     List<User> getAllUsers();
+=======
+    long countUsers();
+>>>>>>> 059c2b5 (feat(service): add count users)
 }
 
