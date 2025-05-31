@@ -152,7 +152,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-<<<<<<< HEAD
     public int countUsers() {
         Session session = this.factoryBean.getObject().getCurrentSession();
         Query query = session.createNamedQuery("User.count");
@@ -170,15 +169,4 @@ public class UserRepositoryImpl implements UserRepository {
         Query q = session.createQuery(query);
         return q.getResultList();
     }
-=======
-    public long countUsers() {
-        Session session = this.factoryBean.getObject().getCurrentSession();
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Long> query = builder.createQuery(Long.class);
-        Root<User> root = query.from(User.class);
-        query.select(builder.count(root));
-        return session.createQuery(query).getSingleResult();
-    }
-
->>>>>>> 059c2b5 (feat(service): add count users)
 }

@@ -96,24 +96,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-<<<<<<< HEAD
+
     public List<User> getAllUsers() {
         return this.userRepository.getAllUsers();
-=======
-    public long countUsers() {
-        return this.userRepository.countUsers();
->>>>>>> 059c2b5 (feat(service): add count users)
     }
 
     @Override
     public String login(String username, String password) {
         User user = this.userRepository.getUserByUsername(username);
-        if (user == null)
-            throw new RuntimeException("User not found");
+        if (user == null) {
+            throw  new UsernameNotFoundException("User not found");
+        }
         if (!user.getActive())
-            throw new RuntimeException("User not active");
+            throw new RuntimeException("User not active, wait for acceptance by admin");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
             throw new RuntimeException("Incorrect password");
+        UserRole role = user.getRole();
+        if (role == UserRole.ROLE_LECTURER) {
+            LecturerInfo lecturerInfo = user.getLecturerInfo();
+            if (!lecturerInfo.getChangedPassword() && lecturerInfo.getExpiredResetPasswordTime().before(new Date())) {
+                throw new RuntimeException("Password expired");
+            }
+        }
         return jwtService.generateTokenLogin(username);
     }
 
@@ -165,7 +169,6 @@ public class UserServiceImpl implements UserService {
 //        redisTemplate.opsForValue().set(key, user, 5, TimeUnit.MINUTES);
         return user;
     }
-
 
     @Override
     public boolean changePassword(ChangePasswordDto changePasswordDto) {
