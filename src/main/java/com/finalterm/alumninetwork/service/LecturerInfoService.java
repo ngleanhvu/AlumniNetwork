@@ -8,4 +8,5 @@ import java.util.Map;
 
 public interface LecturerInfoService {
     List<LecturerInfo> getLecturerInfos(Map<String, String> params);
+    LecturerInfo getLecturerInfoByUserId(Integer id);
 }

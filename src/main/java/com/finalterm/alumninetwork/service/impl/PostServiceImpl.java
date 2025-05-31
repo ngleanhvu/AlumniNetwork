@@ -203,10 +203,14 @@ public class PostServiceImpl implements PostService {
                 ? reactionService.initStatsReaction()
                 : reactionService.statsReactionByPostId(p.getId());
 
-        List<String> imgUrls = p.getImages().stream().map(PostImage::getUrl).toList();
+        List<String> imgUrls = Optional.ofNullable(p.getImages())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(PostImage::getUrl)
+                .toList();
 
         if (isNew) {
-            ZSetCacheNewPost(profileRedisKey, p);
+//            ZSetCacheNewPost(profileRedisKey, p);
 
             objectRedisTemplate.opsForValue().set(postKey, p);
             objectRedisTemplate.opsForValue().set(postCommentCountKey, totalComments);

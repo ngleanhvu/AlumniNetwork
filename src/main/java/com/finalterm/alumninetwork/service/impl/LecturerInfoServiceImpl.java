@@ -19,4 +19,10 @@ public class LecturerInfoServiceImpl implements LecturerInfoService {
     public List<LecturerInfo> getLecturerInfos(Map<String, String> params) {
         return lecturerInfoRepository.getLecturerInfos(params);
     }
+
+    @Override
+    public LecturerInfo getLecturerInfoByUserId(Integer id) {
+        return lecturerInfoRepository.getLecturerInfoByUserId(id);
+    }
 }
+

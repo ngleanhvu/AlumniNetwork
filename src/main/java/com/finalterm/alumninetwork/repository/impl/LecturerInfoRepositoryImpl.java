@@ -66,4 +66,12 @@ public class LecturerInfoRepositoryImpl implements LecturerInfoRepository {
         query.setParameter("id", id);
         return (LecturerInfo) query.uniqueResult();
     }
+
+    @Override
+    public LecturerInfo getLecturerInfoByUserId(Integer id) {
+        Session session = sessionFactory.getObject().getCurrentSession();
+        Query query = session.createQuery("from LecturerInfo where user.id = :id");
+        query.setParameter("id", id);
+        return (LecturerInfo) query.uniqueResult();
+    }
 }

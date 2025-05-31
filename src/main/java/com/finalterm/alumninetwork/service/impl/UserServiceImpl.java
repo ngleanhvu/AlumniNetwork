@@ -182,6 +182,7 @@ public class UserServiceImpl implements UserService {
         LecturerInfo lecturerInfo = user.getLecturerInfo();
         if (lecturerInfo.getExpiredResetPasswordTime().before(new Date()))
             throw new RuntimeException("Expired reset password");
+        
         lecturerInfo.setChangedPassword(true);
         user.setPassword(bCryptPasswordEncoder.encode(changePasswordDto.getPassword()));
         user.setActive(true);

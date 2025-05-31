@@ -9,4 +9,5 @@ public interface LecturerInfoRepository {
     void saveLecturerInfo(LecturerInfo lecturerInfo);
     List<LecturerInfo> getLecturerInfos(Map<String, String> params);
     LecturerInfo getLecturerInfoById(Integer id);
+    LecturerInfo getLecturerInfoByUserId(Integer id);
 }

@@ -4,6 +4,7 @@
  */
 package com.finalterm.alumninetwork.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -35,6 +36,7 @@ public class LecturerInfo implements Serializable {
     private Date expiredResetPasswordTime;
     @Column(name = "changed_password")
     private Boolean changedPassword;
+    @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @OneToOne(optional = false, fetch = FetchType.EAGER)
     private User user;
