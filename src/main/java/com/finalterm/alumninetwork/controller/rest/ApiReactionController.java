@@ -33,40 +33,21 @@ public class ApiReactionController {
         return new ResponseEntity<>(stats, HttpStatus.OK);
     }
 
-//    @GetMapping("/{postId}/reactions")
-//    public ResponseEntity<List<ReactionDto>> getTypeStatsByPostId(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
-//        Post post = this.postService.getPostById(postId);
-//
-//        if (post == null)
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//
-//        String type = params.get("type");
-//        if (type == null || (!type.equals("LIKE") && !type.equals("LOVE") && !type.equals("HAHA"))) {
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
-//
-//        int page = params.get("page") == null ? 1 : Integer.parseInt(params.get("page"));
-//
-//        return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
-//    }
-
     @GetMapping("/{postId}/reactions")
-    public ResponseEntity<ReactionDto> getReactionByPostIdAndUserId(@PathVariable(value = "postId") int postId) {
-        User user = userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+    public ResponseEntity<List<ReactionDto>> getTypeStatsByPostId(@PathVariable(name = "postId") int postId, @RequestBody Map<String, String> params) {
+        Post post = this.postService.getPostById(postId);
 
-        if (user == null)
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-        return new ResponseEntity<>(reactionService.getReactionByPostIdAndUserId(postId, user.getId()), HttpStatus.OK);
-    }
-
-    @GetMapping("/{postId}/reactions/typeReaction")
-    public ResponseEntity<List<ReactionDto>> getReactionTypeByPostId(@RequestParam Map<String, String> params, @PathVariable(value = "postId") int postId) {
+        if (post == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         String type = params.get("type");
-        int page = Integer.valueOf(params.get("page"));
+        if (type == null || (!type.equals("LIKE") && !type.equals("LOVE") && !type.equals("HAHA"))) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-        return new ResponseEntity<>(reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
+        int page = params.get("page") == null ? 1 : Integer.parseInt(params.get("page"));
 
+        return new ResponseEntity<>(this.reactionService.getTypeReactionByPostId(postId, type, page), HttpStatus.OK);
     }
+
 }

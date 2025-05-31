@@ -1,7 +1,5 @@
 package com.finalterm.alumninetwork.dto.response;
 
-import com.finalterm.alumninetwork.pojo.User;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -9,16 +7,23 @@ import java.util.Map;
 public class PostDTO {
     private Integer id;
     private String title;
-    private String content;
-    private Boolean blockedComment;
+    private Boolean blockedComment = false;
     private Boolean active = true;
     private Date createdAt;
-    private UserWithPostDto user;
     List<String> imgUrls;
     Map<String, Integer> statsReaction;
     int totalComments;
 
     public PostDTO() {}
+
+    public PostDTO(Integer id, String title, Boolean blockedComment, Boolean active, Date createdAt, List<String> imgUrls) {
+        this.id = id;
+        this.title = title;
+        this.blockedComment = blockedComment;
+        this.active = active;
+        this.createdAt = createdAt;
+        this.imgUrls = imgUrls;
+    }
 
     public Integer getId() {
         return id;
@@ -60,14 +65,6 @@ public class PostDTO {
         this.createdAt = createdAt;
     }
 
-    public UserWithPostDto getUser() {
-        return user;
-    }
-
-    public void setUser(UserWithPostDto user) {
-        this.user = user;
-    }
-
     public List<String> getImgUrls() {
         return imgUrls;
     }
@@ -90,13 +87,5 @@ public class PostDTO {
 
     public void setTotalComments(int totalComments) {
         this.totalComments = totalComments;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 }

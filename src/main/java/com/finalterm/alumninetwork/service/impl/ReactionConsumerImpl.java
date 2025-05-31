@@ -9,6 +9,7 @@ import com.finalterm.alumninetwork.service.PostService;
 import com.finalterm.alumninetwork.service.ReactionConsumer;
 import com.finalterm.alumninetwork.service.ReactionService;
 import com.finalterm.alumninetwork.service.UserService;
+import com.finalterm.alumninetwork.util.PostUtil;
 import com.finalterm.alumninetwork.util.ReactionUtil;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -56,19 +57,11 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         // Get Post
         Post post = this.postService.getPostById(reactionDto.getPostId());
 
-        Reaction existingReaction = reactionRepository.getReactionByPostIdAndUserId(reactionDto.getPostId(), user.getId());
-        Reaction reaction;
-
-        if (existingReaction != null) {
-            existingReaction.setType(reactionDto.getType());
-            reaction = existingReaction;
-        } else {
-            reaction = new Reaction();
-            reaction.setCreatedDate(new Date(reactionDto.getCreatedDate()));
-            reaction.setPost(post);
-            reaction.setUser(user);
-            reaction.setType(reactionDto.getType());
-        }
+        Reaction reaction = new Reaction();
+        reaction.setCreatedDate(new Date(reactionDto.getCreatedDate()));
+        reaction.setPost(post);
+        reaction.setUser(user);
+        reaction.setType(reactionDto.getType());
 
         // Save reaction into database
         reactionRepository.addOrUpdateReaction(reaction);
@@ -85,8 +78,7 @@ public class ReactionConsumerImpl implements ReactionConsumer {
         fields.put("postId", String.valueOf(post.getId()));
         fields.put("username", user.getUsername());
 
-        redisTemplate.opsForHash().putAll(newHashReactionKey, fields);
-        redisTemplate.expire(newHashReactionKey, 2, TimeUnit.MINUTES);
+        redisTemplate.expire(newHashReactionKey, 1, TimeUnit.MINUTES);
 //
 //        // Xóa element cũ trong ZSet
 //        redisTemplate.opsForZSet().remove(zSetPostKey, oldHashReactionKey);
@@ -94,6 +86,7 @@ public class ReactionConsumerImpl implements ReactionConsumer {
 //        // Add element mới vào ZSet
 //        redisTemplate.opsForZSet().add(zSetPostKey, newHashReactionKey, reaction.getCreatedDate().getTime());
     }
+
 
     @RabbitListener(queues = "post.reaction.delete.queue", containerFactory = "rabbitListenerContainerFactory")
     @Override

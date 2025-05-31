@@ -1,3 +1,4 @@
+
 package com.finalterm.alumninetwork.repository;
 
 import com.finalterm.alumninetwork.pojo.PostImage;
@@ -9,3 +10,4 @@ public interface PostImageRepository {
     PostImage saveOrUpdate(PostImage postImages);
     List<PostImage> getPostImagesByPostId(int postId);
 }
+

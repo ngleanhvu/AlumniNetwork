@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -7,9 +8,6 @@ package com.finalterm.alumninetwork.pojo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import java.io.Serializable;
 
 /**
@@ -22,8 +20,8 @@ import java.io.Serializable;
     @NamedQuery(name = "PostImage.findAll", query = "SELECT p FROM PostImage p"),
     @NamedQuery(name = "PostImage.findById", query = "SELECT p FROM PostImage p WHERE p.id = :id"),
     @NamedQuery(name = "PostImage.findByUrl", query = "SELECT p FROM PostImage p WHERE p.url = :url"),
-    @NamedQuery(name = "PostImage.findByPostId", query = "SELECT p FROM PostImage  p WHERE p.post.id = :postId")})
-
+    @NamedQuery(name = "PostImage.findByPostId", query = "SELECT p FROM PostImage  p WHERE p.post.id = :postId")
+})
 public class PostImage implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -40,7 +38,6 @@ public class PostImage implements Serializable {
 
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
     public PostImage() {
@@ -105,3 +102,4 @@ public class PostImage implements Serializable {
     }
 
 }
+
