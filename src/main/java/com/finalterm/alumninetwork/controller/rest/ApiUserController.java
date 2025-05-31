@@ -38,24 +38,16 @@ public class ApiUserController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(HttpStatus.CREATED)
     @CrossOrigin
-    public ResponseEntity addUser(@RequestParam Map<String, String> params,
-                                  @RequestPart("avatar") MultipartFile avatar) {
-        try {
-            this.userService.addUser(params, avatar);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("Register error: ", e.getMessage()));
-        }
+    public void addUser(@RequestParam Map<String, String> params,
+                        @RequestPart("avatar") MultipartFile avatar) {
+        this.userService.addUser(params, avatar);
     }
 
     @PostMapping("/login")
     @CrossOrigin
-    public ResponseEntity<String> loginUser(@Valid @RequestBody LoginDto loginDto) {
-        return ResponseEntity
-                .ok(this.userService.login(loginDto.getUsername(), loginDto.getPassword()));
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto loginDto) {
+            return ResponseEntity
+                    .ok(this.userService.login(loginDto.getUsername(), loginDto.getPassword()));
     }
 
     @PostMapping("/change-password")
@@ -114,8 +106,7 @@ public class ApiUserController {
             if (idToken != null) {
                 String email = idToken.getPayload().getEmail();
                 User user = this.userService.getUserByEmail(email);
-                String jwt = this.jwtService.generateTokenLogin(user.getUsername());
-                return ResponseEntity.ok(Map.of("token", jwt));
+                return ResponseEntity.ok(this.jwtService.generateTokenLogin(user.getUsername()));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID Token");
             }

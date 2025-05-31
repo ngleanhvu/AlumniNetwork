@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.ParseException;
 import org.springframework.stereotype.Component;
 
@@ -12,14 +13,15 @@ import java.util.Date;
 
 @Component
 public class JwtService {
-    public static final String SECRET_KEY = "11111111111111111111111111111111";
-    public static final byte[] SHARED_SECRET_KEY = SECRET_KEY.getBytes();
+    @Value("${jwt_secret_key}")
+    private String SECRET_KEY;
+
     public static final int EXPIRE_TIME = 86400000;
 
     public String generateTokenLogin(String username) {
         String token = null;
         try {
-            JWSSigner signer = new MACSigner(SHARED_SECRET_KEY);
+            JWSSigner signer = new MACSigner(SECRET_KEY.getBytes());
 
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
             builder.claim("username", username);
@@ -40,7 +42,7 @@ public class JwtService {
         JWTClaimsSet claims = null;
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
-            JWSVerifier verifier = new MACVerifier(SHARED_SECRET_KEY);
+            JWSVerifier verifier = new MACVerifier(SECRET_KEY.getBytes());
             if (signedJWT.verify(verifier)) {
                 claims = signedJWT.getJWTClaimsSet();
             }
