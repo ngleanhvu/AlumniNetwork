@@ -110,13 +110,6 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.getUserByUsername(username);
         if (user == null)
             throw new RuntimeException("User not found");
-        UserRole role = user.getRole();
-        if (role == UserRole.ROLE_LECTURER) {
-            LecturerInfo lecturerInfo = user.getLecturerInfo();
-            if (!lecturerInfo.getChangedPassword() && lecturerInfo.getExpiredResetPasswordTime().before(new Date())) {
-                throw new RuntimeException("Password expired");
-            }
-        }
         if (!user.getActive())
             throw new RuntimeException("User not active");
         if(!bCryptPasswordEncoder.matches(password, user.getPassword()))
